@@ -7,6 +7,7 @@ import {
    HiOutlineDocumentText,
    HiOutlineBanknotes,
    HiOutlineShieldCheck,
+   HiOutlineUserCircle,
 } from 'react-icons/hi2';
 
 const menuItemsGroups = {
@@ -35,13 +36,17 @@ const MenuItem = ({ icon, name, isActive, onClick }: MenuItemProps) => (
       href="#"
       onClick={onClick}
       className={`
-      flex items-center gap-2 py-1 pl-3 pr-5 rounded-full font-semibold w-fit
-      transition-colors duration-150 
-      ${isActive ? 'bg-zinc-700 text-white' : 'text-zinc-300 hover:bg-zinc-700 hover:text-white'}
+      flex items-center gap-2 py-1 pl-2 pr-4 rounded-full font-semibold w-fit text-sm
+      transition-colors duration-200
+      ${
+         isActive
+            ? 'bg-zinc-700 text-white relative p-1 rounded-xl bg-gradient-to-r from-sky-400 to-indigo-600'
+            : 'text-zinc-300 hover:bg-zinc-600 hover:text-white'
+      }
     `}
    >
       {icon}
-      <span>{name}</span>
+      <span className="truncate">{name}</span>
    </a>
 );
 
@@ -49,7 +54,18 @@ export const Sidebar = () => {
    const [activeItem, setActiveItem] = useState('Facturar');
 
    return (
-      <aside className="w-64 bg-zinc-950 text-white p-4 flex flex-col gap-y-4">
+      <aside className="w-56 bg-zinc-950 text-white px-3 flex flex-col gap-y-3 border-r border-zinc-800">
+         <div className="flex items-center px-1 py-4">
+            <a
+               href="https://audiovideofp.com"
+               target="_blank"
+               rel="noopener noreferrer"
+               className="text-white text-2xl font-extrabold tracking-tight block"
+            >
+               AudioVideo
+            </a>
+         </div>
+
          <nav className="flex flex-col gap-y-4">
             {menuItemsGroups.primary.map(item => (
                <MenuItem
@@ -70,6 +86,15 @@ export const Sidebar = () => {
                />
             ))}
          </nav>
+
+         <div className="mt-auto text-sm pb-3">
+            <MenuItem
+               icon={<HiOutlineUserCircle size={24} />}
+               name="audiovideofp"
+               isActive={false}
+               onClick={() => {}}
+            />
+         </div>
       </aside>
    );
 };
