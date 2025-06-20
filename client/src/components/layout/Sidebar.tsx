@@ -11,23 +11,23 @@ import {
 
 const menuItemsGroups = {
    primary: [
-      { name: 'Consultar', icon: <HiOutlineChatBubbleLeftRight size={24} /> },
-      { name: 'Facturar', icon: <HiOutlineClipboardDocumentList size={24} /> },
+      { name: 'Chat', icon: <HiOutlineChatBubbleLeftRight size={20} /> },
+      { name: 'Facturar', icon: <HiOutlineClipboardDocumentList size={20} /> },
    ],
    management: [
-      { name: 'Inventario', icon: <HiOutlineArchiveBox size={24} /> },
-      { name: 'Clientes', icon: <HiOutlineUsers size={24} /> },
-      { name: 'Facturas', icon: <HiOutlineDocumentText size={24} /> },
-      { name: 'Saldos', icon: <HiOutlineBanknotes size={24} /> },
-      { name: 'Garantías', icon: <HiOutlineShieldCheck size={24} /> },
+      { name: 'Inventario', icon: <HiOutlineArchiveBox size={20} /> },
+      { name: 'Ventas', icon: <HiOutlineDocumentText size={20} /> },
+      { name: 'Clientes', icon: <HiOutlineUsers size={20} /> },
+      { name: 'Saldos a favor', icon: <HiOutlineBanknotes size={20} /> },
+      { name: 'Garantías', icon: <HiOutlineShieldCheck size={20} /> },
    ],
 };
 
 type MenuItemProps = {
-   icon: ReactNode; // 'icon' será un nodo de React (nuestro ícono JSX).
-   name: string; // 'name' siempre será un texto (string).
-   isActive: boolean; // 'isActive' será un valor verdadero o falso (boolean).
-   onClick: () => void; // 'onClick' será una función que no recibe argumentos y no retorna nada.
+   icon: ReactNode;
+   name: string;
+   isActive: boolean;
+   onClick: () => void;
 };
 
 const MenuItem = ({ icon, name, isActive, onClick }: MenuItemProps) => (
@@ -35,9 +35,9 @@ const MenuItem = ({ icon, name, isActive, onClick }: MenuItemProps) => (
       href="#"
       onClick={onClick}
       className={`
-      flex items-center gap-x-3 p-3 rounded-lg font-semibold
+      flex items-center gap-2 py-1 pl-3 pr-5 rounded-full font-semibold w-fit
       transition-colors duration-150 
-      ${isActive ? 'bg-gray-700 text-white' : 'text-gray-400 hover:bg-gray-700 hover:text-white'}
+      ${isActive ? 'bg-zinc-700 text-white' : 'text-zinc-300 hover:bg-zinc-700 hover:text-white'}
     `}
    >
       {icon}
@@ -49,8 +49,8 @@ export const Sidebar = () => {
    const [activeItem, setActiveItem] = useState('Facturar');
 
    return (
-      <aside className="w-64 bg-gray-800 text-white p-4 flex flex-col gap-y-6">
-         <nav className="flex flex-col gap-y-2">
+      <aside className="w-64 bg-zinc-950 text-white p-4 flex flex-col gap-y-4">
+         <nav className="flex flex-col gap-y-4">
             {menuItemsGroups.primary.map(item => (
                <MenuItem
                   key={item.name}
@@ -60,7 +60,7 @@ export const Sidebar = () => {
                />
             ))}
          </nav>
-         <nav className="flex flex-col gap-y-2">
+         <nav className="flex flex-col gap-y-1">
             {menuItemsGroups.management.map(item => (
                <MenuItem
                   key={item.name}
