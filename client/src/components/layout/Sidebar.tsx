@@ -36,11 +36,11 @@ const MenuItem = ({ icon, name, path }: MenuItemProps) => (
       to={path}
       className={({ isActive }) => `
          flex items-center gap-2 py-1 pl-2 pr-4
-         rounded-full font-semibold w-fit text-sm
+         rounded-full font-semibold w-fit 
          transition-colors duration-150
          ${
             isActive
-               ? 'bg-zinc-700 text-white relative p-1 rounded-xl bg-gradient-to-r from-sky-400 to-indigo-600'
+               ? 'bg-zinc-700 text-white relative p-1 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600'
                : 'text-zinc-300 hover:bg-zinc-600 hover:text-white'
          }
          `}
@@ -64,12 +64,12 @@ export const Sidebar = () => {
             </a>
          </div>
 
-         <nav className="flex flex-col gap-y-4">
+         <nav className="flex flex-col gap-y-5">
             {menuItemsGroups.primary.map(item => (
                <MenuItem key={item.name} {...item} />
             ))}
          </nav>
-         <nav className="flex flex-col gap-y-1">
+         <nav className="flex flex-col pt-2">
             {menuItemsGroups.management.map(item => (
                <MenuItem key={item.name} {...item} />
             ))}

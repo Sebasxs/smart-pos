@@ -32,6 +32,7 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
                   const rawValue = e.target.value.replace(/[^0-9]/g, '');
                   onUpdate(item.id, { price: Number(rawValue) });
                }}
+               onFocus={e => e.target.select()}
                className="
                   w-full bg-transparent font-semibold text-center rounded-lg p-1
                   hover:ring-1 hover:ring-zinc-500 hover:bg-zinc-800
