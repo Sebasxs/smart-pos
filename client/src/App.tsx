@@ -13,7 +13,7 @@ function App() {
       <div className="h-screen w-screen bg-zinc-900 flex text-zinc-200">
          <Sidebar />
 
-         <main className="flex-1 p-6 pt-4 overflow-y-auto">
+         <main className="flex-1 p-6 overflow-y-auto">
             <Routes>
                <Route path="/" element={<Navigate to="/billing" replace />} />
                <Route path="/chat" element={<Chat />} />

@@ -1,19 +1,21 @@
 import { HiOutlineTrash } from 'react-icons/hi2';
 import { QuantitySelector } from '../ui/QuantitySelector';
+import { type InvoiceItem } from '../../types/billing';
 
-const dummyItem = {
-   name: 'Teclado Mecánico RGB',
-   quantity: 3,
-   price: 23000,
+type InvoiceItemRowProps = {
+   item: InvoiceItem;
+   onUpdate: (id: string, newValues: Partial<InvoiceItem>) => void;
+   onRemove: (id: string) => void;
 };
 
-const InvoiceItemRow = () => {
+const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
    return (
-      <div className="grid grid-cols-12 gap-4 items-center p-1 rounded-xl hover:bg-zinc-700">
+      <div className="grid grid-cols-12 gap-4 gap-x-2 items-center p-1 rounded-xl hover:bg-zinc-700">
          <div className="col-span-5 pl-1">
             <input
                type="text"
-               defaultValue={dummyItem.name}
+               value={item.name}
+               onChange={e => onUpdate(item.id, { name: e.target.value })}
                className="
                   w-full bg-transparent rounded-lg p-1
                   hover:ring-1 hover:ring-zinc-500 hover:bg-zinc-800
@@ -25,7 +27,11 @@ const InvoiceItemRow = () => {
          <div className="col-span-2">
             <input
                type="text"
-               defaultValue={dummyItem.price.toLocaleString('es-CO')}
+               value={item.price.toLocaleString('es-CO')}
+               onChange={e => {
+                  const rawValue = e.target.value.replace(/[^0-9]/g, '');
+                  onUpdate(item.id, { price: Number(rawValue) });
+               }}
                className="
                   w-full bg-transparent font-semibold text-center rounded-lg p-1
                   hover:ring-1 hover:ring-zinc-500 hover:bg-zinc-800
@@ -36,13 +42,22 @@ const InvoiceItemRow = () => {
             />
          </div>
          <div className="col-span-2 flex justify-center">
-            <QuantitySelector value={dummyItem.quantity} />
+            <QuantitySelector
+               value={item.quantity}
+               onIncrease={() => onUpdate(item.id, { quantity: item.quantity + 1 })}
+               onDecrease={() => onUpdate(item.id, { quantity: Math.max(1, item.quantity - 1) })}
+               onQuantityChange={newQuantity => {
+                  const finalQuantity = newQuantity > 0 ? newQuantity : 1;
+                  onUpdate(item.id, { quantity: finalQuantity });
+               }}
+            />
          </div>
          <div className="col-span-2 font-semibold text-center">
-            <span>{(dummyItem.quantity * dummyItem.price).toLocaleString('es-CO')}</span>
+            <span>{(item.quantity * item.price).toLocaleString('es-CO')}</span>
          </div>
          <div className="col-span-1 flex justify-end">
             <button
+               onClick={() => onRemove(item.id)}
                className="
                   text-red-500 rounded-full p-2
                   hover:text-red-400 hover:bg-red-900/60 transition-colors duration-200
@@ -56,7 +71,13 @@ const InvoiceItemRow = () => {
    );
 };
 
-export const InvoiceTable = () => {
+type InvoiceTableProps = {
+   items: InvoiceItem[];
+   onUpdateItem: (id: string, newValues: Partial<InvoiceItem>) => void;
+   onRemoveItem: (id: string) => void;
+};
+
+export const InvoiceTable = ({ items, onUpdateItem, onRemoveItem }: InvoiceTableProps) => {
    return (
       <div className="bg-zinc-800 p-4 pl-3 rounded-lg">
          <div className="grid grid-cols-12 gap-4 text-left text-zinc-400 font-bold text-sm border-b-2 border-zinc-700 pb-2 mb-2">
@@ -68,9 +89,14 @@ export const InvoiceTable = () => {
          </div>
 
          <div className="flex flex-col">
-            <InvoiceItemRow />
-            <InvoiceItemRow />
-            <InvoiceItemRow />
+            {items.map(item => (
+               <InvoiceItemRow
+                  key={item.id}
+                  item={item}
+                  onUpdate={onUpdateItem}
+                  onRemove={onRemoveItem}
+               />
+            ))}
          </div>
       </div>
    );
