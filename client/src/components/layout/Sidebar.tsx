@@ -31,55 +31,81 @@ type MenuItemProps = {
    path: string;
 };
 
+const textOpacityTransition = `
+   transition-all duration-300 ease-in-out
+   opacity-0 lg:opacity-100
+   whitespace-nowrap 
+   max-w-0 lg:max-w-xs
+   pointer-events-none lg:pointer-events-auto
+   overflow-hidden
+`;
+
 const MenuItem = ({ icon, name, path }: MenuItemProps) => (
    <NavLink
       to={path}
       className={({ isActive }) => `
-         flex items-center gap-2 py-1 pl-2 pr-4
-         rounded-full font-semibold w-fit 
-         transition-colors duration-150
+         flex items-center gap-2 h-7 p-2
+         rounded-lg font-semibold
          ${
             isActive
-               ? 'bg-zinc-700 text-white relative p-1 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600'
+               ? 'bg-zinc-700 text-white relative bg-gradient-to-r from-blue-500 to-blue-600'
                : 'text-zinc-300 hover:bg-zinc-600 hover:text-white'
          }
          `}
+      title={name}
    >
-      {icon}
-      <span className="truncate">{name}</span>
+      <span className="shrink-0 justify-start">{icon}</span>
+      <span className={textOpacityTransition}>{name}</span>
    </NavLink>
 );
 
 export const Sidebar = () => {
    return (
-      <aside className="w-56 bg-zinc-950 text-white px-3 flex flex-col gap-y-3 border-r border-zinc-800">
-         <div className="flex items-center px-1 py-4">
+      <aside className="w-[52px] lg:w-52 bg-zinc-950 px-2 text-white flex flex-col transition-all duration-300 border-r border-zinc-800">
+         <div className="flex items-center py-4 overflow-hidden">
             <a
                href="https://audiovideofp.com"
                target="_blank"
                rel="noopener noreferrer"
-               className="text-white text-2xl font-extrabold tracking-tight block"
+               className="text-white text-2xl font-extrabold tracking-tight"
             >
-               AudioVideo
+               <span className={`${textOpacityTransition} pl-2`}>AudioVideo</span>
+               <span
+                  className="
+                        absolute top-4 
+                        transition-all duration-300 ease-in-out
+                        opacity-100 lg:opacity-0
+                        block
+                    "
+               >
+                  AV
+               </span>
             </a>
          </div>
 
-         <nav className="flex flex-col gap-y-5">
-            {menuItemsGroups.primary.map(item => (
-               <MenuItem key={item.name} {...item} />
-            ))}
-         </nav>
-         <nav className="flex flex-col pt-2">
-            {menuItemsGroups.management.map(item => (
-               <MenuItem key={item.name} {...item} />
-            ))}
-         </nav>
+         <div className="flex flex-col gap-y-5 flex-grow overflow-y-auto">
+            <nav className="flex flex-col gap-y-1 my-4">
+               <div className="flex flex-col gap-y-1">
+                  {menuItemsGroups.primary.map(item => (
+                     <MenuItem key={item.name} {...item} />
+                  ))}
+               </div>
+               <hr className="my-2 border-zinc-800" />
+               <div className="flex flex-col gap-y-1">
+                  {menuItemsGroups.management.map(item => (
+                     <MenuItem key={item.name} {...item} />
+                  ))}
+               </div>
+            </nav>
+         </div>
 
          <div className="flex items-center gap-x-2 mt-auto text-sm pb-3">
-            <div className="w-8 h-8 bg-zinc-700 rounded-full flex items-center justify-center">
+            <div className="w-8 h-8 bg-zinc-700 rounded-full flex items-center justify-center shrink-0">
                <HiOutlineUserCircle size={22} />
             </div>
-            <span className="font-semibold">nombre.usuario</span>
+            <span className={`${textOpacityTransition} font-semibold truncate`}>
+               nombre.usuario
+            </span>
          </div>
       </aside>
    );

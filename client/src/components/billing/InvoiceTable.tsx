@@ -10,21 +10,21 @@ type InvoiceItemRowProps = {
 
 const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
    return (
-      <div className="grid grid-cols-12 gap-4 gap-x-2 items-center p-1 rounded-xl hover:bg-zinc-700">
-         <div className="col-span-5 pl-1">
+      <div className="flex items-center gap-2 p-1 rounded-xl hover:bg-zinc-700 min-w-[300px]">
+         <div className="flex-1 min-w-24">
             <input
                type="text"
                value={item.name}
                onChange={e => onUpdate(item.id, { name: e.target.value })}
                className="
-                  w-full bg-transparent rounded-lg p-1
+                  w-full bg-transparent rounded-lg
                   hover:ring-1 hover:ring-zinc-500 hover:bg-zinc-800
-                  focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-zinc-800 pl-2
-                  outline-none
+                  focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-zinc-800
+                  outline-none text-ellipsis
                "
             />
          </div>
-         <div className="col-span-2">
+         <div className="w-22 shrink-0 mr-4">
             <input
                type="text"
                value={item.price.toLocaleString('es-CO')}
@@ -34,15 +34,14 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
                }}
                onFocus={e => e.target.select()}
                className="
-                  w-full bg-transparent font-semibold text-center rounded-lg p-1
+                  w-full bg-transparent text-right font-semibold rounded-lg
                   hover:ring-1 hover:ring-zinc-500 hover:bg-zinc-800
                   focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-zinc-800
-                  outline-none
-                  no-spinners
+                  outline-none no-spinners
                "
             />
          </div>
-         <div className="col-span-2 flex justify-center">
+         <div className="w-20 flex justify-center shrink-0">
             <QuantitySelector
                value={item.quantity}
                onIncrease={() => onUpdate(item.id, { quantity: item.quantity + 1 })}
@@ -53,15 +52,16 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
                }}
             />
          </div>
-         <div className="col-span-2 font-semibold text-center">
+         <div className="w-22 font-semibold text-right shrink-0">
             <span>{(item.quantity * item.price).toLocaleString('es-CO')}</span>
          </div>
-         <div className="col-span-1 flex justify-end">
+         <div className="w-10 flex justify-end shrink-0">
             <button
                onClick={() => onRemove(item.id)}
                className="
-                  text-red-500 rounded-full p-2
-                  hover:text-red-400 hover:bg-red-900/60 transition-colors duration-200
+                  text-red-500 rounded-full
+                  hover:text-red-400 hover:bg-red-900/60
+                  transition-colors duration-200
                   cursor-pointer
                "
             >
@@ -80,24 +80,31 @@ type InvoiceTableProps = {
 
 export const InvoiceTable = ({ items, onUpdateItem, onRemoveItem }: InvoiceTableProps) => {
    return (
-      <div className="bg-zinc-800 p-4 pl-3 rounded-lg">
-         <div className="grid grid-cols-12 gap-4 text-left text-zinc-400 font-bold text-sm border-b-2 border-zinc-700 pb-2 mb-2">
-            <div className="col-span-5 pl-4">Producto</div>
-            <div className="col-span-2 text-center">Valor</div>
-            <div className="col-span-2 text-center">Cantidad</div>
-            <div className="col-span-2 text-center pr-1">Total</div>
-            <div className="col-span-1"></div>
-         </div>
+      <div className="bg-zinc-800 p-4 pl-3 rounded-lg flex flex-col h-full overflow-hidden">
+         <div className="overflow-x-auto flex-1 custom-scrollbar">
+            <div className="flex gap-2 text-left text-zinc-400 font-bold text-sm border-b-2 border-zinc-700 pb-2 mb-2 min-w-[300px]">
+               <div className="flex-1 min-w-24">Producto</div>
+               <div className="w-22 text-right pr-1 mr-4">Valor</div>
+               <div className="w-20 text-center">Cantidad</div>
+               <div className="w-22 text-right pr-1">Total</div>
+               <div className="w-10"></div>
+            </div>
 
-         <div className="flex flex-col">
-            {items.map(item => (
-               <InvoiceItemRow
-                  key={item.id}
-                  item={item}
-                  onUpdate={onUpdateItem}
-                  onRemove={onRemoveItem}
-               />
-            ))}
+            <div className="flex flex-col gap-y-1">
+               {items.map(item => (
+                  <InvoiceItemRow
+                     key={item.id}
+                     item={item}
+                     onUpdate={onUpdateItem}
+                     onRemove={onRemoveItem}
+                  />
+               ))}
+               {items.length === 0 && (
+                  <div className="text-center py-10 text-zinc-500 italic">
+                     No hay productos. Presiona ESPACIO para buscar.
+                  </div>
+               )}
+            </div>
          </div>
       </div>
    );

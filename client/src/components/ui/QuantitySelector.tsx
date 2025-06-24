@@ -24,7 +24,7 @@ export const QuantitySelector = ({
    };
 
    return (
-      <div className="flex items-center justify-center gap-x-1 bg-zinc-700 rounded-full p-1 hover:bg-zinc-800">
+      <div className="flex items-center justify-center gap-x-1 bg-zinc-700 rounded-full hover:bg-zinc-800">
          <button
             onClick={onDecrease}
             className="p-1 rounded-full hover:bg-sky-400 hover:text-white transition-colors cursor-pointer"
@@ -37,7 +37,7 @@ export const QuantitySelector = ({
             inputMode="numeric"
             value={value}
             onChange={handleManualChange}
-            className="w-6 text-center rounded-full font-semibold hover:bg-zinc-700 outline-none no-spinners"
+            className="w-8 text-center rounded-full font-semibold hover:bg-zinc-700 outline-none no-spinners"
          />
 
          <button
