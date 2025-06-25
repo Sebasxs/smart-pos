@@ -1,6 +1,7 @@
 import { HiOutlineTrash } from 'react-icons/hi2';
 import { QuantitySelector } from '../ui/QuantitySelector';
 import { type InvoiceItem } from '../../types/billing';
+import { useState, useEffect } from 'react';
 
 type InvoiceItemRowProps = {
    item: InvoiceItem;
@@ -9,6 +10,34 @@ type InvoiceItemRowProps = {
 };
 
 const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
+   const [localPrice, setLocalPrice] = useState(item.price.toLocaleString('es-CO'));
+
+   useEffect(() => {
+      const currentNumeric = parseInt(localPrice.replace(/\./g, '') || '0', 10);
+      if (currentNumeric !== item.price) {
+         setLocalPrice(item.price.toLocaleString('es-CO'));
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+   }, [item.price]);
+
+   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const rawValue = e.target.value;
+      setLocalPrice(rawValue);
+      const numericValue = parseInt(rawValue.replace(/[^0-9]/g, '') || '0', 10);
+      onUpdate(item.id, { price: numericValue });
+   };
+
+   const handleBlur = () => {
+      const numericValue = parseInt(localPrice.replace(/[^0-9]/g, '') || '0', 10);
+      setLocalPrice(numericValue.toLocaleString('es-CO'));
+   };
+
+   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Enter') {
+         e.currentTarget.blur();
+      }
+   };
+
    return (
       <div className="flex items-center gap-2 p-1 rounded-xl hover:bg-zinc-700 min-w-[300px]">
          <div className="flex-1 min-w-24">
@@ -27,11 +56,10 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
          <div className="w-22 shrink-0 mr-4">
             <input
                type="text"
-               value={item.price.toLocaleString('es-CO')}
-               onChange={e => {
-                  const rawValue = e.target.value.replace(/[^0-9]/g, '');
-                  onUpdate(item.id, { price: Number(rawValue) });
-               }}
+               value={localPrice}
+               onChange={handlePriceChange}
+               onBlur={handleBlur}
+               onKeyDown={handleKeyDown}
                onFocus={e => e.target.select()}
                className="
                   w-full bg-transparent text-right font-semibold rounded-lg
@@ -44,7 +72,10 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
          <div className="w-20 flex justify-center shrink-0">
             <QuantitySelector
                value={item.quantity}
-               onIncrease={() => onUpdate(item.id, { quantity: item.quantity + 1 })}
+               stock={item.stock}
+               onIncrease={() =>
+                  onUpdate(item.id, { quantity: Math.min(item.quantity + 1, item.stock) })
+               }
                onDecrease={() => onUpdate(item.id, { quantity: Math.max(1, item.quantity - 1) })}
                onQuantityChange={newQuantity => {
                   const finalQuantity = newQuantity > 0 ? newQuantity : 1;

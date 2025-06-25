@@ -17,10 +17,10 @@ export const ProductSearch = () => {
       const handleKeyDown = (e: KeyboardEvent) => {
          if (e.key === 'ArrowDown') {
             e.preventDefault();
-            setSelectedIndex(prev => Math.min(prev + 1, dummyResults.length - 1));
+            setSelectedIndex(prev => (prev + 1) % dummyResults.length);
          } else if (e.key === 'ArrowUp') {
             e.preventDefault();
-            setSelectedIndex(prev => Math.max(prev - 1, 0));
+            setSelectedIndex(prev => (prev - 1 + dummyResults.length) % dummyResults.length);
          } else if (e.key === 'Enter') {
             e.preventDefault();
             console.log('Producto seleccionado:', dummyResults[selectedIndex]);
@@ -68,7 +68,7 @@ export const ProductSearch = () => {
                      onMouseEnter={() => setSelectedIndex(index)}
                      className={`
                         flex justify-between items-center p-3 px-6 py-1 ml-7 rounded-xl
-                        cursor-pointertransition-colors cursor-pointer
+                        cursor-pointer transition-colors cursor-pointer
                         ${isSelected ? 'bg-blue-500 text-white' : 'hover:bg-zinc-700 text-zinc-200'}
                      `}
                   >

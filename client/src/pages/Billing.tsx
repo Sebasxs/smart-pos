@@ -7,9 +7,21 @@ import { type InvoiceItem } from '../types/billing';
 import { HiOutlineTrash } from 'react-icons/hi2';
 
 const initialItems: InvoiceItem[] = [
-   { id: crypto.randomUUID(), name: 'Mouse Gamer Logitech G502', quantity: 1, price: 320000 },
-   { id: crypto.randomUUID(), name: 'Monitor Curvo Samsung 27"', quantity: 2, price: 1200000 },
-   { id: crypto.randomUUID(), name: 'Cable HDMI 2.1 8K', quantity: 1, price: 85000 },
+   {
+      id: crypto.randomUUID(),
+      name: 'Mouse Gamer Logitech G502',
+      quantity: 1,
+      price: 320000,
+      stock: 10,
+   },
+   {
+      id: crypto.randomUUID(),
+      name: 'Monitor Curvo Samsung 27"',
+      quantity: 2,
+      price: 1200000,
+      stock: 15,
+   },
+   { id: crypto.randomUUID(), name: 'Cable HDMI 2.1 8K', quantity: 1, price: 85000, stock: 5 },
 ];
 
 const cleanNumericValue = (value: string): string => {
@@ -29,6 +41,7 @@ export const Billing = () => {
    const [customer, setCustomer] = useState({ name: '', taxId: '', email: '', city: '' });
 
    const handleUpdateItem = useCallback((id: string, newValues: Partial<InvoiceItem>) => {
+      console.log(newValues);
       setItems(currentItems =>
          currentItems.map(item =>
             item.id === id ? { ...item, ...newValues, modified: true } : item,
@@ -42,9 +55,9 @@ export const Billing = () => {
 
    const handleDiscardInvoice = () => {
       if (confirm('¿Estás seguro de descartar la factura actual?')) {
-         setItems([]); // Vacía items
-         setRawDiscount('0'); // Resetea descuento
-         setCustomer({ name: '', taxId: '', email: '', city: '' }); // Resetea cliente
+         setItems([]);
+         setRawDiscount('0');
+         setCustomer({ name: '', taxId: '', email: '', city: '' });
       }
    };
 
