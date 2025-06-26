@@ -6,3 +6,8 @@ export type InvoiceItem = {
    stock: number;
    modified?: boolean;
 };
+
+export type Discount = {
+   value: number;
+   type: 'percentage' | 'fixed';
+};
