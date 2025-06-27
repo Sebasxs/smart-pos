@@ -4,6 +4,7 @@ export type InvoiceItem = {
    quantity: number;
    price: number;
    stock: number;
+   provider: string;
    modified?: boolean;
 };
 

@@ -90,8 +90,8 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
             <button
                onClick={() => onRemove(item.id)}
                className="
-                  text-red-500 rounded-full
-                  hover:text-red-400 hover:bg-red-900/60
+                  text-red-500 p-1 rounded-full
+                  hover:text-zinc-800 hover:bg-red-600/60
                   transition-colors duration-200
                   cursor-pointer
                "
