@@ -79,7 +79,7 @@ export const CheckoutModal = ({ isOpen, onClose, onConfirm, total }: CheckoutMod
    return (
       <Modal isOpen={isOpen} onClose={onClose}>
          <div className="p-6">
-            <div className="flex justify-between items-center mb-6 border-b border-zinc-800 pb-4">
+            <div className="flex justify-between items-end mb-6 border-b border-zinc-800 pb-4">
                <h2 className="text-2xl font-bold text-white flex items-center gap-2">
                   <HiOutlineCreditCard className="text-blue-500" />
                   Confirmar Pago
