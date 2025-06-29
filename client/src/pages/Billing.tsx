@@ -1,44 +1,23 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { InvoiceTable } from '../components/billing/InvoiceTable';
 import { ProductSearchModal } from '../components/billing/ProductSearchModal';
-import { type Discount, type InvoiceItem } from '../types/billing';
+import { type InvoiceItem } from '../types/billing';
 import { HiOutlineTrash } from 'react-icons/hi2';
 import { DiscountModal } from '../components/billing/DiscountModal';
 import { BillingTopbar } from '../components/billing/BillingTopbar';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { PaymentSuccessModal } from '../components/billing/PaymentSuccessModal';
 import { CheckoutModal, type CheckoutData } from '../components/billing/CheckoutModal';
-
-const initialItems: InvoiceItem[] = [
-   {
-      id: crypto.randomUUID(),
-      name: 'Mouse Gamer Logitech G502',
-      quantity: 1,
-      price: 320000,
-      provider: 'Logitech',
-      stock: 10,
-   },
-   {
-      id: crypto.randomUUID(),
-      name: 'Monitor Curvo Samsung 27"',
-      quantity: 2,
-      price: 1200000,
-      provider: 'Samsung',
-      stock: 15,
-   },
-];
+import { useBillingStore } from '../store/billingStore';
 
 export const Billing = () => {
-   // --- Estados Principales ---
-   const [items, setItems] = useState<InvoiceItem[]>(initialItems);
-   const [discount, setDiscount] = useState<Discount>({ value: 0, type: 'percentage' });
+   const { items, discount, addItem, updateItem, removeItem, setDiscount, resetInvoice } =
+      useBillingStore();
 
    // --- Estados de UI (Modales) ---
    const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
    const [isDiscountModalOpen, setIsDiscountModalOpen] = useState(false);
    const [isDiscardConfirmOpen, setIsDiscardConfirmOpen] = useState(false);
-
-   // Flujo de Checkout
    const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
    const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
 
@@ -61,55 +40,10 @@ export const Billing = () => {
 
    const formatCurrency = (val: number) => val.toLocaleString('es-CO');
 
-   // --- Manejadores de Lógica de Productos ---
-   const handleUpdateItem = useCallback((id: string, newValues: Partial<InvoiceItem>) => {
-      setItems(currentItems =>
-         currentItems.map(item =>
-            item.id === id ? { ...item, ...newValues, modified: true } : item,
-         ),
-      );
-   }, []);
-
-   const handleRemoveItem = useCallback((id: string) => {
-      setItems(currentItems => currentItems.filter(item => item.id !== id));
-   }, []);
-
    const handleProductSelect = (product: Partial<InvoiceItem>) => {
-      setItems(prev => {
-         const existingIndex = prev.findIndex(p => p.id === product.id);
-
-         if (existingIndex >= 0 && product.id) {
-            const newItems = [...prev];
-            const currentItem = newItems[existingIndex];
-            newItems[existingIndex] = {
-               ...currentItem,
-               quantity: currentItem.quantity + 1,
-            };
-            return newItems;
-         }
-
-         return [
-            ...prev,
-            {
-               id: product.id || crypto.randomUUID(),
-               name: product.name || 'Producto Nuevo',
-               price: product.price || 0,
-               quantity: 1,
-               stock: product.stock || 9999,
-               modified: !product.id,
-            } as InvoiceItem,
-         ];
-      });
+      addItem(product);
       setIsSearchModalOpen(false);
    };
-
-   // --- Manejadores de Ciclo de Facturación ---
-   const resetInvoice = useCallback(() => {
-      setItems([]);
-      setDiscount({ value: 0, type: 'percentage' });
-      setFinalizedData(null);
-      setIsSuccessModalOpen(false);
-   }, []);
 
    const triggerDiscard = useCallback(() => {
       if (items.length > 0) {
@@ -117,15 +51,12 @@ export const Billing = () => {
       }
    }, [items.length]);
 
-   // Paso 1: Abrir Modal de Checkout
    const triggerCheckout = useCallback(() => {
       if (items.length === 0) return;
       setIsCheckoutModalOpen(true);
    }, [items]);
 
-   // Paso 2: Confirmar Checkout y Guardar
    const handleConfirmCheckout = (data: CheckoutData) => {
-      // Aquí iría la lógica de guardado en DB
       console.log('Guardando factura...', {
          items,
          financials: { subtotal, discount: discountAmount, total },
@@ -133,10 +64,14 @@ export const Billing = () => {
       });
 
       setFinalizedData(data);
-      setIsSuccessModalOpen(true); // Abre modal de éxito
+      setIsSuccessModalOpen(true);
    };
 
-   // --- Atajos de Teclado ---
+   const handleFinalizeSuccess = () => {
+      resetInvoice();
+      setIsSuccessModalOpen(false);
+   };
+
    useEffect(() => {
       const handleKeyDown = (event: KeyboardEvent) => {
          const target = event.target as HTMLElement;
@@ -186,11 +121,7 @@ export const Billing = () => {
          <div className="flex flex-col lg:flex-row gap-6 flex-1 min-h-0">
             {/* Area de Productos (Izquierda) */}
             <div className="flex-1 h-fit h-fit flex flex-col">
-               <InvoiceTable
-                  items={items}
-                  onUpdateItem={handleUpdateItem}
-                  onRemoveItem={handleRemoveItem}
-               />
+               <InvoiceTable items={items} onUpdateItem={updateItem} onRemoveItem={removeItem} />
             </div>
 
             {/* Barra Lateral (Derecha - Resumen y Acciones) */}
@@ -293,7 +224,7 @@ export const Billing = () => {
 
          <PaymentSuccessModal
             isOpen={isSuccessModalOpen}
-            onClose={resetInvoice}
+            onClose={handleFinalizeSuccess}
             total={total}
             paymentMethod={finalizedData?.paymentMethod || 'cash'}
             cashReceived={finalizedData?.cashReceived || 0}
