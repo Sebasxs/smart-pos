@@ -14,17 +14,14 @@ export const Billing = () => {
    const { items, discount, addItem, updateItem, removeItem, setDiscount, resetInvoice } =
       useBillingStore();
 
-   // --- Estados de UI (Modales) ---
    const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
    const [isDiscountModalOpen, setIsDiscountModalOpen] = useState(false);
    const [isDiscardConfirmOpen, setIsDiscardConfirmOpen] = useState(false);
    const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
    const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
 
-   // Datos temporales para la finalización (se llenan en el CheckoutModal)
    const [finalizedData, setFinalizedData] = useState<CheckoutData | null>(null);
 
-   // --- Cálculos Financieros ---
    const subtotal = useMemo(() => {
       return items.reduce((acc, item) => acc + item.price * item.quantity, 0);
    }, [items]);
@@ -117,21 +114,17 @@ export const Billing = () => {
       <div className="relative w-full h-full flex flex-col gap-4">
          <BillingTopbar total={total} />
 
-         {/* Main Layout */}
          <div className="flex flex-col lg:flex-row gap-6 flex-1 min-h-0">
-            {/* Area de Productos (Izquierda) */}
             <div className="flex-1 h-fit h-fit flex flex-col">
                <InvoiceTable items={items} onUpdateItem={updateItem} onRemoveItem={removeItem} />
             </div>
 
-            {/* Barra Lateral (Derecha - Resumen y Acciones) */}
             <aside className="w-full lg:w-80 flex flex-col h-fit sticky top-0">
                <div className="bg-zinc-800 rounded-lg p-4 shrink-0 border border-zinc-700/50 shadow-xl">
                   <h2 className="text-zinc-400 text-sm font-bold uppercase tracking-wider mb-4">
                      Resumen
                   </h2>
 
-                  {/* Desglose Financiero */}
                   <div className="flex flex-col gap-y-3 text-sm mb-4">
                      <div className="flex justify-between">
                         <span className="text-zinc-400">Subtotal</span>
@@ -164,7 +157,6 @@ export const Billing = () => {
                      <hr className="border-zinc-700 mt-1" />
                   </div>
 
-                  {/* Botones de Acción */}
                   <div className="flex gap-3">
                      <button
                         onClick={triggerDiscard}
@@ -190,8 +182,6 @@ export const Billing = () => {
                </div>
             </aside>
          </div>
-
-         {/* --- Modales --- */}
 
          <ProductSearchModal
             isOpen={isSearchModalOpen}

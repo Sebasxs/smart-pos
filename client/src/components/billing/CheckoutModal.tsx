@@ -42,7 +42,7 @@ export const CheckoutModal = ({ isOpen, onClose, onConfirm, total }: CheckoutMod
    }, [isOpen]);
 
    useEffect(() => {
-      if (!isOpen) return;
+      if (!isOpen || !isPaymentValid) return;
 
       const handleKeyDown = (e: KeyboardEvent) => {
          if (e.key === 'Enter') {
@@ -75,6 +75,12 @@ export const CheckoutModal = ({ isOpen, onClose, onConfirm, total }: CheckoutMod
       });
       onClose();
    };
+
+   const isPaymentValid =
+      paymentMethod === 'transfer' ||
+      !cashReceivedStr.length ||
+      cashReceivedStr === '0' ||
+      cashReceived >= total;
 
    return (
       <Modal isOpen={isOpen} onClose={onClose}>
@@ -134,10 +140,8 @@ export const CheckoutModal = ({ isOpen, onClose, onConfirm, total }: CheckoutMod
                   />
                </div>
 
-               {/* Divisor Vertical */}
                <div className="hidden lg:block w-[1px] bg-zinc-800" />
 
-               {/* Columna Derecha: Método de Pago */}
                <div className="lg:w-64 flex flex-col">
                   <h3 className="font-semibold uppercase text-xs tracking-wider text-zinc-400 mb-4">
                      Método de Pago
@@ -210,9 +214,17 @@ export const CheckoutModal = ({ isOpen, onClose, onConfirm, total }: CheckoutMod
                      </button>
                      <button
                         onClick={handleConfirm}
-                        className="
-                           flex-1 p-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-lg shadow-lg shadow-blue-900/20 transition-all cursor-pointer flex justify-center items-center
-                        "
+                        disabled={!isPaymentValid}
+                        className={`
+                           flex-1 p-3 rounded-xl bg-blue-600 text-white font-bold text-lg
+                           shadow-lg shadow-blue-900/20 transition-all flex justify-center items-center
+                           ${
+                              isPaymentValid
+                                 ? 'hover:bg-blue-500 cursor-pointer'
+                                 : 'cursor-not-allowed opacity-50'
+                           }
+                           
+                        `}
                      >
                         <span>Confirmar</span>
                      </button>
