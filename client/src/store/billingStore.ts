@@ -37,7 +37,7 @@ export const useBillingStore = create<BillingState>(set => ({
             price: product.price || 0,
             quantity: 1,
             stock: product.stock || 9999,
-            provider: product.provider || 'Genérico',
+            supplier: product.supplier || 'Genérico',
             modified: !product.id,
          };
 

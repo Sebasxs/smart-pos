@@ -4,11 +4,11 @@ import { type InvoiceItem } from '../../types/billing';
 import { Modal } from '../ui/Modal';
 
 const dummyResults: Partial<InvoiceItem>[] = [
-   { id: '1', name: 'Teclado Mecánico Kumara K552', stock: 15, price: 180000, provider: 'Kumara' },
-   { id: '2', name: 'Mouse Logitech G203', stock: 22, price: 95000, provider: 'Logitech' },
-   { id: '3', name: 'Monitor Gamer 24" 144Hz', stock: 8, price: 850000, provider: 'Samsung' },
-   { id: '4', name: 'Diadema HyperX Cloud Stinger', stock: 5, price: 220000, provider: 'HyperX' },
-   { id: '5', name: 'Silla Gamer Ergonomica', stock: 2, price: 120000, provider: 'Genérico' },
+   { id: '1', name: 'Teclado Mecánico Kumara K552', stock: 15, price: 180000, supplier: 'Kumara' },
+   { id: '2', name: 'Mouse Logitech G203', stock: 22, price: 95000, supplier: 'Logitech' },
+   { id: '3', name: 'Monitor Gamer 24" 144Hz', stock: 8, price: 850000, supplier: 'Samsung' },
+   { id: '4', name: 'Diadema HyperX Cloud Stinger', stock: 5, price: 220000, supplier: 'HyperX' },
+   { id: '5', name: 'Silla Gamer Ergonomica', stock: 2, price: 120000, supplier: 'Genérico' },
 ];
 
 type ProductSearchModalProps = {
@@ -122,7 +122,7 @@ export const ProductSearchModal = ({
                                     isSelected ? 'text-white' : 'text-zinc-400'
                                  }`}
                               >
-                                 {product.provider}
+                                 {product.supplier}
                               </span>
                            </div>
                            <div className="flex flex-col items-end">

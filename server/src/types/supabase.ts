@@ -18,6 +18,7 @@ export type Database = {
         Row: {
           city: string | null
           created_at: string | null
+          current_balance: number
           email: string | null
           id: string
           name: string
@@ -26,6 +27,7 @@ export type Database = {
         Insert: {
           city?: string | null
           created_at?: string | null
+          current_balance?: number
           email?: string | null
           id?: string
           name: string
@@ -34,6 +36,7 @@ export type Database = {
         Update: {
           city?: string | null
           created_at?: string | null
+          current_balance?: number
           email?: string | null
           id?: string
           name?: string
@@ -141,8 +144,8 @@ export type Database = {
           id: string
           name: string
           price: number
-          provider: string | null
           stock: number
+          supplier_id: string | null
         }
         Insert: {
           cost?: number | null
@@ -150,9 +153,9 @@ export type Database = {
           description?: string | null
           id?: string
           name: string
-          price?: number
-          provider?: string | null
+          price: number
           stock?: number
+          supplier_id?: string | null
         }
         Update: {
           cost?: number | null
@@ -161,8 +164,40 @@ export type Database = {
           id?: string
           name?: string
           price?: number
-          provider?: string | null
           stock?: number
+          supplier_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      suppliers: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          id: string
+          name: string
+          phone: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
         }
         Relationships: []
       }
