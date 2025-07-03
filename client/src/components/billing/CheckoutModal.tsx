@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { Modal } from '../ui/Modal';
 import { Input } from '../ui/Input';
 import { HiOutlineBanknotes, HiOutlineCreditCard, HiOutlineUser } from 'react-icons/hi2';
+import { useBillingStore } from '../../store/billingStore';
 
 type CheckoutModalProps = {
    isOpen: boolean;
@@ -23,12 +24,10 @@ export type CheckoutData = {
 };
 
 export const CheckoutModal = ({ isOpen, onClose, onConfirm, total }: CheckoutModalProps) => {
-   const [customer, setCustomer] = useState({ name: '', email: '', taxId: '', city: '' });
-   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'transfer'>('cash');
-   const [cashReceivedStr, setCashReceivedStr] = useState('');
+   const { checkoutData, setCheckoutData } = useBillingStore();
+   const { customer, paymentMethod, cashReceivedStr } = checkoutData;
 
    const nameInputRef = useRef<HTMLInputElement>(null);
-
    const cashReceived = parseInt(cashReceivedStr.replace(/[^0-9]/g, '') || '0', 10);
    const change = paymentMethod === 'cash' && cashReceived > total ? cashReceived - total : 0;
    const formatCurrency = (val: number) => val.toLocaleString('es-CO');
@@ -58,12 +57,19 @@ export const CheckoutModal = ({ isOpen, onClose, onConfirm, total }: CheckoutMod
 
    const handleCustomerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const { name, value } = e.target;
-      setCustomer(prev => ({ ...prev, [name]: value }));
+      setCheckoutData({
+         customer: { ...customer, [name]: value },
+      });
+   };
+
+   const handlePaymentMethodChange = (method: 'cash' | 'transfer') => {
+      setCheckoutData({ paymentMethod: method });
    };
 
    const handleCashChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const raw = e.target.value.replace(/[^0-9]/g, '');
-      setCashReceivedStr(raw ? parseInt(raw, 10).toLocaleString('es-CO') : '');
+      const formatted = raw ? parseInt(raw, 10).toLocaleString('es-CO') : '';
+      setCheckoutData({ cashReceivedStr: formatted });
    };
 
    const handleConfirm = () => {
@@ -149,7 +155,7 @@ export const CheckoutModal = ({ isOpen, onClose, onConfirm, total }: CheckoutMod
 
                   <div className="flex gap-3 mb-6">
                      <button
-                        onClick={() => setPaymentMethod('cash')}
+                        onClick={() => handlePaymentMethodChange('cash')}
                         className={`
                            flex-1 py-3 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition-all cursor-pointer
                            ${
@@ -163,7 +169,7 @@ export const CheckoutModal = ({ isOpen, onClose, onConfirm, total }: CheckoutMod
                         <span className="font-bold text-sm">Efectivo</span>
                      </button>
                      <button
-                        onClick={() => setPaymentMethod('transfer')}
+                        onClick={() => handlePaymentMethodChange('transfer')}
                         className={`
                            flex-1 py-3 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition-all cursor-pointer
                            ${

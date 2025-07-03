@@ -1,15 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { HiOutlineSearch } from 'react-icons/hi';
-import { type InvoiceItem } from '../../types/billing';
+import { HiOutlineSearch, HiOutlineExclamationCircle } from 'react-icons/hi';
+import { CgSpinner } from 'react-icons/cg';
 import { Modal } from '../ui/Modal';
+import { type InvoiceItem } from '../../types/billing';
 
-const dummyResults: Partial<InvoiceItem>[] = [
-   { id: '1', name: 'Teclado Mecánico Kumara K552', stock: 15, price: 180000, supplier: 'Kumara' },
-   { id: '2', name: 'Mouse Logitech G203', stock: 22, price: 95000, supplier: 'Logitech' },
-   { id: '3', name: 'Monitor Gamer 24" 144Hz', stock: 8, price: 850000, supplier: 'Samsung' },
-   { id: '4', name: 'Diadema HyperX Cloud Stinger', stock: 5, price: 220000, supplier: 'HyperX' },
-   { id: '5', name: 'Silla Gamer Ergonomica', stock: 2, price: 120000, supplier: 'Genérico' },
-];
+const API_URL = import.meta.env.VITE_API_URL;
 
 type ProductSearchModalProps = {
    isOpen: boolean;
@@ -17,19 +12,154 @@ type ProductSearchModalProps = {
    onSelectProduct: (product: Partial<InvoiceItem>) => void;
 };
 
+const useProductSearch = (isOpen: boolean) => {
+   const [searchTerm, setSearchTerm] = useState('');
+   const [results, setResults] = useState<Partial<InvoiceItem>[]>([]);
+   const [isLoading, setIsLoading] = useState(false);
+   const [error, setError] = useState('');
+
+   useEffect(() => {
+      if (!isOpen) return;
+      setSearchTerm('');
+      setResults([]);
+      setError('');
+   }, [isOpen]);
+
+   useEffect(() => {
+      if (!isOpen) return;
+
+      if (searchTerm.trim() === '') {
+         setResults([]);
+         setIsLoading(false);
+         return;
+      }
+
+      const timeoutId = setTimeout(async () => {
+         setIsLoading(true);
+         setError('');
+         try {
+            const res = await fetch(`${API_URL}/products?search=${encodeURIComponent(searchTerm)}`);
+            if (!res.ok) {
+               const errData = await res.json().catch();
+               throw new Error(errData.error || 'Error al buscar productos');
+            }
+
+            setResults(await res.json());
+         } catch (err) {
+            console.error(err);
+            setError('Error al buscar productos');
+            setResults([]);
+         } finally {
+            setIsLoading(false);
+         }
+      }, 300);
+
+      return () => clearTimeout(timeoutId);
+   }, [searchTerm, isOpen]);
+
+   return { searchTerm, setSearchTerm, results, isLoading, error };
+};
+
+const useKeyboardNavigation = (
+   isOpen: boolean,
+   results: Partial<InvoiceItem>[],
+   onSelect: (p: Partial<InvoiceItem>) => void,
+   searchTerm: string,
+) => {
+   const [selectedIndex, setSelectedIndex] = useState(0);
+   const listRef = useRef<HTMLDivElement>(null);
+
+   useEffect(() => {
+      const id = requestAnimationFrame(() => setSelectedIndex(0));
+      return () => cancelAnimationFrame(id);
+   }, [results]);
+
+   useEffect(() => {
+      if (!isOpen) return;
+
+      const handleKeyDown = (e: KeyboardEvent) => {
+         if (e.key === 'Enter') {
+            e.preventDefault();
+            if (results[selectedIndex]) {
+               onSelect(results[selectedIndex]);
+            } else if (searchTerm.trim() !== '') {
+               onSelect({ name: searchTerm, price: 0, stock: 999, supplier: 'Genérico' });
+            }
+            return;
+         }
+
+         if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+            e.preventDefault();
+            setSelectedIndex(prev => {
+               const nextIndex =
+                  e.key === 'ArrowDown'
+                     ? (prev + 1) % results.length
+                     : (prev - 1 + results.length) % results.length;
+
+               listRef.current?.children[nextIndex]?.scrollIntoView({ block: 'nearest' });
+               return nextIndex;
+            });
+         }
+      };
+
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
+   }, [isOpen, results, selectedIndex, onSelect, searchTerm]);
+
+   return { selectedIndex, setSelectedIndex, listRef };
+};
+
+const ProductItem = ({
+   product,
+   isSelected,
+   onClick,
+   onHover,
+}: {
+   product: Partial<InvoiceItem>;
+   isSelected: boolean;
+   onClick: () => void;
+   onHover: () => void;
+}) => (
+   <div
+      onMouseEnter={onHover}
+      onClick={onClick}
+      className={`
+         mx-2 flex justify-between items-center px-4 py-1 rounded-xl my-1
+         cursor-pointer transition-all duration-50
+         ${
+            isSelected
+               ? 'bg-purple-600 text-white shadow-lg shadow-purple-900/20 scale-[1.02]'
+               : 'hover:bg-zinc-800 text-zinc-200'
+         }
+      `}
+   >
+      <div className="flex flex-col">
+         <span className="font-bold text-sm">{product.name}</span>
+         <span
+            className={`text-xs font-medium ${isSelected ? 'text-purple-200' : 'text-zinc-500'}`}
+         >
+            {product.supplier}
+         </span>
+      </div>
+      <div className="flex flex-col items-end">
+         <span className="font-bold text-sm tracking-tight">
+            ${product.price?.toLocaleString('es-CO')}
+         </span>
+         <span
+            className={`text-xs font-medium ${isSelected ? 'text-purple-200' : 'text-zinc-500'}`}
+         >
+            {product.stock} disponibles
+         </span>
+      </div>
+   </div>
+);
+
 export const ProductSearchModal = ({
    isOpen,
    onClose,
    onSelectProduct,
 }: ProductSearchModalProps) => {
-   const [selectedIndex, setSelectedIndex] = useState(0);
-
-   const [searchTerm, setSearchTerm] = useState('');
-   const listRef = useRef<HTMLDivElement>(null);
-
-   const results = dummyResults.filter(p =>
-      p.name?.toLowerCase().includes(searchTerm.toLowerCase()),
-   );
+   const { searchTerm, setSearchTerm, results, isLoading, error } = useProductSearch(isOpen);
 
    const handleSelect = useCallback(
       (product: Partial<InvoiceItem>) => {
@@ -39,114 +169,71 @@ export const ProductSearchModal = ({
       [onSelectProduct, onClose],
    );
 
-   useEffect(() => {
-      const id = window.setTimeout(() => setSelectedIndex(0), 0);
-      return () => clearTimeout(id);
-   }, [searchTerm]);
-
-   useEffect(() => {
-      if (!isOpen) return;
-
-      const handleKeyDown = (e: KeyboardEvent) => {
-         if (e.key === 'ArrowDown') {
-            e.preventDefault();
-            setSelectedIndex(prev => (prev + 1) % results.length);
-         } else if (e.key === 'ArrowUp') {
-            e.preventDefault();
-            setSelectedIndex(prev => (prev - 1 + results.length) % results.length);
-         } else if (e.key === 'Enter') {
-            e.preventDefault();
-            if (results[selectedIndex]) {
-               handleSelect(results[selectedIndex]);
-            } else if (searchTerm.trim() !== '') {
-               handleSelect({ name: searchTerm, price: 0, stock: 1 });
-            }
-         }
-      };
-
-      window.addEventListener('keydown', handleKeyDown);
-      return () => window.removeEventListener('keydown', handleKeyDown);
-   }, [selectedIndex, results, handleSelect, searchTerm, isOpen]);
+   const { selectedIndex, setSelectedIndex, listRef } = useKeyboardNavigation(
+      isOpen,
+      results,
+      handleSelect,
+      searchTerm,
+   );
 
    return (
-      <Modal isOpen={isOpen} onClose={onClose} className="w-full max-w-xl p-0 overflow-hidden">
-         <div className="flex flex-col gap-y-2 w-full">
+      <Modal isOpen={isOpen} onClose={onClose} className="w-full max-w-lg p-0 overflow-hidden">
+         <div className="flex flex-col gap-y-1 w-full">
             <div className="relative px-4 pt-4">
-               <HiOutlineSearch
-                  size={22}
-                  className="absolute top-1/2 -translate-y-1 left-7 text-zinc-400"
-               />
+               <div className="absolute top-1/2 -translate-y-1 left-8 text-zinc-400">
+                  {isLoading ? (
+                     <CgSpinner className="animate-spin" size={22} />
+                  ) : (
+                     <HiOutlineSearch size={22} />
+                  )}
+               </div>
                <input
                   type="text"
                   placeholder="Buscar producto..."
                   autoFocus
                   value={searchTerm}
                   onChange={e => setSearchTerm(e.target.value)}
-                  className="
-                     w-full bg-zinc-800 focus:bg-zinc-800 text-lg text-white rounded-full
-                     mb-1 pl-10 py-2
-                     border-2 border-zinc-600 focus:border-purple-800
-                     outline-none
-                  "
+                  className="w-full bg-zinc-800 text-lg text-white rounded-full mb-1 pl-11 py-2 border-2 border-zinc-600 focus:border-purple-800 outline-none transition-colors duration-300"
                />
             </div>
 
-            <div className="h-[1px] bg-zinc-800 w-full" />
+            <div className="h-[1px] bg-zinc-800 w-full mt-1" />
 
             <div
                ref={listRef}
-               className="flex flex-col pb-2 max-h-[400px] h-fit m-2 overflow-y-auto custom-scrollbar"
+               className="flex flex-col pb-1 max-h-[300px] min-h-[100px] h-fit mb-2 mx-2 overflow-y-auto custom-scrollbar"
             >
-               {results.length > 0 ? (
-                  results.map((product, index) => {
-                     const isSelected = index === selectedIndex;
-                     return (
-                        <div
-                           key={product.id}
-                           onMouseEnter={() => setSelectedIndex(index)}
-                           onClick={() => handleSelect(product)}
-                           className={`
-                                        mx-2 flex justify-between items-center px-4 pt-1 pb-2 rounded-2xl my-1
-                                        cursor-pointer transition-all duration-150
-                                        ${
-                                           isSelected
-                                              ? 'bg-purple-800 text-white'
-                                              : 'hover:bg-zinc-800 text-zinc-200'
-                                        }
-                                    `}
-                        >
-                           <div className="flex flex-col">
-                              <span className="font-medium text-base">{product.name}</span>
-                              <span
-                                 className={`text-xs font-medium ${
-                                    isSelected ? 'text-white' : 'text-zinc-400'
-                                 }`}
-                              >
-                                 {product.supplier}
-                              </span>
-                           </div>
-                           <div className="flex flex-col items-end">
-                              <span className="font-medium text-md">
-                                 ${product.price?.toLocaleString('es-CO')}
-                              </span>
-                              <span
-                                 className={`text-xs font-medium ${
-                                    isSelected ? 'text-white' : 'text-zinc-400'
-                                 }`}
-                              >
-                                 {product.stock} disponibles
-                              </span>
-                           </div>
-                        </div>
-                     );
-                  })
+               {error ? (
+                  <div className="text-red-400 flex flex-col items-center justify-center py-8 gap-2">
+                     <HiOutlineExclamationCircle size={30} />
+                     <span>{error}</span>
+                  </div>
+               ) : results.length > 0 ? (
+                  results.map((product, index) => (
+                     <ProductItem
+                        key={product.id || index}
+                        product={product}
+                        isSelected={index === selectedIndex}
+                        onClick={() => handleSelect(product)}
+                        onHover={() => setSelectedIndex(index)}
+                     />
+                  ))
                ) : (
-                  <div className="px-6 pb-2 text-zinc-500 text-center">
-                     <p>No se encontraron resultados.</p>
-                     <p className="text-xs mt-1 text-zinc-600">
-                        Presiona <kbd className="font-sans bg-zinc-800 px-1 rounded">Enter</kbd>{' '}
-                        para agregar como ítem temporal.
-                     </p>
+                  <div className="px-6 py-8 text-zinc-500 text-center flex flex-col items-center gap-2">
+                     {searchTerm ? (
+                        <>
+                           <p>No se encontraron productos.</p>
+                           <p className="text-sm mt-1 text-zinc-600 bg-zinc-800/50 px-3 py-1 rounded-full">
+                              Presiona{' '}
+                              <kbd className="font-sans font-bold text-zinc-400">Enter</kbd> para
+                              agregar{' '}
+                              <span className="font-semibold text-zinc-400">"{searchTerm}"</span>{' '}
+                              manualmente.
+                           </p>
+                        </>
+                     ) : (
+                        <p className="text-sm">Escribe para buscar en el inventario...</p>
+                     )}
                   </div>
                )}
             </div>

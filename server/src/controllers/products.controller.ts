@@ -4,27 +4,21 @@ import { supabase } from '../config/supabase';
 export const getProducts = async (req: Request, res: Response) => {
    try {
       const { search } = req.query;
-
-      let query = supabase
-         .from('products')
-         .select('*, suppliers(name)')
-         .order('name', { ascending: true });
-
-      if (search) {
-         query = query.ilike('name', `%${search}%`);
+      const term = String(search || '').trim();
+      if (!term) {
+         return res.json([]);
       }
 
-      const { data, error } = await query;
+      const { data, error } = await supabase.rpc('search_products', {
+         search_term: term,
+      });
 
-      if (error) throw error;
+      if (error) {
+         console.error('Supabase RPC Error:', error.message, error.details);
+         throw error;
+      }
 
-      const formattedData = data.map(item => ({
-         ...item,
-         supplier: item.suppliers?.name || 'Genérico',
-         suppliers: undefined,
-      }));
-
-      res.json(formattedData);
+      res.json(data);
    } catch (error) {
       console.error('Error fetching products:', error);
       res.status(500).json({ error: 'Error interno al obtener productos' });

@@ -206,7 +206,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      search_products: {
+        Args: { search_term: string }
+        Returns: {
+          id: string
+          name: string
+          price: number
+          stock: number
+          supplier: string
+        }[]
+      }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
+      unaccent: { Args: { "": string }; Returns: string }
     }
     Enums: {
       invoice_status: "paid" | "voided"

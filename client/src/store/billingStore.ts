@@ -1,20 +1,40 @@
 import { create } from 'zustand';
 import { type InvoiceItem, type Discount } from '../types/billing';
 
+export type CheckoutState = {
+   customer: {
+      name: string;
+      email: string;
+      taxId: string;
+      city: string;
+   };
+   paymentMethod: 'cash' | 'transfer';
+   cashReceivedStr: string;
+};
+
+const initialCheckoutState: CheckoutState = {
+   customer: { name: '', email: '', taxId: '', city: '' },
+   paymentMethod: 'cash',
+   cashReceivedStr: '',
+};
+
 interface BillingState {
    items: InvoiceItem[];
    discount: Discount;
+   checkoutData: CheckoutState;
 
    addItem: (product: Partial<InvoiceItem>) => void;
    updateItem: (id: string, newValues: Partial<InvoiceItem>) => void;
    removeItem: (id: string) => void;
    setDiscount: (discount: Discount) => void;
+   setCheckoutData: (data: Partial<CheckoutState>) => void;
    resetInvoice: () => void;
 }
 
 export const useBillingStore = create<BillingState>(set => ({
    items: [],
    discount: { value: 0, type: 'percentage' },
+   checkoutData: initialCheckoutState,
 
    addItem: product => {
       set(state => {
@@ -63,7 +83,16 @@ export const useBillingStore = create<BillingState>(set => ({
       set({ discount });
    },
 
+   setCheckoutData: newData =>
+      set(state => ({
+         checkoutData: { ...state.checkoutData, ...newData },
+      })),
+
    resetInvoice: () => {
-      set({ items: [], discount: { value: 0, type: 'percentage' } });
+      set({
+         items: [],
+         discount: { value: 0, type: 'percentage' },
+         checkoutData: initialCheckoutState,
+      });
    },
 }));
