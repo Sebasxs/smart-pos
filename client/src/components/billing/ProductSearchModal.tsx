@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, startTransition } from 'react';
 import { HiOutlineSearch, HiOutlineExclamationCircle } from 'react-icons/hi';
 import { CgSpinner } from 'react-icons/cg';
 import { Modal } from '../ui/Modal';
@@ -19,10 +19,12 @@ const useProductSearch = (isOpen: boolean) => {
    const [error, setError] = useState('');
 
    useEffect(() => {
-      if (!isOpen) return;
-      setSearchTerm('');
-      setResults([]);
-      setError('');
+      if (!isOpen) {
+         setSearchTerm('');
+         setResults([]);
+         setError('');
+         setIsLoading(false);
+      }
    }, [isOpen]);
 
    useEffect(() => {
@@ -39,11 +41,7 @@ const useProductSearch = (isOpen: boolean) => {
          setError('');
          try {
             const res = await fetch(`${API_URL}/products?search=${encodeURIComponent(searchTerm)}`);
-            if (!res.ok) {
-               const errData = await res.json().catch();
-               throw new Error(errData.error || 'Error al buscar productos');
-            }
-
+            if (!res.ok) throw new Error('Error al buscar productos');
             setResults(await res.json());
          } catch (err) {
             console.error(err);
@@ -70,8 +68,10 @@ const useKeyboardNavigation = (
    const listRef = useRef<HTMLDivElement>(null);
 
    useEffect(() => {
-      const id = requestAnimationFrame(() => setSelectedIndex(0));
-      return () => cancelAnimationFrame(id);
+      startTransition(() => {
+         setSelectedIndex(0);
+      });
+      listRef.current?.scrollTo(0, 0);
    }, [results]);
 
    useEffect(() => {
@@ -83,7 +83,7 @@ const useKeyboardNavigation = (
             if (results[selectedIndex]) {
                onSelect(results[selectedIndex]);
             } else if (searchTerm.trim() !== '') {
-               onSelect({ name: searchTerm, price: 0, stock: 999, supplier: 'Genérico' });
+               onSelect({ name: searchTerm, price: 0, stock: 1, supplier: 'Genérico' });
             }
             return;
          }
@@ -232,7 +232,7 @@ export const ProductSearchModal = ({
                            </p>
                         </>
                      ) : (
-                        <p className="text-sm">Escribe para buscar en el inventario...</p>
+                        <p className="text-md">Escribe para buscar en el inventario...</p>
                      )}
                   </div>
                )}
