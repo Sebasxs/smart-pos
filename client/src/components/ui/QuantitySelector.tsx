@@ -58,6 +58,12 @@ export const QuantitySelector = ({
          onQuantityChange(1);
          return;
       }
+
+      if (newQuantity > stock) {
+         onQuantityChange(stock);
+         return;
+      }
+
       onQuantityChange(newQuantity);
    };
 
@@ -67,6 +73,7 @@ export const QuantitySelector = ({
             onMouseDown={() => startAction('dec')}
             onMouseUp={stopAction}
             onMouseLeave={stopAction}
+            tabIndex={-1}
             className={`p-1 rounded-full transition-colors ${
                value <= 1 ? 'opacity-50' : 'cursor-pointer hover:bg-sky-400 '
             }`}
@@ -81,13 +88,15 @@ export const QuantitySelector = ({
             inputMode="numeric"
             value={value}
             onChange={handleManualChange}
-            className="w-8 text-center rounded-full font-semibold hover:bg-zinc-700 outline-none no-spinners"
+            onFocus={e => e.target.select()}
+            className="w-9 text-center rounded-full font-semibold hover:bg-zinc-700 outline-none no-spinners"
          />
 
          <button
             onMouseDown={() => startAction('inc')}
             onMouseUp={stopAction}
             onMouseLeave={stopAction}
+            tabIndex={-1}
             className={`p-1 rounded-full transition-colors ${
                value >= stock ? 'opacity-50' : 'cursor-pointer hover:bg-indigo-600 '
             }`}
