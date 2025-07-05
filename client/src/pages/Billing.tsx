@@ -115,13 +115,13 @@ export const Billing = () => {
          <BillingTopbar total={total} />
 
          <div className="flex flex-col lg:flex-row gap-6 flex-1 min-h-0">
-            <div className="flex-1 h-fit h-fit flex flex-col">
+            <div className="flex-1 h-fit h-fit flex flex-col min-w-0">
                <InvoiceTable items={items} onUpdateItem={updateItem} onRemoveItem={removeItem} />
             </div>
 
-            <aside className="w-full lg:w-80 flex flex-col h-fit sticky top-0">
-               <div className="bg-zinc-800 rounded-lg p-4 shrink-0 border border-zinc-700/50 shadow-xl">
-                  <h2 className="text-zinc-400 text-sm font-bold uppercase tracking-wider mb-4">
+            <aside className="w-full lg:w-64 lg:shrink-0 flex flex-col h-fit sticky top-0">
+               <div className="bg-zinc-800 rounded-xl p-4 shrink-0 border border-zinc-700/50 shadow-xl">
+                  <h2 className="text-zinc-400 text-sm font-bold uppercase tracking-wider border-b-2 border-zinc-700 pb-2 mb-3">
                      Resumen
                   </h2>
 
@@ -133,7 +133,7 @@ export const Billing = () => {
                         </span>
                      </div>
 
-                     <div className="flex justify-between items-center">
+                     <div className="flex justify-between items-center pb-1 ">
                         <button
                            onClick={() => setIsDiscountModalOpen(true)}
                            className="text-blue-400 hover:text-blue-300 underline decoration-dotted cursor-pointer font-medium hover:bg-blue-500/10 px-1 -ml-1 rounded transition-colors"
@@ -154,7 +154,7 @@ export const Billing = () => {
                         </div>
                      </div>
 
-                     <hr className="border-zinc-700 mt-1" />
+                     {/* <hr className="border-zinc-700 mt-1" /> */}
                   </div>
 
                   <div className="flex gap-3">

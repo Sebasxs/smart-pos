@@ -68,14 +68,14 @@ export const QuantitySelector = ({
    };
 
    return (
-      <div className="flex items-center justify-center gap-x-1 bg-zinc-700 rounded-full hover:bg-zinc-800">
+      <div className="flex items-center justify-center gap-x-1 bg-zinc-800 rounded-full hover:bg-zinc-900">
          <button
             onMouseDown={() => startAction('dec')}
             onMouseUp={stopAction}
             onMouseLeave={stopAction}
             tabIndex={-1}
-            className={`p-1 rounded-full transition-colors ${
-               value <= 1 ? 'opacity-50' : 'cursor-pointer hover:bg-sky-400 '
+            className={`p-2 rounded-full transition-colors ${
+               value <= 1 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-sky-400 '
             }`}
             disabled={value <= 1}
             onDragStart={e => e.preventDefault()}
@@ -89,7 +89,7 @@ export const QuantitySelector = ({
             value={value}
             onChange={handleManualChange}
             onFocus={e => e.target.select()}
-            className="w-9 text-center rounded-full font-semibold hover:bg-zinc-700 outline-none no-spinners"
+            className="w-9 text-center rounded-full font-semibold outline-none no-spinners cursor-pointer focus:cursor-text"
          />
 
          <button
@@ -97,8 +97,10 @@ export const QuantitySelector = ({
             onMouseUp={stopAction}
             onMouseLeave={stopAction}
             tabIndex={-1}
-            className={`p-1 rounded-full transition-colors ${
-               value >= stock ? 'opacity-50' : 'cursor-pointer hover:bg-indigo-600 '
+            className={`p-2 rounded-full transition-colors ${
+               value >= stock
+                  ? 'opacity-50 cursor-not-allowed'
+                  : 'cursor-pointer hover:bg-indigo-600 '
             }`}
             disabled={value >= stock}
             onDragStart={e => e.preventDefault()}

@@ -1,7 +1,7 @@
 import { HiOutlineTrash } from 'react-icons/hi2';
 import { QuantitySelector } from '../ui/QuantitySelector';
 import { type InvoiceItem } from '../../types/billing';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 type InvoiceItemRowProps = {
    item: InvoiceItem;
@@ -9,7 +9,17 @@ type InvoiceItemRowProps = {
    onRemove: (id: string) => void;
 };
 
+const GRID_LAYOUT = 'grid grid-cols-[minmax(6rem,1fr)_6rem_6rem_5rem_2rem] gap-3 items-center px-1';
+
 const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
+   const originalValues = useRef({
+      name: item.name,
+      price: item.price,
+   });
+
+   const isNameModified = item.name !== originalValues.current.name;
+   const isPriceModified = item.price !== originalValues.current.price;
+
    const [localPrice, setLocalPrice] = useState(item.price.toLocaleString('es-CO'));
 
    useEffect(() => {
@@ -39,37 +49,41 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
    };
 
    return (
-      <div className="flex items-center gap-2 p-1 rounded-xl hover:bg-zinc-700 min-w-[300px]">
-         <div className="flex-1 min-w-24">
+      <div className={`${GRID_LAYOUT} rounded-xl hover:bg-zinc-700 bg-zinc-700 py-1`}>
+         <div className="w-full">
             <input
                type="text"
                value={item.name}
                onChange={e => onUpdate(item.id, { name: e.target.value })}
-               className="
-                  w-full bg-transparent rounded-lg
-                  hover:ring-1 hover:ring-zinc-500 hover:bg-zinc-800
+               title={item.name}
+               className={`
+                  w-full bg-transparent rounded-xl cursor-pointer focus:cursor-text pl-2 py-1
+                  hover:ring-1 hover:ring-zinc-600 hover:bg-zinc-800
                   focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-zinc-800
-                  outline-none text-ellipsis
-               "
+                  outline-none text-ellipsis transition-colors duration-200
+                  ${isNameModified ? 'text-amber-400 italic' : 'text-zinc-100 font-semibold'}
+               `}
             />
          </div>
-         <div className="w-22 shrink-0 mr-4">
+
+         <div className="w-full">
             <input
                type="text"
                value={localPrice}
                onChange={handlePriceChange}
                onBlur={handleBlur}
                onKeyDown={handleKeyDown}
-               onFocus={e => e.target.select()}
-               className="
-                  w-full bg-transparent text-right font-semibold rounded-lg
-                  hover:ring-1 hover:ring-zinc-500 hover:bg-zinc-800
+               className={`
+                  w-full bg-transparent text-right rounded-xl cursor-pointer focus:cursor-text pr-2 py-1
+                  hover:ring-1 hover:ring-zinc-600 hover:bg-zinc-800
                   focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-zinc-800
-                  outline-none no-spinners
-               "
+                  outline-none no-spinners transition-colors duration-200
+                  ${isPriceModified ? 'text-amber-400 italic' : 'text-zinc-100 font-semibold'}
+               `}
             />
          </div>
-         <div className="w-20 flex justify-center shrink-0">
+
+         <div className="flex justify-center">
             <QuantitySelector
                value={item.quantity}
                stock={item.stock}
@@ -77,24 +91,18 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
                   onUpdate(item.id, { quantity: Math.min(item.quantity + 1, item.stock) })
                }
                onDecrease={() => onUpdate(item.id, { quantity: Math.max(1, item.quantity - 1) })}
-               onQuantityChange={newQuantity => {
-                  const finalQuantity = newQuantity > 0 ? newQuantity : 1;
-                  onUpdate(item.id, { quantity: finalQuantity });
-               }}
+               onQuantityChange={qty => onUpdate(item.id, { quantity: qty > 0 ? qty : 1 })}
             />
          </div>
-         <div className="w-22 font-semibold text-right shrink-0">
+
+         <div className="font-semibold text-right">
             <span>{(item.quantity * item.price).toLocaleString('es-CO')}</span>
          </div>
-         <div className="w-10 flex justify-end shrink-0">
+
+         <div className="flex justify-end">
             <button
                onClick={() => onRemove(item.id)}
-               className="
-                  text-red-500 p-1 rounded-full
-                  hover:text-zinc-800 hover:bg-red-600/60
-                  transition-colors duration-200
-                  cursor-pointer
-               "
+               className="text-red-500 p-1 rounded-full hover:text-zinc-800 hover:bg-red-600/60 transition-colors duration-200 cursor-pointer"
             >
                <HiOutlineTrash size={18} />
             </button>
@@ -111,14 +119,16 @@ type InvoiceTableProps = {
 
 export const InvoiceTable = ({ items, onUpdateItem, onRemoveItem }: InvoiceTableProps) => {
    return (
-      <div className="bg-zinc-800 p-4 pl-3 rounded-lg flex flex-col h-full overflow-hidden">
+      <div className="bg-zinc-800 p-4 rounded-lg flex flex-col h-full overflow-hidden">
          <div className="overflow-x-auto flex-1 custom-scrollbar">
-            <div className="flex gap-2 text-left text-zinc-400 font-bold text-sm border-b-2 border-zinc-700 pb-2 mb-2 min-w-[300px]">
-               <div className="flex-1 min-w-24">Producto</div>
-               <div className="w-22 text-right pr-1 mr-4">Valor</div>
-               <div className="w-20 text-center">Cantidad</div>
-               <div className="w-22 text-right pr-1">Total</div>
-               <div className="w-10"></div>
+            <div
+               className={`${GRID_LAYOUT} pl-3 text-zinc-400 font-bold text-sm border-b-2 border-zinc-700 pb-2 mb-2`}
+            >
+               <div>Producto</div>
+               <div className="text-right pr-2">Valor</div>
+               <div className="text-center">Cantidad</div>
+               <div className="text-right">Total</div>
+               <div></div>
             </div>
 
             <div className="flex flex-col gap-y-1">

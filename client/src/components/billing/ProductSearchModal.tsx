@@ -83,7 +83,7 @@ const useKeyboardNavigation = (
             if (results[selectedIndex]) {
                onSelect(results[selectedIndex]);
             } else if (searchTerm.trim() !== '') {
-               onSelect({ name: searchTerm, price: 0, stock: 1, supplier: 'Genérico' });
+               onSelect({ name: searchTerm, price: 0, stock: 9999, supplier: 'Genérico' });
             }
             return;
          }
