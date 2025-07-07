@@ -46,6 +46,7 @@ export type Database = {
       }
       invoice_items: {
         Row: {
+          discount_applied: number | null
           id: string
           invoice_id: number | null
           product_id: string | null
@@ -55,6 +56,7 @@ export type Database = {
           unit_price: number
         }
         Insert: {
+          discount_applied?: number | null
           id?: string
           invoice_id?: number | null
           product_id?: string | null
@@ -64,6 +66,7 @@ export type Database = {
           unit_price: number
         }
         Update: {
+          discount_applied?: number | null
           id?: string
           invoice_id?: number | null
           product_id?: string | null
@@ -141,6 +144,7 @@ export type Database = {
           cost: number | null
           created_at: string | null
           description: string | null
+          discount_percentage: number | null
           id: string
           name: string
           price: number
@@ -151,6 +155,7 @@ export type Database = {
           cost?: number | null
           created_at?: string | null
           description?: string | null
+          discount_percentage?: number | null
           id?: string
           name: string
           price: number
@@ -161,6 +166,7 @@ export type Database = {
           cost?: number | null
           created_at?: string | null
           description?: string | null
+          discount_percentage?: number | null
           id?: string
           name?: string
           price?: number
@@ -206,6 +212,29 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_invoice_transaction:
+        | {
+            Args: {
+              p_customer: Json
+              p_discount: number
+              p_items: Json
+              p_payment_method: string
+              p_subtotal: number
+              p_total: number
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_customer: Json
+              p_discount: number
+              p_items: Json
+              p_payment_method: string
+              p_subtotal: number
+              p_total: number
+            }
+            Returns: Json
+          }
       search_products: {
         Args: { search_term: string }
         Returns: {
