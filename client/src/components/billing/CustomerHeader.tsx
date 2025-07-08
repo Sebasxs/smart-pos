@@ -36,8 +36,12 @@ const EditableField = ({
       if (e.key === 'Enter') setIsEditing(false);
    };
 
+   const handleFocus = () => setIsEditing(true);
+
    return (
       <div
+         tabIndex={0}
+         onFocus={handleFocus}
          className={`relative flex items-center gap-2 bg-zinc-800/50 hover:bg-zinc-800 border border-transparent hover:border-zinc-700 rounded-lg px-3 py-1.5 transition-all group ${className}`}
          onClick={() => setIsEditing(true)}
       >
@@ -118,7 +122,7 @@ export const CustomerHeader = ({ onSearchRequest }: { onSearchRequest: () => voi
          </div>
 
          {/* Botones de Acción */}
-         <div className="flex items-center gap-2 shrink-0 border-l border-zinc-800 pl-3 ml-1">
+         <div className="flex items-center gap-2 shrink-0 lg:border-l border-zinc-800 lg:pl-3 ml-1">
             {hasCustomerData && (
                <button
                   onClick={resetCustomer}

@@ -21,7 +21,7 @@ export const PaymentWidget = ({ total }: PaymentWidgetProps) => {
    return (
       <div className="bg-zinc-800 rounded-xl p-3 border border-zinc-700 shadow-lg mb-3">
          <div className="flex justify-between items-center mb-3">
-            <h2 className="text-zinc-500 text-[10px] font-bold uppercase tracking-wider">
+            <h2 className="text-zinc-500 text-[12px] font-bold uppercase tracking-wider">
                Método de Pago
             </h2>
          </div>
@@ -62,7 +62,9 @@ export const PaymentWidget = ({ total }: PaymentWidgetProps) => {
          {paymentMethod === 'cash' && (
             <div className="animate-in fade-in zoom-in-95 duration-200 bg-zinc-900/50 rounded-lg p-2 border border-zinc-800">
                <div className="flex items-center justify-between gap-3">
-                  <label className="text-xs text-zinc-400 font-medium shrink-0">Recibido:</label>
+                  <label className="text-sm text-zinc-400 font-medium shrink-0 mr-2">
+                     Recibido
+                  </label>
                   <div className="relative flex-1">
                      <span className="absolute left-2 top-1/2 -translate-y-1/2 text-zinc-500 text-sm font-bold">
                         $

@@ -5,7 +5,6 @@ import { ProductSearchModal } from '../components/billing/ProductSearchModal';
 import { CustomerSearchModal } from '../components/billing/CustomerSearchModal';
 import { CustomerHeader } from '../components/billing/CustomerHeader';
 import { DiscountModal } from '../components/billing/DiscountModal';
-// Topbar eliminada
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { PaymentSuccessModal } from '../components/billing/PaymentSuccessModal';
 import { PaymentWidget } from '../components/billing/PaymentWidget';
@@ -169,7 +168,8 @@ export const Billing = () => {
 
          <div className="flex flex-col lg:flex-row gap-4 flex-1 min-h-0">
             {/* Columna Izquierda: Tabla de Productos */}
-            <div className="flex-1 h-full flex flex-col min-w-0 bg-zinc-800 rounded-xl border border-zinc-700 shadow-sm overflow-hidden">
+            {/* min-h-[40vh] asegura que en móviles no desaparezca */}
+            <div className="flex-1 h-full flex flex-col min-h-[40vh] lg:min-h-0 bg-zinc-800 rounded-xl border border-zinc-700 shadow-sm overflow-hidden">
                <div className="flex-1 min-h-0 relative bg-zinc-900/30">
                   <InvoiceTable items={items} onUpdateItem={updateItem} onRemoveItem={removeItem} />
                </div>
@@ -180,10 +180,12 @@ export const Billing = () => {
                <PaymentWidget total={total} />
 
                <div className="bg-zinc-800 rounded-xl p-4 border border-zinc-700 shadow-xl">
-                  <div className="flex flex-col gap-y-2 text-sm mb-5">
-                     <div className="flex justify-between">
-                        <span className="text-zinc-400">Subtotal</span>
-                        <span className="font-semibold text-zinc-200">
+                  <div className="flex flex-col gap-y-3 text-sm mb-5">
+                     <div className="flex justify-between items-center">
+                        <span className="text-zinc-400 font-bold text-xs uppercase tracking-wider">
+                           Subtotal
+                        </span>
+                        <span className="font-bold text-zinc-200 text-base">
                            ${subtotal.toLocaleString('es-CO')}
                         </span>
                      </div>
@@ -191,16 +193,16 @@ export const Billing = () => {
                      <div className="flex justify-between items-center">
                         <button
                            onClick={() => setIsDiscountOpen(true)}
-                           className="text-blue-400 hover:text-blue-300 underline decoration-dotted cursor-pointer font-medium hover:bg-blue-500/10 px-1 -ml-1 rounded transition-colors text-xs"
+                           className="text-blue-400 hover:text-blue-300 underline decoration-dotted cursor-pointer font-bold text-xs uppercase tracking-wider hover:bg-blue-500/10 px-1 -ml-1 rounded transition-colors text-left"
                         >
                            Descuento
                         </button>
                         <div className="flex items-center gap-2">
-                           <span className="text-zinc-500 text-[10px]">
+                           <span className="text-zinc-500 text-[10px] font-medium">
                               {discount.type === 'percentage' ? `(${discount.value}%)` : '(-$)'}
                            </span>
                            <span
-                              className={`font-semibold ${
+                              className={`font-bold text-base ${
                                  discountAmount > 0 ? 'text-red-400' : 'text-zinc-200'
                               }`}
                            >
@@ -209,9 +211,11 @@ export const Billing = () => {
                         </div>
                      </div>
 
-                     <div className="pt-3 mt-1 border-t border-zinc-700 flex justify-between items-end">
-                        <span className="text-base font-bold text-white">Total</span>
-                        <span className="text-2xl font-black text-white">
+                     <div className="pt-3 mt-1 border-t border-zinc-700 flex justify-between items-center">
+                        <span className="text-lg font-black text-white uppercase tracking-tight">
+                           Total
+                        </span>
+                        <span className="text-3xl font-black text-white tracking-tight">
                            ${total.toLocaleString('es-CO')}
                         </span>
                      </div>
@@ -240,6 +244,19 @@ export const Billing = () => {
                      >
                         <span>{isProcessing ? '...' : 'Confirmar'}</span>
                      </button>
+                  </div>
+               </div>
+
+               {/* Leyendas de Atajos */}
+               <div className="mt-4 px-2 grid grid-cols-3 gap-2 text-[11px] text-zinc-600 font-medium text-center uppercase tracking-wide opacity-75">
+                  <div>
+                     <span className="font-bold text-zinc-500">C</span> Cliente
+                  </div>
+                  <div>
+                     <span className="font-bold text-zinc-500">X</span> Limpiar
+                  </div>
+                  <div>
+                     <span className="font-bold text-zinc-500">Enter</span> Pagar
                   </div>
                </div>
             </aside>

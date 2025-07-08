@@ -49,7 +49,9 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
    };
 
    return (
-      <div className={`${GRID_LAYOUT} rounded-xl hover:bg-zinc-700 bg-zinc-700 py-1`}>
+      <div
+         className={`${GRID_LAYOUT} rounded-lg bg-zinc-700/40 hover:bg-zinc-700/60 py-1 transition-colors duration-200`}
+      >
          <div className="w-full">
             <input
                type="text"
@@ -57,11 +59,11 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
                onChange={e => onUpdate(item.id, { name: e.target.value })}
                title={item.name}
                className={`
-                  w-full bg-transparent rounded-xl cursor-pointer focus:cursor-text pl-2 py-1
+                  w-full bg-transparent rounded-lg cursor-default focus:cursor-text pl-2 py-1
                   hover:ring-1 hover:ring-zinc-600 hover:bg-zinc-800
                   focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-zinc-800
                   outline-none text-ellipsis transition-colors duration-200
-                  ${isNameModified ? 'text-amber-400 italic' : 'text-zinc-100 font-semibold'}
+                  ${isNameModified ? 'text-amber-400 italic' : 'text-zinc-300 font-semibold'}
                `}
             />
          </div>
@@ -74,11 +76,11 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
                onBlur={handleBlur}
                onKeyDown={handleKeyDown}
                className={`
-                  w-full bg-transparent text-right rounded-xl cursor-pointer focus:cursor-text pr-2 py-1
+                  w-full bg-transparent text-right rounded-xl cursor-default focus:cursor-text pr-2 py-1
                   hover:ring-1 hover:ring-zinc-600 hover:bg-zinc-800
                   focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-zinc-800
                   outline-none no-spinners transition-colors duration-200
-                  ${isPriceModified ? 'text-amber-400 italic' : 'text-zinc-100 font-semibold'}
+                  ${isPriceModified ? 'text-amber-400 italic' : 'text-zinc-300 font-semibold'}
                `}
             />
          </div>
@@ -95,7 +97,7 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
             />
          </div>
 
-         <div className="font-semibold text-right">
+         <div className="font-semibold text-right text-zinc-300">
             <span>{(item.quantity * item.price).toLocaleString('es-CO')}</span>
          </div>
 
@@ -119,10 +121,10 @@ type InvoiceTableProps = {
 
 export const InvoiceTable = ({ items, onUpdateItem, onRemoveItem }: InvoiceTableProps) => {
    return (
-      <div className="bg-zinc-800 p-4 rounded-lg flex flex-col h-full overflow-hidden border border-zinc-700">
+      <div className="bg-zinc-800 p-3 rounded-lg flex flex-col h-full overflow-hidden border border-zinc-700">
          <div className="overflow-x-auto flex-1 custom-scrollbar">
             <div
-               className={`${GRID_LAYOUT} text-zinc-400 font-bold text-sm border-b-2 border-zinc-700 pb-2 mb-2 uppercase`}
+               className={`${GRID_LAYOUT} text-zinc-500 font-bold text-[12px] border-b-2 border-zinc-700 pb-2 mb-2 uppercase`}
             >
                <div>Producto</div>
                <div className="text-right pr-2">Valor</div>
@@ -141,9 +143,14 @@ export const InvoiceTable = ({ items, onUpdateItem, onRemoveItem }: InvoiceTable
                   />
                ))}
                {items.length === 0 && (
-                  <div className="text-center py-14 text-zinc-500 italic">
-                     No hay productos. Presiona{' '}
-                     <span className="font-semibold text-zinc-400">ESPACIO</span> para buscar.
+                  <div className="flex-1 flex flex-col items-center justify-center text-zinc-500 pb-10 animate-in fade-in duration-500">
+                     <span className="mt-2 text-sm">
+                        Presiona{' '}
+                        <kbd className="font-sans font-bold text-zinc-300 bg-zinc-700 px-2 py-0.5 rounded border border-zinc-600">
+                           ESPACIO
+                        </kbd>{' '}
+                        para agregar productos.
+                     </span>
                   </div>
                )}
             </div>

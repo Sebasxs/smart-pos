@@ -89,7 +89,7 @@ export const QuantitySelector = ({
             value={value}
             onChange={handleManualChange}
             onFocus={e => e.target.select()}
-            className="w-9 text-center rounded-full font-semibold outline-none no-spinners cursor-pointer focus:cursor-text"
+            className="w-9 text-center rounded-full font-semibold outline-none no-spinners cursor-pointer focus:cursor-text text-zinc-300"
          />
 
          <button
