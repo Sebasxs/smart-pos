@@ -119,10 +119,10 @@ type InvoiceTableProps = {
 
 export const InvoiceTable = ({ items, onUpdateItem, onRemoveItem }: InvoiceTableProps) => {
    return (
-      <div className="bg-zinc-800 p-4 rounded-lg flex flex-col h-full overflow-hidden">
+      <div className="bg-zinc-800 p-4 rounded-lg flex flex-col h-full overflow-hidden border border-zinc-700">
          <div className="overflow-x-auto flex-1 custom-scrollbar">
             <div
-               className={`${GRID_LAYOUT} pl-3 text-zinc-400 font-bold text-sm border-b-2 border-zinc-700 pb-2 mb-2`}
+               className={`${GRID_LAYOUT} text-zinc-400 font-bold text-sm border-b-2 border-zinc-700 pb-2 mb-2 uppercase`}
             >
                <div>Producto</div>
                <div className="text-right pr-2">Valor</div>
@@ -141,8 +141,9 @@ export const InvoiceTable = ({ items, onUpdateItem, onRemoveItem }: InvoiceTable
                   />
                ))}
                {items.length === 0 && (
-                  <div className="text-center py-10 text-zinc-500 italic">
-                     No hay productos. Presiona ESPACIO para buscar.
+                  <div className="text-center py-14 text-zinc-500 italic">
+                     No hay productos. Presiona{' '}
+                     <span className="font-semibold text-zinc-400">ESPACIO</span> para buscar.
                   </div>
                )}
             </div>

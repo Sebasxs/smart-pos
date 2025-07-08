@@ -1,30 +1,47 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
+import { HiOutlineTrash } from 'react-icons/hi2';
 import { InvoiceTable } from '../components/billing/InvoiceTable';
 import { ProductSearchModal } from '../components/billing/ProductSearchModal';
-import { type InvoiceItem } from '../types/billing';
-import { HiOutlineTrash } from 'react-icons/hi2';
+import { CustomerSearchModal } from '../components/billing/CustomerSearchModal';
+import { CustomerHeader } from '../components/billing/CustomerHeader';
 import { DiscountModal } from '../components/billing/DiscountModal';
-import { BillingTopbar } from '../components/billing/BillingTopbar';
+// Topbar eliminada
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { PaymentSuccessModal } from '../components/billing/PaymentSuccessModal';
-import { CheckoutModal, type CheckoutData } from '../components/billing/CheckoutModal';
-import { useBillingStore } from '../store/billingStore';
+import { PaymentWidget } from '../components/billing/PaymentWidget';
+import { useBillingStore, type CheckoutState } from '../store/billingStore';
+import { type InvoiceItem } from '../types/billing';
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 export const Billing = () => {
-   const { items, discount, addItem, updateItem, removeItem, setDiscount, resetInvoice } =
-      useBillingStore();
+   const {
+      items,
+      discount,
+      checkoutData,
+      addItem,
+      updateItem,
+      removeItem,
+      setDiscount,
+      setCheckoutData,
+      resetInvoice,
+   } = useBillingStore();
 
-   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
-   const [isDiscountModalOpen, setIsDiscountModalOpen] = useState(false);
+   // Modales
+   const [isProdSearchOpen, setIsProdSearchOpen] = useState(false);
+   const [isCustSearchOpen, setIsCustSearchOpen] = useState(false);
+   const [isDiscountOpen, setIsDiscountOpen] = useState(false);
    const [isDiscardConfirmOpen, setIsDiscardConfirmOpen] = useState(false);
-   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
    const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
 
-   const [finalizedData, setFinalizedData] = useState<CheckoutData | null>(null);
+   const [finalizedData, setFinalizedData] = useState<CheckoutState | null>(null);
+   const [isProcessing, setIsProcessing] = useState(false);
 
-   const subtotal = useMemo(() => {
-      return items.reduce((acc, item) => acc + item.price * item.quantity, 0);
-   }, [items]);
+   // Cálculos Financieros
+   const subtotal = useMemo(
+      () => items.reduce((acc, item) => acc + item.price * item.quantity, 0),
+      [items],
+   );
 
    const discountAmount = useMemo(() => {
       if (discount.type === 'percentage') {
@@ -33,115 +50,153 @@ export const Billing = () => {
       return discount.value;
    }, [subtotal, discount]);
 
-   const total = subtotal - discountAmount;
+   const total = Math.max(0, subtotal - discountAmount);
 
-   const formatCurrency = (val: number) => val.toLocaleString('es-CO');
+   // Validaciones
+   const cashReceived = parseInt(checkoutData.cashReceivedStr.replace(/[^0-9]/g, '') || '0', 10);
+   const isPaymentValid =
+      items.length > 0 &&
+      (checkoutData.paymentMethod === 'transfer' ||
+         (checkoutData.paymentMethod === 'cash' && cashReceived >= total));
 
+   // Handlers
    const handleProductSelect = (product: Partial<InvoiceItem>) => {
       addItem(product);
-      setIsSearchModalOpen(false);
+      setIsProdSearchOpen(false);
+   };
+
+   const handleCustomerSelect = (customer: Partial<CheckoutState['customer']>) => {
+      setCheckoutData({ customer: { ...checkoutData.customer, ...customer } });
+      setIsCustSearchOpen(false);
    };
 
    const triggerDiscard = useCallback(() => {
-      if (items.length > 0) {
-         setIsDiscardConfirmOpen(true);
-      }
+      if (items.length > 0) setIsDiscardConfirmOpen(true);
    }, [items.length]);
 
-   const triggerCheckout = useCallback(() => {
-      if (items.length === 0) return;
-      setIsCheckoutModalOpen(true);
-   }, [items]);
+   const handleProcessPayment = useCallback(async () => {
+      if (!isPaymentValid || isProcessing) return;
 
-   const handleConfirmCheckout = (data: CheckoutData) => {
-      console.log('Guardando factura...', {
-         items,
-         financials: { subtotal, discount: discountAmount, total },
-         ...data,
-      });
+      setIsProcessing(true);
+      try {
+         const payload = {
+            customer: checkoutData.customer,
+            items: items.map(i => ({
+               id: i.id.length === 36 ? i.id : null,
+               name: i.name,
+               price: i.price,
+               quantity: i.quantity,
+            })),
+            paymentMethod: checkoutData.paymentMethod,
+            subtotal,
+            discount: discountAmount,
+            total,
+         };
 
-      setFinalizedData(data);
-      setIsSuccessModalOpen(true);
-   };
+         const res = await fetch(`${API_URL}/invoices`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+         });
+
+         if (!res.ok) throw new Error('Error al procesar venta');
+
+         setFinalizedData({ ...checkoutData });
+         setIsSuccessModalOpen(true);
+      } catch (error) {
+         console.error(error);
+         alert('Hubo un error al procesar la venta');
+      } finally {
+         setIsProcessing(false);
+      }
+   }, [isPaymentValid, isProcessing, checkoutData, items, subtotal, discountAmount, total]);
 
    const handleFinalizeSuccess = () => {
       resetInvoice();
       setIsSuccessModalOpen(false);
+      setFinalizedData(null);
    };
 
+   // Shortcuts
    useEffect(() => {
       const handleKeyDown = (event: KeyboardEvent) => {
          const target = event.target as HTMLElement;
          const isInputFocused = ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName);
          const isModalOpen =
-            isSearchModalOpen ||
-            isDiscountModalOpen ||
-            isDiscardConfirmOpen ||
-            isSuccessModalOpen ||
-            isCheckoutModalOpen;
+            isProdSearchOpen || isCustSearchOpen || isDiscountOpen || isDiscardConfirmOpen;
 
          if (isModalOpen) return;
 
          if (event.code === 'Space' && !isInputFocused) {
             event.preventDefault();
-            setIsSearchModalOpen(true);
+            setIsProdSearchOpen(true);
          }
 
-         if (event.code === 'KeyE' && !isInputFocused) {
+         if ((event.code === 'KeyC' || event.key === 'c') && !isInputFocused) {
+            event.preventDefault();
+            setIsCustSearchOpen(true);
+         }
+
+         if ((event.code === 'KeyX' || event.key === 'x') && !isInputFocused) {
             event.preventDefault();
             triggerDiscard();
          }
 
          if (event.code === 'Enter' && !isInputFocused) {
             event.preventDefault();
-            triggerCheckout();
+            if (isPaymentValid) handleProcessPayment();
          }
       };
 
       window.addEventListener('keydown', handleKeyDown);
       return () => window.removeEventListener('keydown', handleKeyDown);
    }, [
-      triggerDiscard,
-      triggerCheckout,
-      isSearchModalOpen,
-      isDiscountModalOpen,
+      isProdSearchOpen,
+      isCustSearchOpen,
+      isDiscountOpen,
       isDiscardConfirmOpen,
-      isSuccessModalOpen,
-      isCheckoutModalOpen,
+      isPaymentValid,
+      triggerDiscard,
+      handleProcessPayment,
    ]);
 
    return (
-      <div className="relative w-full h-full flex flex-col gap-4">
-         <BillingTopbar total={total} />
+      <div className="relative w-full h-full flex flex-col gap-4 overflow-hidden">
+         {/* Header Unificado de Cliente */}
+         <div className="bg-zinc-900 border-b border-zinc-800 pb-2">
+            <CustomerHeader onSearchRequest={() => setIsCustSearchOpen(true)} />
+         </div>
 
-         <div className="flex flex-col lg:flex-row gap-6 flex-1 min-h-0">
-            <div className="flex-1 h-fit h-fit flex flex-col min-w-0">
-               <InvoiceTable items={items} onUpdateItem={updateItem} onRemoveItem={removeItem} />
+         <div className="flex flex-col lg:flex-row gap-4 flex-1 min-h-0">
+            {/* Columna Izquierda: Tabla de Productos */}
+            <div className="flex-1 h-full flex flex-col min-w-0 bg-zinc-800 rounded-xl border border-zinc-700 shadow-sm overflow-hidden">
+               <div className="flex-1 min-h-0 relative bg-zinc-900/30">
+                  <InvoiceTable items={items} onUpdateItem={updateItem} onRemoveItem={removeItem} />
+               </div>
             </div>
 
-            <aside className="w-full lg:w-64 lg:shrink-0 flex flex-col h-fit sticky top-0">
-               <div className="bg-zinc-800 rounded-xl p-4 shrink-0 border border-zinc-700/50 shadow-xl">
-                  <h2 className="text-zinc-400 text-sm font-bold uppercase tracking-wider border-b-2 border-zinc-700 pb-2 mb-3">
-                     Resumen
-                  </h2>
+            {/* Columna Derecha: Pagos y Totales */}
+            <aside className="w-full lg:w-80 lg:shrink-0 flex flex-col h-fit">
+               <PaymentWidget total={total} />
 
-                  <div className="flex flex-col gap-y-3 text-sm mb-4">
+               <div className="bg-zinc-800 rounded-xl p-4 border border-zinc-700 shadow-xl">
+                  <div className="flex flex-col gap-y-2 text-sm mb-5">
                      <div className="flex justify-between">
                         <span className="text-zinc-400">Subtotal</span>
                         <span className="font-semibold text-zinc-200">
-                           ${formatCurrency(subtotal)}
+                           ${subtotal.toLocaleString('es-CO')}
                         </span>
                      </div>
 
-                     <div className="flex justify-between items-center pb-1 ">
+                     <div className="flex justify-between items-center">
                         <button
-                           onClick={() => setIsDiscountModalOpen(true)}
-                           className="text-blue-400 hover:text-blue-300 underline decoration-dotted cursor-pointer font-medium hover:bg-blue-500/10 px-1 -ml-1 rounded transition-colors"
+                           onClick={() => setIsDiscountOpen(true)}
+                           className="text-blue-400 hover:text-blue-300 underline decoration-dotted cursor-pointer font-medium hover:bg-blue-500/10 px-1 -ml-1 rounded transition-colors text-xs"
                         >
                            Descuento
                         </button>
                         <div className="flex items-center gap-2">
-                           <span className="text-zinc-500 text-xs">
+                           <span className="text-zinc-500 text-[10px]">
                               {discount.type === 'percentage' ? `(${discount.value}%)` : '(-$)'}
                            </span>
                            <span
@@ -149,49 +204,63 @@ export const Billing = () => {
                                  discountAmount > 0 ? 'text-red-400' : 'text-zinc-200'
                               }`}
                            >
-                              -${formatCurrency(discountAmount)}
+                              -${discountAmount.toLocaleString('es-CO')}
                            </span>
                         </div>
                      </div>
 
-                     {/* <hr className="border-zinc-700 mt-1" /> */}
+                     <div className="pt-3 mt-1 border-t border-zinc-700 flex justify-between items-end">
+                        <span className="text-base font-bold text-white">Total</span>
+                        <span className="text-2xl font-black text-white">
+                           ${total.toLocaleString('es-CO')}
+                        </span>
+                     </div>
                   </div>
 
-                  <div className="flex gap-3">
+                  <div className="flex gap-2">
                      <button
                         onClick={triggerDiscard}
-                        className="p-4 rounded-xl bg-zinc-700 hover:bg-red-600/60 hover:text-white text-zinc-400 transition-colors cursor-pointer border border-transparent hover:border-red-900/50"
-                        title="Eliminar factura (E)"
+                        className="p-3 rounded-xl bg-zinc-700 hover:bg-red-600/20 hover:text-red-400 text-zinc-400 transition-colors cursor-pointer border border-transparent hover:border-red-900/50"
+                        title="Descartar (X)"
                      >
-                        <HiOutlineTrash size={22} />
+                        <HiOutlineTrash size={20} />
                      </button>
                      <button
-                        onClick={triggerCheckout}
-                        disabled={items.length === 0}
-                        className="
-                           flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl 
-                           transition-all shadow-lg shadow-blue-900/20 cursor-pointer flex justify-center items-center gap-2
-                           disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600
-                           hover:scale-[1.02] active:scale-[0.98]
-                        "
-                        title="Cobrar (Enter)"
+                        onClick={handleProcessPayment}
+                        disabled={!isPaymentValid || isProcessing}
+                        className={`
+                           flex-1 font-bold py-3 rounded-xl text-base
+                           transition-all shadow-lg flex justify-center items-center gap-2
+                           ${
+                              isPaymentValid && !isProcessing
+                                 ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-900/20 cursor-pointer hover:scale-[1.02] active:scale-[0.98]'
+                                 : 'bg-zinc-700 text-zinc-500 cursor-not-allowed opacity-50'
+                           }
+                        `}
                      >
-                        <span className="text-lg">Cobrar</span>
+                        <span>{isProcessing ? '...' : 'Confirmar'}</span>
                      </button>
                   </div>
                </div>
             </aside>
          </div>
 
+         {/* Modales */}
          <ProductSearchModal
-            isOpen={isSearchModalOpen}
-            onClose={() => setIsSearchModalOpen(false)}
+            isOpen={isProdSearchOpen}
+            onClose={() => setIsProdSearchOpen(false)}
             onSelectProduct={handleProductSelect}
          />
 
+         <CustomerSearchModal
+            isOpen={isCustSearchOpen}
+            onClose={() => setIsCustSearchOpen(false)}
+            onSelectCustomer={handleCustomerSelect}
+         />
+
          <DiscountModal
-            isOpen={isDiscountModalOpen}
-            onClose={() => setIsDiscountModalOpen(false)}
+            isOpen={isDiscountOpen}
+            onClose={() => setIsDiscountOpen(false)}
             onApply={setDiscount}
             currentDiscount={discount}
             subtotal={subtotal}
@@ -205,20 +274,19 @@ export const Billing = () => {
             message="Eliminarás todos los productos agregados."
          />
 
-         <CheckoutModal
-            isOpen={isCheckoutModalOpen}
-            onClose={() => setIsCheckoutModalOpen(false)}
-            onConfirm={handleConfirmCheckout}
-            total={total}
-         />
-
          <PaymentSuccessModal
             isOpen={isSuccessModalOpen}
             onClose={handleFinalizeSuccess}
             total={total}
             paymentMethod={finalizedData?.paymentMethod || 'cash'}
-            cashReceived={finalizedData?.cashReceived || 0}
-            change={finalizedData?.change || 0}
+            cashReceived={
+               parseInt(finalizedData?.cashReceivedStr.replace(/[^0-9]/g, '') || '0', 10) || 0
+            }
+            change={
+               (finalizedData?.paymentMethod === 'cash'
+                  ? parseInt(finalizedData?.cashReceivedStr.replace(/[^0-9]/g, '') || '0', 10)
+                  : 0) - total
+            }
          />
       </div>
    );

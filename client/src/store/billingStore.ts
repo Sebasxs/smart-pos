@@ -12,8 +12,10 @@ export type CheckoutState = {
    cashReceivedStr: string;
 };
 
+const initialCustomer = { name: '', email: '', taxId: '', city: '' };
+
 const initialCheckoutState: CheckoutState = {
-   customer: { name: '', email: '', taxId: '', city: '' },
+   customer: initialCustomer,
    paymentMethod: 'cash',
    cashReceivedStr: '',
 };
@@ -28,6 +30,7 @@ interface BillingState {
    removeItem: (id: string) => void;
    setDiscount: (discount: Discount) => void;
    setCheckoutData: (data: Partial<CheckoutState>) => void;
+   resetCustomer: () => void; // Nueva acción
    resetInvoice: () => void;
 }
 
@@ -87,6 +90,12 @@ export const useBillingStore = create<BillingState>(set => ({
       set(state => ({
          checkoutData: { ...state.checkoutData, ...newData },
       })),
+
+   resetCustomer: () => {
+      set(state => ({
+         checkoutData: { ...state.checkoutData, customer: initialCustomer },
+      }));
+   },
 
    resetInvoice: () => {
       set({

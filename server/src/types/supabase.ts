@@ -235,6 +235,24 @@ export type Database = {
             }
             Returns: Json
           }
+      search_customers: {
+        Args: { search_term: string }
+        Returns: {
+          city: string | null
+          created_at: string | null
+          current_balance: number
+          email: string | null
+          id: string
+          name: string
+          tax_id: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "customers"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       search_products: {
         Args: { search_term: string }
         Returns: {
