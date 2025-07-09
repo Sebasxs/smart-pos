@@ -10,10 +10,11 @@ import { Sidebar } from './components/layout/Sidebar';
 
 function App() {
    return (
-      <div className="h-screen w-screen bg-zinc-900 flex text-zinc-200">
+      // Cambio: bg-zinc-900 -> bg-zinc-950 para mayor profundidad
+      <div className="h-screen w-screen bg-zinc-950 flex text-zinc-200 font-sans selection:bg-blue-500/30">
          <Sidebar />
 
-         <main className="flex-1 p-6 overflow-y-auto">
+         <main className="flex-1 p-4 lg:p-6 overflow-y-auto overflow-x-hidden">
             <Routes>
                <Route path="/" element={<Navigate to="/billing" replace />} />
                <Route path="/chat" element={<Chat />} />

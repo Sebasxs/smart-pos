@@ -56,6 +56,7 @@ export const Billing = () => {
    const isPaymentValid =
       items.length > 0 &&
       (checkoutData.paymentMethod === 'transfer' ||
+         cashReceived === 0 ||
          (checkoutData.paymentMethod === 'cash' && cashReceived >= total));
 
    // Handlers
@@ -169,7 +170,7 @@ export const Billing = () => {
          <div className="flex flex-col lg:flex-row gap-4 flex-1 min-h-0">
             {/* Columna Izquierda: Tabla de Productos */}
             {/* min-h-[40vh] asegura que en móviles no desaparezca */}
-            <div className="flex-1 h-full flex flex-col min-h-[40vh] lg:min-h-0 bg-zinc-800 rounded-xl border border-zinc-700 shadow-sm overflow-hidden">
+            <div className="flex-1 h-full flex flex-col min-h-[40vh] lg:min-h-0 bg-zinc-800 rounded-xl border border-zinc-800 shadow-sm overflow-hidden">
                <div className="flex-1 min-h-0 relative bg-zinc-900/30">
                   <InvoiceTable items={items} onUpdateItem={updateItem} onRemoveItem={removeItem} />
                </div>

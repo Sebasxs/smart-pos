@@ -44,12 +44,12 @@ const MenuItem = ({ icon, name, path }: MenuItemProps) => (
    <NavLink
       to={path}
       className={({ isActive }) => `
-         flex items-center gap-2 h-7 p-2
-         rounded-lg font-semibold
+         flex items-center gap-2 h-9 px-3 mx-2
+         rounded-lg font-medium text-sm transition-all duration-200 group
          ${
             isActive
-               ? 'bg-zinc-700 text-white relative bg-gradient-to-r from-blue-500 to-blue-600'
-               : 'text-zinc-300 hover:bg-zinc-600 hover:text-white'
+               ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20 shadow-[0_0_15px_-3px_rgba(59,130,246,0.3)]'
+               : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 border border-transparent'
          }
          `}
       title={name}
@@ -61,51 +61,52 @@ const MenuItem = ({ icon, name, path }: MenuItemProps) => (
 
 export const Sidebar = () => {
    return (
-      <aside className="w-[52px] lg:w-52 bg-zinc-950 px-2 text-white flex flex-col transition-all duration-300 border-r border-zinc-800">
-         <div className="flex items-center py-4 overflow-hidden">
+      // Cambio: bg-zinc-950 -> bg-zinc-900 para unificar tono con las cards de la UI
+      <aside className="w-[60px] lg:w-60 bg-zinc-900 border-r border-zinc-800 flex flex-col transition-all duration-300 z-50">
+         <div className="flex items-center h-16 px-4 border-b border-zinc-800/50 mb-4">
             <a
                href="https://audiovideofp.com"
                target="_blank"
                rel="noopener noreferrer"
-               className="text-white text-2xl font-extrabold tracking-tight"
+               className="text-white text-xl font-bold tracking-tight flex items-center gap-2"
             >
-               <span className={`${textOpacityTransition} pl-2`}>AudioVideo</span>
-               <span
-                  className="
-                        absolute top-4 
-                        transition-all duration-300 ease-in-out
-                        opacity-100 lg:opacity-0
-                        block
-                    "
-               >
+               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white text-xs font-black shadow-lg shadow-blue-900/20">
                   AV
-               </span>
+               </div>
+               <span className={`${textOpacityTransition}`}>AudioVideoFP</span>
             </a>
          </div>
 
-         <div className="flex flex-col gap-y-5 flex-grow overflow-y-auto">
-            <nav className="flex flex-col gap-y-1 my-4">
-               <div className="flex flex-col gap-y-1">
-                  {menuItemsGroups.primary.map(item => (
-                     <MenuItem key={item.name} {...item} />
-                  ))}
+         <div className="flex flex-col gap-y-6 flex-grow overflow-y-auto py-2 custom-scrollbar">
+            <nav className="flex flex-col gap-y-1">
+               <div className="px-4 mb-2 text-[10px] font-bold text-zinc-600 uppercase tracking-widest hidden lg:block">
+                  Principal
                </div>
-               <hr className="my-2 border-zinc-800" />
-               <div className="flex flex-col gap-y-1">
-                  {menuItemsGroups.management.map(item => (
-                     <MenuItem key={item.name} {...item} />
-                  ))}
+               {menuItemsGroups.primary.map(item => (
+                  <MenuItem key={item.name} {...item} />
+               ))}
+            </nav>
+
+            <nav className="flex flex-col gap-y-1">
+               <div className="px-4 mb-2 text-[10px] font-bold text-zinc-600 uppercase tracking-widest hidden lg:block">
+                  Gestión
                </div>
+               {menuItemsGroups.management.map(item => (
+                  <MenuItem key={item.name} {...item} />
+               ))}
             </nav>
          </div>
 
-         <div className="flex items-center gap-x-2 mt-auto text-sm pb-3">
-            <div className="w-8 h-8 bg-zinc-700 rounded-full flex items-center justify-center shrink-0">
-               <HiOutlineUserCircle size={22} />
+         <div className="p-4 border-t border-zinc-800 mt-auto">
+            <div className="flex items-center gap-x-3 p-2 rounded-xl bg-zinc-800/50 border border-zinc-800">
+               <div className="w-8 h-8 bg-zinc-700 rounded-full flex items-center justify-center shrink-0 text-zinc-400">
+                  <HiOutlineUserCircle size={20} />
+               </div>
+               <div className={`flex flex-col overflow-hidden ${textOpacityTransition}`}>
+                  <span className="text-sm font-semibold text-zinc-200 truncate">Vendedor</span>
+                  <span className="text-[10px] text-zinc-500 truncate">Sede Principal</span>
+               </div>
             </div>
-            <span className={`${textOpacityTransition} font-semibold truncate`}>
-               nombre.usuario
-            </span>
          </div>
       </aside>
    );

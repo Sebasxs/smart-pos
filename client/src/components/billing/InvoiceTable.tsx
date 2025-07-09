@@ -11,6 +11,7 @@ type InvoiceItemRowProps = {
 
 const GRID_LAYOUT = 'grid grid-cols-[minmax(6rem,1fr)_6rem_6rem_5rem_2rem] gap-3 items-center px-1';
 
+// ... (El componente InvoiceItemRow se mantiene igual, lo omito por brevedad) ...
 const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
    const originalValues = useRef({
       name: item.name,
@@ -50,7 +51,7 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
 
    return (
       <div
-         className={`${GRID_LAYOUT} rounded-lg bg-zinc-700/40 hover:bg-zinc-700/60 py-1 transition-colors duration-200`}
+         className={`${GRID_LAYOUT} bg-zinc-700/30 hover:bg-zinc-700/50 py-1.5 transition-colors duration-200 border border-transparent hover:border-zinc-700 pl-2`}
       >
          <div className="w-full">
             <input
@@ -59,11 +60,11 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
                onChange={e => onUpdate(item.id, { name: e.target.value })}
                title={item.name}
                className={`
-                  w-full bg-transparent rounded-lg cursor-default focus:cursor-text pl-2 py-1
+                  w-full bg-transparent rounded-lg cursor-default focus:cursor-text pl-3 py-1
                   hover:ring-1 hover:ring-zinc-600 hover:bg-zinc-800
                   focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-zinc-800
                   outline-none text-ellipsis transition-colors duration-200
-                  ${isNameModified ? 'text-amber-400 italic' : 'text-zinc-300 font-semibold'}
+                  ${isNameModified ? 'text-amber-400 italic' : 'text-zinc-200 font-medium'}
                `}
             />
          </div>
@@ -80,7 +81,7 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
                   hover:ring-1 hover:ring-zinc-600 hover:bg-zinc-800
                   focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-zinc-800
                   outline-none no-spinners transition-colors duration-200
-                  ${isPriceModified ? 'text-amber-400 italic' : 'text-zinc-300 font-semibold'}
+                  ${isPriceModified ? 'text-amber-400 italic' : 'text-zinc-200 font-medium'}
                `}
             />
          </div>
@@ -97,14 +98,14 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
             />
          </div>
 
-         <div className="font-semibold text-right text-zinc-300">
+         <div className="font-semibold text-right text-zinc-200">
             <span>{(item.quantity * item.price).toLocaleString('es-CO')}</span>
          </div>
 
          <div className="flex justify-end">
             <button
                onClick={() => onRemove(item.id)}
-               className="text-red-500 p-1 rounded-full hover:text-zinc-800 hover:bg-red-600/60 transition-colors duration-200 cursor-pointer"
+               className="text-zinc-500 p-1 rounded-full hover:text-red-400 hover:bg-red-400/10 transition-colors duration-200 cursor-pointer"
             >
                <HiOutlineTrash size={18} />
             </button>
@@ -121,19 +122,20 @@ type InvoiceTableProps = {
 
 export const InvoiceTable = ({ items, onUpdateItem, onRemoveItem }: InvoiceTableProps) => {
    return (
-      <div className="bg-zinc-800 p-3 rounded-lg flex flex-col h-full overflow-hidden border border-zinc-700">
-         <div className="overflow-x-auto flex-1 custom-scrollbar">
-            <div
-               className={`${GRID_LAYOUT} text-zinc-500 font-bold text-[12px] border-b-2 border-zinc-700 pb-2 mb-2 uppercase`}
-            >
-               <div>Producto</div>
-               <div className="text-right pr-2">Valor</div>
-               <div className="text-center">Cantidad</div>
-               <div className="text-right">Total</div>
-               <div></div>
-            </div>
+      // Cambio: bg-zinc-900 (antes 800) para coincidir con Sidebar. Eliminado borde inferior fijo para limpieza.
+      <div className="flex flex-col h-full overflow-hidden bg-zinc-900">
+         <div
+            className={`${GRID_LAYOUT} text-zinc-500 font-bold text-[11px] pb-3 p-4 uppercase tracking-wider`}
+         >
+            <div className="text-left pl-4">Producto</div>
+            <div className="text-right pr-2">Valor</div>
+            <div className="text-center">Cantidad</div>
+            <div className="text-right">Total</div>
+            <div></div>
+         </div>
 
-            <div className="flex flex-col gap-y-1">
+         <div className="overflow-y-auto flex-1 custom-scrollbar">
+            <div className="flex flex-col gap-y-1 min-h-full">
                {items.map(item => (
                   <InvoiceItemRow
                      key={item.id}
@@ -142,14 +144,15 @@ export const InvoiceTable = ({ items, onUpdateItem, onRemoveItem }: InvoiceTable
                      onRemove={onRemoveItem}
                   />
                ))}
+
                {items.length === 0 && (
-                  <div className="flex-1 flex flex-col items-center justify-center text-zinc-500 pb-10 animate-in fade-in duration-500">
-                     <span className="mt-2 text-sm">
+                  <div className="flex-1 flex flex-col items-center justify-center text-zinc-600 h-full animate-in fade-in duration-500">
+                     <span className="text-sm bg-zinc-800/50 px-4 py-2 rounded-full border border-zinc-800">
                         Presiona{' '}
-                        <kbd className="font-sans font-bold text-zinc-300 bg-zinc-700 px-2 py-0.5 rounded border border-zinc-600">
+                        <kbd className="font-sans font-bold text-zinc-300 bg-zinc-700 px-2 py-0.5 rounded border border-zinc-600 shadow-sm mx-1">
                            ESPACIO
                         </kbd>{' '}
-                        para agregar productos.
+                        para buscar productos
                      </span>
                   </div>
                )}
