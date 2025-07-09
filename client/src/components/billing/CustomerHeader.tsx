@@ -42,12 +42,13 @@ const EditableField = ({
       <div
          tabIndex={0}
          onFocus={handleFocus}
-         className={`relative flex items-center gap-2 bg-zinc-800/50 hover:bg-zinc-800 border border-transparent hover:border-zinc-700 rounded-lg px-3 py-1.5 transition-all group ${className}`}
+         // Cambio: Ajuste de bg para contraste con la nueva card oscura
+         className={`relative flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700/50 hover:border-zinc-600 rounded-lg px-3 py-1.5 transition-all group ${className}`}
          onClick={() => setIsEditing(true)}
       >
          <Icon
             className={`shrink-0 transition-colors ${
-               value || isEditing ? 'text-blue-400' : 'text-zinc-600'
+               value || isEditing ? 'text-blue-400' : 'text-zinc-500'
             }`}
             size={16}
          />
@@ -60,12 +61,12 @@ const EditableField = ({
                onBlur={handleBlur}
                onKeyDown={handleKeyDown}
                placeholder={placeholder}
-               className="w-full bg-transparent text-white outline-none text-sm font-medium placeholder:text-zinc-600"
+               className="w-full bg-transparent text-white outline-none text-sm font-medium placeholder:text-zinc-500"
             />
          ) : (
             <span
                className={`text-sm truncate w-full select-none ${
-                  value ? 'text-zinc-200 font-medium' : 'text-zinc-600 italic'
+                  value ? 'text-zinc-200 font-medium' : 'text-zinc-500 italic'
                }`}
             >
                {value || placeholder}
@@ -88,7 +89,8 @@ export const CustomerHeader = ({ onSearchRequest }: { onSearchRequest: () => voi
    const hasCustomerData = Object.values(customer).some(val => val.trim() !== '');
 
    return (
-      <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 p-1">
+      // Cambio Principal: Convertido en Card (bg-zinc-900, rounded-xl, border)
+      <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 p-3 bg-zinc-900 border border-zinc-800 rounded-xl shadow-sm">
          {/* Datos del Cliente - Grid flexible */}
          <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:items-center gap-2 flex-1 min-w-0">
             <EditableField

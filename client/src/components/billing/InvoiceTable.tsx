@@ -122,10 +122,13 @@ type InvoiceTableProps = {
 
 export const InvoiceTable = ({ items, onUpdateItem, onRemoveItem }: InvoiceTableProps) => {
    return (
-      // Cambio: bg-zinc-900 (antes 800) para coincidir con Sidebar. Eliminado borde inferior fijo para limpieza.
       <div className="flex flex-col h-full overflow-hidden bg-zinc-900">
+         {/* 
+             Cambio: Ajuste de padding (pt-5 pb-3 px-4) para alinear visualmente 
+             la línea base del texto con el título del PaymentWidget 
+         */}
          <div
-            className={`${GRID_LAYOUT} text-zinc-500 font-bold text-[11px] pb-3 p-4 uppercase tracking-wider`}
+            className={`${GRID_LAYOUT} text-zinc-500 font-bold text-[11px] pt-5 pb-3 px-4 uppercase tracking-wider border-b border-zinc-800/50`}
          >
             <div className="text-left pl-4">Producto</div>
             <div className="text-right pr-2">Valor</div>
@@ -135,7 +138,7 @@ export const InvoiceTable = ({ items, onUpdateItem, onRemoveItem }: InvoiceTable
          </div>
 
          <div className="overflow-y-auto flex-1 custom-scrollbar">
-            <div className="flex flex-col gap-y-1 min-h-full">
+            <div className="flex flex-col gap-y-1 min-h-full py-1">
                {items.map(item => (
                   <InvoiceItemRow
                      key={item.id}
@@ -147,9 +150,9 @@ export const InvoiceTable = ({ items, onUpdateItem, onRemoveItem }: InvoiceTable
 
                {items.length === 0 && (
                   <div className="flex-1 flex flex-col items-center justify-center text-zinc-600 h-full animate-in fade-in duration-500">
-                     <span className="text-sm bg-zinc-800/50 px-4 py-2 rounded-full border border-zinc-800">
+                     <span className="text-sm bg-zinc-800/50 px-4 py-2 rounded-full border border-zinc-800 flex justify-center gap-1">
                         Presiona{' '}
-                        <kbd className="font-sans font-bold text-zinc-300 bg-zinc-700 px-2 py-0.5 rounded border border-zinc-600 shadow-sm mx-1">
+                        <kbd className="font-sans font-bold text-zinc-400/50 bg-zinc-700/60 px-2 rounded border border-zinc-700 shadow-sm mx-1">
                            ESPACIO
                         </kbd>{' '}
                         para buscar productos

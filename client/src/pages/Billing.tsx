@@ -162,16 +162,16 @@ export const Billing = () => {
 
    return (
       <div className="relative w-full h-full flex flex-col gap-4 overflow-hidden">
-         {/* Header Unificado de Cliente */}
-         <div className="bg-zinc-900 border-b border-zinc-800 pb-2">
-            <CustomerHeader onSearchRequest={() => setIsCustSearchOpen(true)} />
-         </div>
+         {/* 
+             Cambio: Eliminado el wrapper div con bg-zinc-900. 
+             Ahora CustomerHeader maneja su propio estilo de Card.
+         */}
+         <CustomerHeader onSearchRequest={() => setIsCustSearchOpen(true)} />
 
          <div className="flex flex-col lg:flex-row gap-4 flex-1 min-h-0">
             {/* Columna Izquierda: Tabla de Productos */}
-            {/* min-h-[40vh] asegura que en móviles no desaparezca */}
-            <div className="flex-1 h-full flex flex-col min-h-[40vh] lg:min-h-0 bg-zinc-800 rounded-xl border border-zinc-800 shadow-sm overflow-hidden">
-               <div className="flex-1 min-h-0 relative bg-zinc-900/30">
+            <div className="flex-1 h-full flex flex-col min-h-[40vh] lg:min-h-0 bg-zinc-900 rounded-xl border border-zinc-800 shadow-sm overflow-hidden">
+               <div className="flex-1 min-h-0 relative bg-zinc-900">
                   <InvoiceTable items={items} onUpdateItem={updateItem} onRemoveItem={removeItem} />
                </div>
             </div>
@@ -180,7 +180,8 @@ export const Billing = () => {
             <aside className="w-full lg:w-80 lg:shrink-0 flex flex-col h-fit">
                <PaymentWidget total={total} />
 
-               <div className="bg-zinc-800 rounded-xl p-4 border border-zinc-700 shadow-xl">
+               {/* Cambio: bg-zinc-800 -> bg-zinc-900 para que sea más oscuro */}
+               <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800 shadow-xl">
                   <div className="flex flex-col gap-y-3 text-sm mb-5">
                      <div className="flex justify-between items-center">
                         <span className="text-zinc-400 font-bold text-xs uppercase tracking-wider">
@@ -212,7 +213,7 @@ export const Billing = () => {
                         </div>
                      </div>
 
-                     <div className="pt-3 mt-1 border-t border-zinc-700 flex justify-between items-center">
+                     <div className="pt-3 mt-1 border-t border-zinc-800 flex justify-between items-center">
                         <span className="text-lg font-black text-white uppercase tracking-tight">
                            Total
                         </span>
@@ -222,10 +223,11 @@ export const Billing = () => {
                      </div>
                   </div>
 
+                  {/* Botones (sin cambios, solo el contenedor padre cambió de color) */}
                   <div className="flex gap-2">
                      <button
                         onClick={triggerDiscard}
-                        className="p-3 rounded-xl bg-zinc-700 hover:bg-red-600/20 hover:text-red-400 text-zinc-400 transition-colors cursor-pointer border border-transparent hover:border-red-900/50"
+                        className="p-3 rounded-xl bg-zinc-800 hover:bg-red-600/20 hover:text-red-400 text-zinc-400 transition-colors cursor-pointer border border-transparent hover:border-red-900/50"
                         title="Descartar (X)"
                      >
                         <HiOutlineTrash size={20} />
@@ -239,7 +241,7 @@ export const Billing = () => {
                            ${
                               isPaymentValid && !isProcessing
                                  ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-900/20 cursor-pointer hover:scale-[1.02] active:scale-[0.98]'
-                                 : 'bg-zinc-700 text-zinc-500 cursor-not-allowed opacity-50'
+                                 : 'bg-zinc-800 text-zinc-600 cursor-not-allowed opacity-50'
                            }
                         `}
                      >
@@ -248,8 +250,7 @@ export const Billing = () => {
                   </div>
                </div>
 
-               {/* Leyendas de Atajos */}
-               <div className="mt-4 px-2 grid grid-cols-3 gap-2 text-[11px] text-zinc-600 font-medium text-center uppercase tracking-wide opacity-75">
+               <div className="mt-4 px-2 grid grid-cols-3 gap-2 text-[11px] text-zinc-600 font-bold text-center uppercase tracking-wide opacity-75">
                   <div>
                      <span className="font-bold text-zinc-500">C</span> Cliente
                   </div>
