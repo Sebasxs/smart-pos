@@ -42,7 +42,6 @@ const EditableField = ({
       <div
          tabIndex={0}
          onFocus={handleFocus}
-         // Cambio: Ajuste de bg para contraste con la nueva card oscura
          className={`relative flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700/50 hover:border-zinc-600 rounded-lg px-3 py-1.5 transition-all group ${className}`}
          onClick={() => setIsEditing(true)}
       >
@@ -89,33 +88,40 @@ export const CustomerHeader = ({ onSearchRequest }: { onSearchRequest: () => voi
    const hasCustomerData = Object.values(customer).some(val => val.trim() !== '');
 
    return (
-      // Cambio Principal: Convertido en Card (bg-zinc-900, rounded-xl, border)
+      // CAMBIO 1: Revertido a lg:flex-row
       <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 p-3 bg-zinc-900 border border-zinc-800 rounded-xl shadow-sm">
-         {/* Datos del Cliente - Grid flexible */}
+         {/* 
+            CAMBIO 2: Min-Widths muy agresivos.
+            - Nombre: min-w-[140px] (antes 200)
+            - TaxID: min-w-[100px] (antes 140)
+            - Email: min-w-[130px] (antes 180)
+            - Ciudad: min-w-[90px] (antes 120)
+            Esto permite que 'flex' los apriete entre 1024px y 1280px sin desbordar
+         */}
          <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:items-center gap-2 flex-1 min-w-0">
             <EditableField
-               className="lg:flex-[2] min-w-[200px]"
+               className="lg:flex-[2] min-w-[140px]"
                value={customer.name}
                placeholder="Consumidor Final"
                onChange={v => updateField('name', v)}
                icon={HiOutlineUser}
             />
             <EditableField
-               className="lg:flex-1 min-w-[140px]"
+               className="lg:flex-1 min-w-[100px]"
                value={customer.taxId}
                placeholder="Identificación"
                onChange={v => updateField('taxId', v)}
                icon={HiOutlineIdentification}
             />
             <EditableField
-               className="lg:flex-[1.5] min-w-[180px]"
+               className="lg:flex-[1.5] min-w-[130px]"
                value={customer.email}
                placeholder="Email"
                onChange={v => updateField('email', v)}
                icon={HiOutlineMail}
             />
             <EditableField
-               className="lg:flex-1 min-w-[120px]"
+               className="lg:flex-1 min-w-[90px]"
                value={customer.city}
                placeholder="Ciudad"
                onChange={v => updateField('city', v)}

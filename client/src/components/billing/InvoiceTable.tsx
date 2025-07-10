@@ -11,7 +11,6 @@ type InvoiceItemRowProps = {
 
 const GRID_LAYOUT = 'grid grid-cols-[minmax(6rem,1fr)_6rem_6rem_5rem_2rem] gap-3 items-center px-1';
 
-// ... (El componente InvoiceItemRow se mantiene igual, lo omito por brevedad) ...
 const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
    const originalValues = useRef({
       name: item.name,
@@ -122,11 +121,9 @@ type InvoiceTableProps = {
 
 export const InvoiceTable = ({ items, onUpdateItem, onRemoveItem }: InvoiceTableProps) => {
    return (
-      <div className="flex flex-col h-full overflow-hidden bg-zinc-900">
-         {/* 
-             Cambio: Ajuste de padding (pt-5 pb-3 px-4) para alinear visualmente 
-             la línea base del texto con el título del PaymentWidget 
-         */}
+      // Cambio: h-full reemplazado por min-h-[16rem] (aprox 250px) para que empiece pequeño
+      // pero crezca si hay items.
+      <div className="flex flex-col min-h-[16rem] bg-zinc-900">
          <div
             className={`${GRID_LAYOUT} text-zinc-500 font-bold text-[11px] pt-5 pb-3 px-4 uppercase tracking-wider border-b border-zinc-800/50`}
          >
@@ -137,29 +134,32 @@ export const InvoiceTable = ({ items, onUpdateItem, onRemoveItem }: InvoiceTable
             <div></div>
          </div>
 
-         <div className="overflow-y-auto flex-1 custom-scrollbar">
-            <div className="flex flex-col gap-y-1 min-h-full py-1">
-               {items.map(item => (
-                  <InvoiceItemRow
-                     key={item.id}
-                     item={item}
-                     onUpdate={onUpdateItem}
-                     onRemove={onRemoveItem}
-                  />
-               ))}
+         {/* 
+             Cambio: Eliminado overflow-y-auto y flex-1 para permitir crecimiento natural.
+             Se mantiene flex flex-col para organizar filas.
+         */}
+         <div className="flex flex-col gap-y-1 py-1">
+            {items.map(item => (
+               <InvoiceItemRow
+                  key={item.id}
+                  item={item}
+                  onUpdate={onUpdateItem}
+                  onRemove={onRemoveItem}
+               />
+            ))}
 
-               {items.length === 0 && (
-                  <div className="flex-1 flex flex-col items-center justify-center text-zinc-600 h-full animate-in fade-in duration-500">
-                     <span className="text-sm bg-zinc-800/50 px-4 py-2 rounded-full border border-zinc-800 flex justify-center gap-1">
-                        Presiona{' '}
-                        <kbd className="font-sans font-bold text-zinc-400/50 bg-zinc-700/60 px-2 rounded border border-zinc-700 shadow-sm mx-1">
-                           ESPACIO
-                        </kbd>{' '}
-                        para buscar productos
-                     </span>
-                  </div>
-               )}
-            </div>
+            {items.length === 0 && (
+               // Cambio: Altura explicita h-64 para centrar el mensaje cuando está vacío.
+               <div className="h-64 flex flex-col items-center justify-center text-zinc-600 animate-in fade-in duration-500">
+                  <span className="text-sm bg-zinc-800/50 px-4 py-2 rounded-full border border-zinc-800 flex justify-center gap-1">
+                     Presiona{' '}
+                     <kbd className="font-sans font-bold text-zinc-400/50 bg-zinc-700/60 px-2 rounded border border-zinc-700 shadow-sm mx-1">
+                        ESPACIO
+                     </kbd>{' '}
+                     para buscar productos
+                  </span>
+               </div>
+            )}
          </div>
       </div>
    );

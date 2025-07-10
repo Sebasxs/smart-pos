@@ -161,26 +161,26 @@ export const Billing = () => {
    ]);
 
    return (
-      <div className="relative w-full h-full flex flex-col gap-4 overflow-hidden">
-         {/* 
-             Cambio: Eliminado el wrapper div con bg-zinc-900. 
-             Ahora CustomerHeader maneja su propio estilo de Card.
-         */}
+      // Cambio: Se eliminaron clases de overflow hidden y altura fija en desktop (lg:h-full)
+      // Ahora permite scroll global en toda la página Billing
+      <div className="relative w-full flex flex-col gap-4 pb-4">
          <CustomerHeader onSearchRequest={() => setIsCustSearchOpen(true)} />
 
          <div className="flex flex-col lg:flex-row gap-4 flex-1 min-h-0">
-            {/* Columna Izquierda: Tabla de Productos */}
-            <div className="flex-1 h-full flex flex-col min-h-[40vh] lg:min-h-0 bg-zinc-900 rounded-xl border border-zinc-800 shadow-sm overflow-hidden">
-               <div className="flex-1 min-h-0 relative bg-zinc-900">
+            {/* 
+                Cambio: Se eliminó min-h-[500px].
+                Ahora es h-fit para ajustarse al contenido de la InvoiceTable.
+                min-h-0 permite que el flexbox no fuerce alturas extrañas.
+            */}
+            <div className="flex-1 h-fit flex flex-col bg-zinc-900 rounded-xl border border-zinc-800 shadow-sm overflow-hidden">
+               <div className="flex-1 relative bg-zinc-900">
                   <InvoiceTable items={items} onUpdateItem={updateItem} onRemoveItem={removeItem} />
                </div>
             </div>
 
-            {/* Columna Derecha: Pagos y Totales */}
             <aside className="w-full lg:w-80 lg:shrink-0 flex flex-col h-fit">
                <PaymentWidget total={total} />
 
-               {/* Cambio: bg-zinc-800 -> bg-zinc-900 para que sea más oscuro */}
                <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800 shadow-xl">
                   <div className="flex flex-col gap-y-3 text-sm mb-5">
                      <div className="flex justify-between items-center">
@@ -223,7 +223,6 @@ export const Billing = () => {
                      </div>
                   </div>
 
-                  {/* Botones (sin cambios, solo el contenedor padre cambió de color) */}
                   <div className="flex gap-2">
                      <button
                         onClick={triggerDiscard}
@@ -264,7 +263,6 @@ export const Billing = () => {
             </aside>
          </div>
 
-         {/* Modales */}
          <ProductSearchModal
             isOpen={isProdSearchOpen}
             onClose={() => setIsProdSearchOpen(false)}
