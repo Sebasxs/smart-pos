@@ -11,6 +11,7 @@ type InvoiceItemRowProps = {
 
 const GRID_LAYOUT = 'grid grid-cols-[minmax(6rem,1fr)_6rem_6rem_5rem_2rem] gap-3 items-center px-1';
 
+// ... (El componente InvoiceItemRow se mantiene intacto, igual que antes)
 const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
    const originalValues = useRef({
       name: item.name,
@@ -121,45 +122,50 @@ type InvoiceTableProps = {
 
 export const InvoiceTable = ({ items, onUpdateItem, onRemoveItem }: InvoiceTableProps) => {
    return (
-      // Cambio: h-full reemplazado por min-h-[16rem] (aprox 250px) para que empiece pequeño
-      // pero crezca si hay items.
-      <div className="flex flex-col min-h-[16rem] bg-zinc-900">
-         <div
-            className={`${GRID_LAYOUT} text-zinc-500 font-bold text-[11px] pt-5 pb-3 px-4 uppercase tracking-wider border-b border-zinc-800/50`}
-         >
-            <div className="text-left pl-4">Producto</div>
-            <div className="text-right pr-2">Valor</div>
-            <div className="text-center">Cantidad</div>
-            <div className="text-right">Total</div>
-            <div></div>
-         </div>
-
+      // Contenedor raíz: h-full para aceptar la altura de Billing.tsx.
+      // overflow-x-auto: Aquí aplicamos el scroll horizontal global para la tabla.
+      <div className="flex flex-col h-full bg-zinc-900 overflow-x-auto custom-scrollbar">
          {/* 
-             Cambio: Eliminado overflow-y-auto y flex-1 para permitir crecimiento natural.
-             Se mantiene flex flex-col para organizar filas.
+             Contenedor interno: min-w-[540px] fuerza el scroll horizontal si la pantalla es muy pequeña.
+             h-full y flex-col aseguran que el contenido vertical se estire.
          */}
-         <div className="flex flex-col gap-y-1 py-1">
-            {items.map(item => (
-               <InvoiceItemRow
-                  key={item.id}
-                  item={item}
-                  onUpdate={onUpdateItem}
-                  onRemove={onRemoveItem}
-               />
-            ))}
+         <div className="min-w-[540px] h-full flex flex-col">
+            {/* Header */}
+            <div
+               className={`${GRID_LAYOUT} text-zinc-500 font-bold text-[11px] pt-5 pb-3 px-4 uppercase tracking-wider border-b border-zinc-800/50 shrink-0`}
+            >
+               <div className="text-left pl-4">Producto</div>
+               <div className="text-right pr-2">Valor</div>
+               <div className="text-center">Cantidad</div>
+               <div className="text-right">Total</div>
+               <div></div>
+            </div>
 
-            {items.length === 0 && (
-               // Cambio: Altura explicita h-64 para centrar el mensaje cuando está vacío.
-               <div className="h-64 flex flex-col items-center justify-center text-zinc-600 animate-in fade-in duration-500">
-                  <span className="text-sm bg-zinc-800/50 px-4 py-2 rounded-full border border-zinc-800 flex justify-center gap-1">
-                     Presiona{' '}
-                     <kbd className="font-sans font-bold text-zinc-400/50 bg-zinc-700/60 px-2 rounded border border-zinc-700 shadow-sm mx-1">
-                        ESPACIO
-                     </kbd>{' '}
-                     para buscar productos
-                  </span>
-               </div>
-            )}
+            {/* Lista de Items */}
+            {/* lg:flex-1 y lg:overflow-y-auto activan el scroll interno solo en desktop */}
+            <div className="flex flex-col gap-y-1 py-1 lg:flex-1 lg:overflow-y-auto custom-scrollbar">
+               {items.map(item => (
+                  <InvoiceItemRow
+                     key={item.id}
+                     item={item}
+                     onUpdate={onUpdateItem}
+                     onRemove={onRemoveItem}
+                  />
+               ))}
+
+               {items.length === 0 && (
+                  // h-64 para móvil (altura fija), h-full para desktop (centrado en el espacio restante)
+                  <div className="h-64 lg:h-full flex flex-col items-center justify-center text-zinc-600 animate-in fade-in duration-500">
+                     <span className="text-sm bg-zinc-800/50 px-4 py-2 rounded-full border border-zinc-800 flex justify-center gap-1">
+                        Presiona{' '}
+                        <kbd className="font-sans font-bold text-zinc-400/50 bg-zinc-700/60 px-2 rounded border border-zinc-700 shadow-sm mx-1">
+                           ESPACIO
+                        </kbd>{' '}
+                        para buscar productos
+                     </span>
+                  </div>
+               )}
+            </div>
          </div>
       </div>
    );

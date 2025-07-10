@@ -163,7 +163,7 @@ export const Billing = () => {
    return (
       // Cambio: Se eliminaron clases de overflow hidden y altura fija en desktop (lg:h-full)
       // Ahora permite scroll global en toda la página Billing
-      <div className="relative w-full flex flex-col gap-4 pb-4">
+      <div className="relative w-full flex flex-col gap-4 lg:h-full lg:overflow-hidden">
          <CustomerHeader onSearchRequest={() => setIsCustSearchOpen(true)} />
 
          <div className="flex flex-col lg:flex-row gap-4 flex-1 min-h-0">
@@ -172,7 +172,7 @@ export const Billing = () => {
                 Ahora es h-fit para ajustarse al contenido de la InvoiceTable.
                 min-h-0 permite que el flexbox no fuerce alturas extrañas.
             */}
-            <div className="flex-1 h-fit flex flex-col bg-zinc-900 rounded-xl border border-zinc-800 shadow-sm overflow-hidden">
+            <div className="flex-1 h-fit lg:h-full flex flex-col bg-zinc-900 rounded-xl border border-zinc-800 shadow-sm overflow-hidden">
                <div className="flex-1 relative bg-zinc-900">
                   <InvoiceTable items={items} onUpdateItem={updateItem} onRemoveItem={removeItem} />
                </div>
