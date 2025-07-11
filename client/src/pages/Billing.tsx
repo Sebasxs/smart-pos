@@ -200,7 +200,7 @@ export const Billing = () => {
                            Descuento
                         </button>
                         <div className="flex items-center gap-2">
-                           <span className="text-zinc-500 text-[10px] font-medium">
+                           <span className="text-zinc-500 text-sm font-medium">
                               {discount.type === 'percentage' ? `(${discount.value}%)` : '(-$)'}
                            </span>
                            <span

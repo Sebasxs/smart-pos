@@ -11,7 +11,6 @@ type InvoiceItemRowProps = {
 
 const GRID_LAYOUT = 'grid grid-cols-[minmax(6rem,1fr)_6rem_6rem_5rem_2rem] gap-3 items-center px-1';
 
-// ... (El componente InvoiceItemRow se mantiene intacto, igual que antes)
 const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
    const originalValues = useRef({
       name: item.name,
@@ -122,13 +121,7 @@ type InvoiceTableProps = {
 
 export const InvoiceTable = ({ items, onUpdateItem, onRemoveItem }: InvoiceTableProps) => {
    return (
-      // Contenedor raíz: h-full para aceptar la altura de Billing.tsx.
-      // overflow-x-auto: Aquí aplicamos el scroll horizontal global para la tabla.
       <div className="flex flex-col h-full bg-zinc-900 overflow-x-auto custom-scrollbar">
-         {/* 
-             Contenedor interno: min-w-[540px] fuerza el scroll horizontal si la pantalla es muy pequeña.
-             h-full y flex-col aseguran que el contenido vertical se estire.
-         */}
          <div className="min-w-[540px] h-full flex flex-col">
             {/* Header */}
             <div
@@ -142,8 +135,8 @@ export const InvoiceTable = ({ items, onUpdateItem, onRemoveItem }: InvoiceTable
             </div>
 
             {/* Lista de Items */}
-            {/* lg:flex-1 y lg:overflow-y-auto activan el scroll interno solo en desktop */}
-            <div className="flex flex-col gap-y-1 py-1 lg:flex-1 lg:overflow-y-auto custom-scrollbar">
+            {/* CAMBIO: Agregado 'flex-1' aquí también para asegurar que el contenedor crezca */}
+            <div className="flex flex-col gap-y-1 py-1 flex-1 lg:overflow-y-auto custom-scrollbar">
                {items.map(item => (
                   <InvoiceItemRow
                      key={item.id}
@@ -154,9 +147,15 @@ export const InvoiceTable = ({ items, onUpdateItem, onRemoveItem }: InvoiceTable
                ))}
 
                {items.length === 0 && (
-                  // h-64 para móvil (altura fija), h-full para desktop (centrado en el espacio restante)
-                  <div className="h-64 lg:h-full flex flex-col items-center justify-center text-zinc-600 animate-in fade-in duration-500">
-                     <span className="text-sm bg-zinc-800/50 px-4 py-2 rounded-full border border-zinc-800 flex justify-center gap-1">
+                  /* 
+                     CAMBIO CRÍTICO:
+                     1. min-h-[16rem]: Garantiza altura en móvil.
+                     2. flex-1: Garantiza que llene el espacio restante en desktop.
+                     3. transition-all: Suaviza el redimensionamiento del contenedor.
+                     4. animate-in: Mantiene la entrada suave inicial.
+                  */
+                  <div className="min-h-[16rem] flex-1 flex flex-col items-center justify-center text-zinc-600 animate-in fade-in duration-500 transition-all ease-out">
+                     <span className="text-sm bg-zinc-800/50 px-4 py-2 rounded-full border border-zinc-800 flex justify-center gap-1 shadow-sm">
                         Presiona{' '}
                         <kbd className="font-sans font-bold text-zinc-400/50 bg-zinc-700/60 px-2 rounded border border-zinc-700 shadow-sm mx-1">
                            ESPACIO
