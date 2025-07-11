@@ -36,7 +36,7 @@ export const PaymentWidget = ({ total }: PaymentWidgetProps) => {
                   flex-1 flex items-center justify-center gap-2 py-2 rounded-md text-sm font-bold transition-all cursor-pointer border
                   ${
                      paymentMethod === 'cash'
-                        ? 'bg-zinc-900/50 text-green-400 border-zinc-950/20' // Activo: Oscuro y hundido
+                        ? 'bg-green-600/10 text-green-400 border-green-500/20' // Activo: Oscuro y hundido
                         : 'bg-transparent text-zinc-500 border-transparent hover:text-zinc-300 hover:bg-zinc-700/50' // Inactivo
                   }
                `}
@@ -50,7 +50,7 @@ export const PaymentWidget = ({ total }: PaymentWidgetProps) => {
                   flex-1 flex items-center justify-center gap-2 py-2 rounded-md text-sm font-bold transition-all cursor-pointer border
                   ${
                      paymentMethod === 'transfer'
-                        ? 'bg-zinc-900/50 text-purple-400 border-zinc-950/20' // Activo: Oscuro y hundido
+                        ? 'bg-purple-600/10 text-purple-400 border-purple-500/20' // Activo: Oscuro y hundido
                         : 'bg-transparent text-zinc-500 border-transparent hover:text-zinc-300 hover:bg-zinc-700/50' // Inactivo
                   }
                `}

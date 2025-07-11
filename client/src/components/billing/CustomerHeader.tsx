@@ -130,7 +130,7 @@ export const CustomerHeader = ({ onSearchRequest }: { onSearchRequest: () => voi
          </div>
 
          {/* Botones de Acción */}
-         <div className="flex items-center gap-2 shrink-0 lg:border-l border-zinc-800 lg:pl-3 ml-1">
+         <div className="flex items-center gap-2 shrink-0 lg:border-l border-zinc-800 lg:pl-3 lg:ml-1">
             {hasCustomerData && (
                <button
                   onClick={resetCustomer}

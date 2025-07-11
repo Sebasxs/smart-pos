@@ -56,76 +56,98 @@ export const DiscountModal = ({
 
    return (
       <Modal isOpen={isOpen} onClose={onClose}>
-         <div className="p-4 text-center">
-            <h3 className="text-xl font-bold mb-6 text-white">Aplicar Descuento</h3>
+         <div className="p-5 text-center w-[340px]">
+            <h3 className="text-lg font-bold mb-5 text-white">Aplicar Descuento</h3>
 
-            <div className="flex justify-center gap-4 mb-6">
+            {/* CAMBIO: Toggle compacto estilo PaymentWidget pero con colores específicos */}
+            <div className="bg-zinc-800 p-1 rounded-lg flex gap-1 mb-6 border border-zinc-700/50">
                <button
                   onClick={() => setLocalDiscount(prev => ({ ...prev, type: 'percentage' }))}
                   className={`
-                     flex flex-col items-center justify-center w-24 h-20 rounded-xl border-2 transition-all
+                     flex-1 flex items-center justify-center gap-2 py-2 rounded-md text-sm font-bold transition-all cursor-pointer border
                      ${
                         localDiscount.type === 'percentage'
-                           ? 'border-blue-500 bg-blue-500/20 text-white'
-                           : 'border-zinc-700 bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                           ? 'bg-blue-500/20 text-white border-blue-500/50 shadow-sm' // Activo Azul
+                           : 'bg-transparent text-zinc-500 border-transparent hover:text-zinc-300 hover:bg-zinc-700/50' // Inactivo
                      }
                   `}
                >
-                  <HiOutlineReceiptPercent size={24} className="mb-1" />
-                  <span className="font-semibold">Porcentaje</span>
+                  <HiOutlineReceiptPercent size={18} />
+                  <span>Porcentaje</span>
                </button>
 
                <button
                   onClick={() => setLocalDiscount(prev => ({ ...prev, type: 'fixed' }))}
                   className={`
-                     flex flex-col items-center justify-center w-24 h-20 rounded-xl border-2 transition-all
+                     flex-1 flex items-center justify-center gap-2 py-2 rounded-md text-sm font-bold transition-all cursor-pointer border
                      ${
                         localDiscount.type === 'fixed'
-                           ? 'border-green-500 bg-green-500/20 text-white'
-                           : 'border-zinc-700 bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                           ? 'bg-green-500/20 text-white border-green-500/50 shadow-sm' // Activo Verde
+                           : 'bg-transparent text-zinc-500 border-transparent hover:text-zinc-300 hover:bg-zinc-700/50' // Inactivo
                      }
                   `}
                >
-                  <HiOutlineCurrencyDollar size={24} className="mb-1" />
-                  <span className="font-semibold">Monto Fijo</span>
+                  <HiOutlineCurrencyDollar size={18} />
+                  <span>Monto Fijo</span>
                </button>
             </div>
 
             <div className="mb-6">
-               <div className="relative max-w-[200px] mx-auto">
+               <div className="relative max-w-[180px] mx-auto">
                   <input
                      ref={inputRef}
                      type="text"
                      value={localDiscount.value.toLocaleString('es-CO')}
                      onChange={handleChange}
                      onKeyDown={handleKeyDown}
-                     className="
-                        w-full bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-3 text-center text-2xl font-bold text-white
-                        focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none
-                     "
+                     className={`
+                        w-full bg-zinc-900 border rounded-lg px-4 py-2 text-center text-2xl font-bold text-white
+                        outline-none transition-colors
+                        ${
+                           localDiscount.type === 'percentage'
+                              ? 'focus:border-blue-500/50 border-zinc-700'
+                              : 'focus:border-green-500/50 border-zinc-700'
+                        }
+                     `}
                   />
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 font-bold">
+                  <span
+                     className={`
+                     absolute right-4 top-1/2 -translate-y-1/2 font-bold
+                     ${
+                        localDiscount.type === 'percentage'
+                           ? 'text-blue-500' // Icono azul si es porcentaje
+                           : 'text-green-500' // Icono verde si es fijo
+                     }
+                  `}
+                  >
                      {localDiscount.type === 'percentage' ? '%' : '$'}
                   </span>
                </div>
-               <p className="mt-2 text-zinc-400 text-sm">
-                  Descuento real:{' '}
-                  <span className="text-white font-bold">
+               <div className="mt-3 flex flex-row justify-center items-center gap-2 text-sm">
+                  <span className="text-zinc-400">Descuento real:</span>
+                  <span className="text-zinc-200 font-bold bg-zinc-800 px-2 py-0.5 rounded border border-zinc-700">
                      ${previewDiscountAmount.toLocaleString('es-CO')}
                   </span>
-               </p>
+               </div>
             </div>
 
-            <div className="flex gap-3 justify-center">
+            <div className="flex gap-2 justify-center">
                <button
                   onClick={onClose}
-                  className="px-6 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition-colors font-medium cursor-pointer"
+                  className="flex-1 py-2.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition-colors font-medium cursor-pointer text-sm"
                >
                   Cancelar
                </button>
                <button
                   onClick={handleSubmit}
-                  className="px-6 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-colors font-bold cursor-pointer"
+                  className={`
+                     flex-1 py-2.5 rounded-lg text-white transition-colors font-bold cursor-pointer text-sm shadow-lg
+                     ${
+                        localDiscount.type === 'percentage'
+                           ? 'bg-blue-600 hover:bg-blue-500 shadow-blue-900/20'
+                           : 'bg-green-600 hover:bg-green-500 shadow-green-900/20'
+                     }
+                  `}
                >
                   Confirmar
                </button>
