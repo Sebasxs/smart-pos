@@ -31,7 +31,6 @@ type MenuItemProps = {
    path: string;
 };
 
-// Texto con transición suave de opacidad y ancho
 const textOpacityTransition = `
    transition-all duration-300 ease-in-out
    opacity-0 lg:opacity-100
@@ -53,20 +52,33 @@ const MenuItem = ({ icon, name, path }: MenuItemProps) => (
          `}
       title={name}
    >
-      {/* SLOT FIJO: Contenedor del icono centrado en el espacio disponible colapsado */}
-      {/* 60px (sidebar) - 16px (mx-2 = 8px*2) = 44px width disponible para el botón */}
       <div className="w-[44px] shrink-0 flex items-center justify-center">{icon}</div>
-
       <span className={textOpacityTransition}>{name}</span>
    </NavLink>
 );
 
+// NUEVO COMPONENTE: Mantiene altura fija para evitar saltos
+const SectionHeader = ({ label }: { label: string }) => (
+   <div className="h-6 mb-2 w-full flex items-center shrink-0">
+      {/* Versión Móvil: Línea Separadora centrada en el slot de 60px */}
+      <div className="w-[60px] flex items-center justify-center lg:hidden shrink-0">
+         <div className="w-8 h-[1px] bg-zinc-800" />
+      </div>
+
+      {/* Versión Desktop: Texto alineado */}
+      <div className="hidden lg:flex px-4 w-full items-center overflow-hidden">
+         <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest whitespace-nowrap truncate animate-in fade-in duration-300">
+            {label}
+         </span>
+         {/* Opcional: Línea decorativa a la derecha del texto en desktop */}
+         <div className="ml-2 h-[1px] bg-zinc-800/50 flex-1" />
+      </div>
+   </div>
+);
+
 export const Sidebar = () => {
    return (
-      // Agregamos overflow-hidden global para evitar scrollbars durante la animación
       <aside className="w-[60px] lg:w-60 bg-zinc-900 border-r border-zinc-800 flex flex-col transition-all duration-300 z-50 overflow-hidden">
-         {/* LOGO HEADER */}
-         {/* Eliminamos padding lateral variable y justificaciones que causan saltos */}
          <div className="h-16 border-b border-zinc-800/50 mb-4 shrink-0">
             <a
                href="https://audiovideofp.com"
@@ -74,48 +86,35 @@ export const Sidebar = () => {
                rel="noopener noreferrer"
                className="text-white text-xl font-bold tracking-tight flex items-center h-full w-full"
             >
-               {/* SLOT FIJO: 60px de ancho exacto, siempre centrado. No se mueve al expandir. */}
                <div className="w-[60px] shrink-0 flex items-center justify-center">
                   <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white text-xs font-black shadow-lg shadow-blue-900/20">
                      AV
                   </div>
                </div>
-
-               {/* TEXTO: Fluye a la derecha, se oculta por overflow al contraer */}
                <span className={`${textOpacityTransition}`}>AudioVideoFP</span>
             </a>
          </div>
 
-         {/* MENU ITEMS */}
          <div className="flex flex-col gap-y-6 flex-grow overflow-y-auto py-2 custom-scrollbar overflow-x-hidden">
             <nav className="flex flex-col gap-y-1">
-               <div className="px-4 mb-2 text-[10px] font-bold text-zinc-600 uppercase tracking-widest hidden lg:block whitespace-nowrap">
-                  Principal
-               </div>
+               {/* CAMBIO: Usamos el componente SectionHeader */}
+               <SectionHeader label="Principal" />
                {menuItemsGroups.primary.map(item => (
                   <MenuItem key={item.name} {...item} />
                ))}
             </nav>
 
             <nav className="flex flex-col gap-y-1">
-               <div className="px-4 mb-2 text-[10px] font-bold text-zinc-600 uppercase tracking-widest hidden lg:block whitespace-nowrap">
-                  Gestión
-               </div>
+               {/* CAMBIO: Usamos el componente SectionHeader */}
+               <SectionHeader label="Gestión" />
                {menuItemsGroups.management.map(item => (
                   <MenuItem key={item.name} {...item} />
                ))}
             </nav>
          </div>
 
-         {/* USER PROFILE */}
-         {/* Eliminamos paddings variables en el contenedor padre que afectaban el ancho disponible */}
          <div className="border-t border-zinc-800 mt-auto">
-            {/* Contenedor interno con altura fija para estabilidad */}
             <div className="h-[72px] flex items-center w-full overflow-hidden relative">
-               {/* Tarjeta de fondo: Se renderiza condicionalmente o mediante clases para aparecer solo en desktop si se desea, 
-                   pero para mantener la animación suave, usaremos un div absoluto o propiedades en el flex.
-                   Ajustamos para que parezca que el "contenido" flota sobre el fondo en desktop.
-               */}
                <div
                   className={`
                   flex items-center w-full mx-2 p-0
@@ -124,8 +123,6 @@ export const Sidebar = () => {
                   lg:bg-zinc-800/50 lg:border lg:border-zinc-800
                `}
                >
-                  {/* SLOT FIJO AVATAR: Calculado para alinearse con el menu (mx-2) */}
-                  {/* w-[44px] es el espacio dentro del margen mx-2 de un contenedor de 60px */}
                   <div className="w-[44px] h-[44px] shrink-0 flex items-center justify-center">
                      <div className="w-8 h-8 bg-zinc-700 rounded-full flex items-center justify-center text-zinc-400">
                         <HiOutlineUserCircle size={20} />
