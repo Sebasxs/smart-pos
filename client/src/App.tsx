@@ -7,14 +7,19 @@ import { Sales } from './pages/Sales';
 import { Balances } from './pages/Balances';
 import { Warranties } from './pages/Warranties';
 import { Sidebar } from './components/layout/Sidebar';
+import { MobileNavbar } from './components/layout/MobileNavbar';
 
 function App() {
    return (
-      // Cambio: bg-zinc-900 -> bg-zinc-950 para mayor profundidad
-      <div className="h-screen w-screen bg-zinc-950 flex text-zinc-200 font-sans selection:bg-blue-500/30">
+      // Cambio: flex-col en móvil, md:flex-row en tablet/desktop
+      <div className="h-screen w-screen bg-zinc-950 flex flex-col md:flex-row text-zinc-200 font-sans selection:bg-blue-500/30 overflow-hidden">
+         {/* Navbar visible solo en móvil */}
+         <MobileNavbar />
+
+         {/* Sidebar maneja su propia visibilidad responsiva */}
          <Sidebar />
 
-         <main className="flex-1 p-4 lg:p-6 overflow-y-auto overflow-x-hidden">
+         <main className="flex-1 p-2 md:p-4 lg:p-6 overflow-y-auto overflow-x-hidden relative w-full">
             <Routes>
                <Route path="/" element={<Navigate to="/billing" replace />} />
                <Route path="/chat" element={<Chat />} />
