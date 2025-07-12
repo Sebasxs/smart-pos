@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Modal } from './Modal';
 import { HiOutlineExclamationTriangle } from 'react-icons/hi2';
 
@@ -10,6 +11,22 @@ type ConfirmModalProps = {
 };
 
 export const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message }: ConfirmModalProps) => {
+   useEffect(() => {
+      if (!isOpen) return;
+
+      const handleKeyDown = (e: KeyboardEvent) => {
+         if (e.key === 'Enter') {
+            onConfirm();
+            onClose();
+         }
+      };
+
+      document.addEventListener('keydown', handleKeyDown);
+      return () => {
+         document.removeEventListener('keydown', handleKeyDown);
+      };
+   }, [isOpen, onClose, onConfirm]);
+
    return (
       <Modal isOpen={isOpen} onClose={onClose}>
          <div className="p-6 text-center">

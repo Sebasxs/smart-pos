@@ -137,6 +137,11 @@ export const Billing = () => {
             setIsCustSearchOpen(true);
          }
 
+         if ((event.code === 'KeyD' || event.key === 'd') && !isInputFocused) {
+            event.preventDefault();
+            setIsDiscountOpen(true);
+         }
+
          if ((event.code === 'KeyX' || event.key === 'x') && !isInputFocused) {
             event.preventDefault();
             triggerDiscard();
@@ -254,10 +259,10 @@ export const Billing = () => {
                      <span className="font-bold text-zinc-500">C</span> Cliente
                   </div>
                   <div>
-                     <span className="font-bold text-zinc-500">X</span> Limpiar
+                     <span className="font-bold text-zinc-500">D</span> Descuento
                   </div>
                   <div>
-                     <span className="font-bold text-zinc-500">Enter</span> Pagar
+                     <span className="font-bold text-zinc-500">X</span> Limpiar
                   </div>
                </div>
             </aside>
