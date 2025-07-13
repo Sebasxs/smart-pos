@@ -168,7 +168,7 @@ export const Billing = () => {
    return (
       // Cambio: Se eliminaron clases de overflow hidden y altura fija en desktop (lg:h-full)
       // Ahora permite scroll global en toda la página Billing
-      <div className="relative w-full flex flex-col gap-4 lg:h-full lg:overflow-hidden">
+      <div className="relative w-full flex flex-col gap-4 lg:h-full">
          <CustomerHeader onSearchRequest={() => setIsCustSearchOpen(true)} />
 
          <div className="flex flex-col lg:flex-row gap-4 flex-1 min-h-0">
