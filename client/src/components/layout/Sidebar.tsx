@@ -137,7 +137,7 @@ export const Sidebar = () => {
             </div>
 
             {/* Contenido Scrollable */}
-            <div className="flex flex-col gap-y-6 flex-grow overflow-y-auto py-2 custom-scrollbar overflow-x-hidden">
+            <div className="flex flex-col gap-y-6 flex-grow overflow-y-auto py-2 no-scrollbar overflow-x-hidden">
                <nav className="flex flex-col gap-y-1">
                   <SectionHeader label="Principal" />
                   {menuItemsGroups.primary.map(item => (
