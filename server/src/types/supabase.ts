@@ -46,32 +46,44 @@ export type Database = {
       }
       invoice_items: {
         Row: {
-          discount_applied: number | null
+          discount_percentage: number | null
           id: string
           invoice_id: number | null
+          is_manual_name: boolean | null
+          is_manual_price: boolean | null
+          original_price: number | null
           product_id: string | null
           product_name: string
           quantity: number
+          recorded_cost: number | null
           total_price: number
           unit_price: number
         }
         Insert: {
-          discount_applied?: number | null
+          discount_percentage?: number | null
           id?: string
           invoice_id?: number | null
+          is_manual_name?: boolean | null
+          is_manual_price?: boolean | null
+          original_price?: number | null
           product_id?: string | null
           product_name: string
           quantity: number
+          recorded_cost?: number | null
           total_price: number
           unit_price: number
         }
         Update: {
-          discount_applied?: number | null
+          discount_percentage?: number | null
           id?: string
           invoice_id?: number | null
+          is_manual_name?: boolean | null
+          is_manual_price?: boolean | null
+          original_price?: number | null
           product_id?: string | null
           product_name?: string
           quantity?: number
+          recorded_cost?: number | null
           total_price?: number
           unit_price?: number
         }
@@ -256,6 +268,7 @@ export type Database = {
       search_products: {
         Args: { search_term: string }
         Returns: {
+          discountPercentage: number
           id: string
           name: string
           price: number

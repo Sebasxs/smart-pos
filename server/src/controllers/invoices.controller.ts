@@ -6,7 +6,10 @@ type InvoiceItemPayload = {
    name: string;
    price: number;
    quantity: number;
-   discount?: number;
+   originalPrice: number;
+   discountPercentage: number; // Estandarizado
+   isManualPrice: boolean;
+   isManualName: boolean;
 };
 
 type CreateInvoiceBody = {
@@ -28,10 +31,14 @@ export const createInvoice = async (req: Request<{}, {}, CreateInvoiceBody>, res
 
    try {
       const cleanItems = items.map(item => ({
-         ...item,
          id: item.id && item.id.length === 36 ? item.id : null,
+         name: item.name,
+         quantity: Math.floor(item.quantity),
          price: Math.floor(item.price),
-         discount: Math.floor(item.discount || 0),
+         originalPrice: Math.floor(item.originalPrice || item.price),
+         discountPercentage: Math.floor(item.discountPercentage || 0), // Uso directo de discountPercentage
+         isManualPrice: !!item.isManualPrice,
+         isManualName: !!item.isManualName,
       }));
 
       const { data, error } = await supabase.rpc('create_invoice_transaction', {

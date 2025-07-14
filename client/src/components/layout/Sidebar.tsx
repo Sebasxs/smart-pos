@@ -9,7 +9,7 @@ import {
    HiOutlineBanknotes,
    HiOutlineShieldCheck,
    HiOutlineUserCircle,
-   HiOutlineXMark, // Nuevo icono para cerrar en móvil
+   HiOutlineXMark,
 } from 'react-icons/hi2';
 import { useUIStore } from '../../store/uiStore';
 
@@ -33,12 +33,11 @@ type MenuItemProps = {
    path: string;
 };
 
-// Cambio: Ajustamos la transición de opacidad para que responda a 'lg:' (Desktop)
-// y también al estado móvil abierto si quisiéramos, aunque en móvil siempre será ancho completo.
+// CAMBIO 1: Transición de opacidad ajustada a 'xl:' en lugar de 'lg:'
 const textOpacityTransition = `
    transition-all duration-300 ease-in-out
    whitespace-nowrap overflow-hidden
-   md:opacity-0 lg:opacity-100 
+   md:opacity-0 xl:opacity-100 
 `;
 
 const MenuItem = ({ icon, name, path }: MenuItemProps) => (
@@ -62,13 +61,13 @@ const MenuItem = ({ icon, name, path }: MenuItemProps) => (
 
 const SectionHeader = ({ label }: { label: string }) => (
    <div className="h-6 mb-2 w-full flex items-center shrink-0">
-      {/* Línea visible solo en Tablet (md) y oculta en Desktop (lg) */}
-      <div className="w-[60px] flex items-center justify-center hidden md:flex lg:hidden shrink-0">
+      {/* CAMBIO 2: Línea visible en md y lg, oculta solo en xl */}
+      <div className="w-[60px] flex items-center justify-center hidden md:flex xl:hidden shrink-0">
          <div className="w-8 h-[1px] bg-zinc-800" />
       </div>
 
-      {/* Texto visible en Móvil y Desktop */}
-      <div className="flex px-4 w-full items-center overflow-hidden md:hidden lg:flex">
+      {/* CAMBIO 3: Texto visible solo en xl (Desktop grande) y móvil */}
+      <div className="flex px-4 w-full items-center overflow-hidden md:hidden xl:flex">
          <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest whitespace-nowrap truncate animate-in fade-in duration-300">
             {label}
          </span>
@@ -81,14 +80,12 @@ export const Sidebar = () => {
    const { isMobileMenuOpen, closeMobileMenu } = useUIStore();
    const location = useLocation();
 
-   // Cerrar el menú automáticamente cuando cambiamos de ruta (UX móvil)
    useEffect(() => {
       closeMobileMenu();
    }, [location.pathname, closeMobileMenu]);
 
    return (
       <>
-         {/* OVERLAY (Fondo oscuro) - Solo visible en móvil cuando está abierto */}
          {isMobileMenuOpen && (
             <div
                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden animate-in fade-in duration-200"
@@ -96,22 +93,19 @@ export const Sidebar = () => {
             />
          )}
 
-         {/* SIDEBAR CONTAINER */}
          <aside
             className={`
                fixed inset-y-0 left-0 z-50 bg-zinc-900 border-r border-zinc-800 flex flex-col transition-transform duration-300 ease-in-out
                
-               /* Anchos por breakpoint */
-               w-64          /* Móvil: Ancho fijo cómodo */
-               md:w-[60px]   /* Tablet: Icon mode (lo que te gustaba) */
-               lg:w-60       /* Desktop: Full width */
+               /* CAMBIO 4: Anchos actualizados */
+               w-64          /* Móvil */
+               md:w-[60px]   /* Tablet y Laptop estándar: Icon only */
+               xl:w-60       /* Pantallas grandes (>1280px): Full width */
 
-               /* Posicionamiento y Visibilidad */
-               md:static md:translate-x-0  /* En Tablet/Desktop siempre visible y estático */
-               ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} /* En Móvil se desliza */
+               md:static md:translate-x-0
+               ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
             `}
          >
-            {/* Header del Sidebar */}
             <div className="h-16 border-b border-zinc-800/50 mb-4 shrink-0 flex items-center justify-between pr-2">
                <a
                   href="https://audiovideofp.com"
@@ -127,7 +121,6 @@ export const Sidebar = () => {
                   <span className={textOpacityTransition}>AudioVideoFP</span>
                </a>
 
-               {/* Botón de cerrar solo visible en móvil */}
                <button
                   onClick={closeMobileMenu}
                   className="md:hidden p-2 text-zinc-500 hover:text-white"
@@ -136,7 +129,6 @@ export const Sidebar = () => {
                </button>
             </div>
 
-            {/* Contenido Scrollable */}
             <div className="flex flex-col gap-y-6 flex-grow overflow-y-auto py-2 no-scrollbar overflow-x-hidden">
                <nav className="flex flex-col gap-y-1">
                   <SectionHeader label="Principal" />
@@ -153,13 +145,13 @@ export const Sidebar = () => {
                </nav>
             </div>
 
-            {/* Footer Usuario */}
             <div className="border-t border-zinc-800 mt-auto bg-zinc-900">
                <div className="h-[72px] flex items-center w-full overflow-hidden relative">
                   <div
                      className={`
                      flex items-center w-full mx-2 p-0 rounded-xl transition-colors duration-300
-                     lg:bg-zinc-800/50 lg:border lg:border-zinc-800
+                     /* CAMBIO 5: Fondo visible solo en XL */
+                     xl:bg-zinc-800/50 xl:border xl:border-zinc-800
                   `}
                   >
                      <div className="w-[44px] h-[44px] shrink-0 flex items-center justify-center">
@@ -172,7 +164,7 @@ export const Sidebar = () => {
                         <span className="text-sm font-semibold text-zinc-200 truncate">
                            Vendedor
                         </span>
-                        <span className="text-[10px] text-zinc-500 truncate">Sede Principal</span>
+                        <span className="text-zinc-500 text-[10px] truncate">Sede Principal</span>
                      </div>
                   </div>
                </div>

@@ -14,7 +14,7 @@ type ProductSearchModalProps = {
 
 const useProductSearch = (isOpen: boolean) => {
    const [searchTerm, setSearchTerm] = useState('');
-   const [results, setResults] = useState<Partial<InvoiceItem>[]>([]);
+   const [results, setResults] = useState<Partial<InvoiceItem>[]>([]); // Usamos el tipo RAW de DB
    const [isLoading, setIsLoading] = useState(false);
    const [error, setError] = useState('');
 
@@ -42,7 +42,8 @@ const useProductSearch = (isOpen: boolean) => {
          try {
             const res = await fetch(`${API_URL}/products?search=${encodeURIComponent(searchTerm)}`);
             if (!res.ok) throw new Error('Error al buscar productos');
-            setResults(await res.json());
+            const data = await res.json();
+            setResults(data);
          } catch (err) {
             console.error(err);
             setError('Error al buscar productos');
@@ -83,7 +84,14 @@ const useKeyboardNavigation = (
             if (results[selectedIndex]) {
                onSelect(results[selectedIndex]);
             } else if (searchTerm.trim() !== '') {
-               onSelect({ name: searchTerm, price: 0, stock: 9999, supplier: 'Genérico' });
+               onSelect({
+                  id: '',
+                  name: searchTerm,
+                  price: 0,
+                  stock: 9999,
+                  supplier: 'Genérico',
+                  discountPercentage: 0,
+               });
             }
             return;
          }
@@ -119,40 +127,82 @@ const ProductItem = ({
    isSelected: boolean;
    onClick: () => void;
    onHover: () => void;
-}) => (
-   <div
-      onMouseEnter={onHover}
-      onClick={onClick}
-      className={`
-         mx-2 flex justify-between items-center px-4 py-1 rounded-xl my-1
-         cursor-pointer transition-all duration-50
-         ${
-            isSelected
-               ? 'bg-purple-600 text-white shadow-lg shadow-purple-900/20 scale-[1.02]'
-               : 'hover:bg-zinc-800 text-zinc-200'
-         }
-      `}
-   >
-      <div className="flex flex-col">
-         <span className="font-bold text-sm">{product.name}</span>
-         <span
-            className={`text-xs font-medium ${isSelected ? 'text-purple-200' : 'text-zinc-500'}`}
-         >
-            {product.supplier}
-         </span>
+}) => {
+   const originalPrice = product.price || 0;
+   const discount = product.discountPercentage || 0;
+   const hasDiscount = discount > 0;
+   const finalPrice = hasDiscount
+      ? Math.round(originalPrice * (1 - discount / 100))
+      : originalPrice;
+
+   return (
+      <div
+         onMouseEnter={onHover}
+         onClick={onClick}
+         className={`
+                mx-2 flex justify-between items-center px-4 py-2 rounded-xl my-1
+                cursor-pointer transition-all duration-50 border border-transparent
+                ${
+                   isSelected
+                      ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/20 scale-[1.02]'
+                      : 'hover:bg-zinc-800 text-zinc-200 border-zinc-800/50'
+                }
+            `}
+      >
+         <div className="flex flex-col gap-0.5">
+            <span className="font-bold text-sm">{product.name}</span>
+            <div className="flex items-center gap-2">
+               <span
+                  className={`text-xs font-medium ${
+                     isSelected ? 'text-indigo-200' : 'text-zinc-500'
+                  }`}
+               >
+                  {product.supplier}
+               </span>
+               {hasDiscount && (
+                  <span
+                     className={`text-[10px] px-1.5 rounded-md font-bold border ${
+                        isSelected
+                           ? 'bg-white/20 text-white border-white/30'
+                           : 'bg-green-500/10 text-green-400 border-green-500/20'
+                     }`}
+                  >
+                     -{discount}%
+                  </span>
+               )}
+            </div>
+         </div>
+
+         <div className="flex flex-col items-end">
+            {hasDiscount ? (
+               <>
+                  <span
+                     className={`text-xs line-through ${
+                        isSelected ? 'text-indigo-300' : 'text-zinc-500'
+                     }`}
+                  >
+                     ${originalPrice.toLocaleString('es-CO')}
+                  </span>
+                  <span className="font-bold text-sm tracking-tight">
+                     ${finalPrice.toLocaleString('es-CO')}
+                  </span>
+               </>
+            ) : (
+               <span className="font-bold text-sm tracking-tight">
+                  ${originalPrice.toLocaleString('es-CO')}
+               </span>
+            )}
+            <span
+               className={`text-[10px] font-medium mt-0.5 ${
+                  isSelected ? 'text-indigo-200' : 'text-zinc-500'
+               }`}
+            >
+               {product.stock} disponibles
+            </span>
+         </div>
       </div>
-      <div className="flex flex-col items-end">
-         <span className="font-bold text-sm tracking-tight">
-            ${product.price?.toLocaleString('es-CO')}
-         </span>
-         <span
-            className={`text-xs font-medium ${isSelected ? 'text-purple-200' : 'text-zinc-500'}`}
-         >
-            {product.stock} disponibles
-         </span>
-      </div>
-   </div>
-);
+   );
+};
 
 export const ProductSearchModal = ({
    isOpen,
@@ -163,12 +213,15 @@ export const ProductSearchModal = ({
 
    const handleSelect = useCallback(
       (product: Partial<InvoiceItem>) => {
-         onSelectProduct(product);
+         // Mapeo ligero solo para asegurar que el Store reciba price como originalPrice
+         onSelectProduct({
+            ...product,
+            originalPrice: product.price, // El RPC devuelve el precio lista en 'price'
+         });
          onClose();
       },
       [onSelectProduct, onClose],
    );
-
    const { selectedIndex, setSelectedIndex, listRef } = useKeyboardNavigation(
       isOpen,
       results,
@@ -193,7 +246,7 @@ export const ProductSearchModal = ({
                   autoFocus
                   value={searchTerm}
                   onChange={e => setSearchTerm(e.target.value)}
-                  className="w-full bg-zinc-800 text-lg text-white rounded-full mb-1 pl-11 py-2 border-2 border-zinc-600 focus:border-purple-800 outline-none transition-colors duration-300"
+                  className="w-full bg-zinc-800 text-lg text-white rounded-full mb-1 pl-11 py-2 border-2 border-zinc-600 focus:border-indigo-800 outline-none transition-colors duration-300"
                />
             </div>
 
