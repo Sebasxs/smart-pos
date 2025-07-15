@@ -42,6 +42,7 @@ const EditableField = ({
       <div
          tabIndex={0}
          onFocus={handleFocus}
+         // REVERTIDO: Estilo original más sólido y oscuro
          className={`relative flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700/50 hover:border-zinc-600 rounded-lg px-3 py-1.5 transition-all group ${className}`}
          onClick={() => setIsEditing(true)}
       >
@@ -88,16 +89,7 @@ export const CustomerHeader = ({ onSearchRequest }: { onSearchRequest: () => voi
    const hasCustomerData = Object.values(customer).some(val => val.trim() !== '');
 
    return (
-      // CAMBIO 1: Revertido a lg:flex-row
       <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 p-3 bg-zinc-900 border border-zinc-800 rounded-xl shadow-sm">
-         {/* 
-            CAMBIO 2: Min-Widths muy agresivos.
-            - Nombre: min-w-[140px] (antes 200)
-            - TaxID: min-w-[100px] (antes 140)
-            - Email: min-w-[130px] (antes 180)
-            - Ciudad: min-w-[90px] (antes 120)
-            Esto permite que 'flex' los apriete entre 1024px y 1280px sin desbordar
-         */}
          <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:items-center gap-2 flex-1 min-w-0">
             <EditableField
                className="lg:flex-[2] min-w-[140px]"
@@ -129,7 +121,6 @@ export const CustomerHeader = ({ onSearchRequest }: { onSearchRequest: () => voi
             />
          </div>
 
-         {/* Botones de Acción */}
          <div className="flex items-center gap-2 shrink-0 lg:border-l border-zinc-800 lg:pl-3 lg:ml-1">
             {hasCustomerData && (
                <button
@@ -145,9 +136,10 @@ export const CustomerHeader = ({ onSearchRequest }: { onSearchRequest: () => voi
                onClick={onSearchRequest}
                className="
                   flex items-center gap-2 px-4 py-2 rounded-lg
-                  bg-blue-600/10 text-blue-400 border border-blue-500/20
-                  hover:bg-blue-600 hover:text-white hover:border-blue-500
-                  transition-all cursor-pointer text-sm font-bold
+                  bg-zinc-800 text-zinc-400 border border-zinc-700
+                  hover:bg-zinc-700 hover:text-zinc-100 hover:border-zinc-600
+                  active:scale-95
+                  transition-all cursor-pointer text-sm font-medium
                "
                title="Buscar Cliente (Tecla C)"
             >

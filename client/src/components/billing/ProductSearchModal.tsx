@@ -144,7 +144,7 @@ const ProductItem = ({
                 cursor-pointer transition-all duration-50 border border-transparent
                 ${
                    isSelected
-                      ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/20 scale-[1.02]'
+                      ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-900/20 scale-[1.02]'
                       : 'hover:bg-zinc-800 text-zinc-200 border-zinc-800/50'
                 }
             `}
@@ -246,7 +246,7 @@ export const ProductSearchModal = ({
                   autoFocus
                   value={searchTerm}
                   onChange={e => setSearchTerm(e.target.value)}
-                  className="w-full bg-zinc-800 text-lg text-white rounded-full mb-1 pl-11 py-2 border-2 border-zinc-600 focus:border-indigo-800 outline-none transition-colors duration-300"
+                  className="w-full bg-zinc-800 text-lg text-white rounded-full mb-1 pl-11 py-2 border-2 border-zinc-600 focus:border-indigo-500 outline-none transition-colors duration-300"
                />
             </div>
 
