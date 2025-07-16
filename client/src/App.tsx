@@ -11,8 +11,8 @@ import { MobileNavbar } from './components/layout/MobileNavbar';
 
 function App() {
    return (
-      // Cambio: flex-col en móvil, md:flex-row en tablet/desktop
-      <div className="h-screen w-screen bg-zinc-950 flex flex-col md:flex-row text-zinc-200 font-sans selection:bg-blue-500/30 overflow-hidden">
+      // CAMBIO: Agregado 'font-sans antialiased' explícitamente para suavizado de fuente
+      <div className="h-screen w-screen bg-zinc-950 flex flex-col md:flex-row text-zinc-200 font-sans antialiased selection:bg-blue-500/30 overflow-hidden">
          {/* Navbar visible solo en móvil */}
          <MobileNavbar />
 

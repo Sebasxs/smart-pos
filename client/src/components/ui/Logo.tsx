@@ -12,7 +12,7 @@ export const Logo = ({
    showText = true,
 }: LogoProps) => {
    return (
-      <div className={`flex items-center gap-1 ${className}`}>
+      <div className={`flex items-center ${className}`}>
          {/* Icono Gráfico */}
          <div
             className={`

@@ -9,11 +9,10 @@ type InvoiceItemRowProps = {
    onRemove: (id: string) => void;
 };
 
-const GRID_LAYOUT = 'grid grid-cols-[1fr_7rem_8rem_6rem_2.5rem] gap-2 items-center';
+const GRID_LAYOUT = 'grid grid-cols-[1fr_8rem_9rem_7rem_3rem] gap-4 items-center';
 
-// Icono más sutil
 const EDIT_ICON_CLASSES =
-   'absolute left-0 top-1.5 text-indigo-400 pointer-events-none animate-in fade-in duration-200 z-10 opacity-70';
+   'absolute left-0 top-2 text-indigo-400 pointer-events-none animate-in fade-in duration-200 z-10 opacity-70';
 const ICON_SIZE = 14;
 
 const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
@@ -49,25 +48,16 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
    const isModified = item.isManualPrice || item.isManualName;
 
    return (
-      // CAMBIO VISUAL IMPORTANTE:
-      // 1. Eliminado 'bg-zinc-800/40' y border-l-2.
-      // 2. Ahora es border-b border-zinc-800 (estilo ledger).
-      // 3. Hover sutil bg-zinc-800/30.
       <div
          className={`
             ${GRID_LAYOUT} 
-            px-4 py-3 transition-colors duration-150 group relative border-b border-zinc-800/50
-            ${
-               isModified
-                  ? 'bg-indigo-500/5 hover:bg-indigo-500/10' // Modificado (Sutil tinte azul)
-                  : 'hover:bg-zinc-800/30' // Normal (Hover gris sutil)
-            }
+            px-4 py-4 transition-colors duration-150 group relative border-b border-zinc-800/50
+            ${isModified ? 'bg-indigo-500/5 hover:bg-indigo-500/10' : 'hover:bg-zinc-800/30'}
          `}
       >
-         {/* Indicador de modificación lateral sutil (opcional, reemplaza el border-l-2 grueso) */}
          {isModified && <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-indigo-500" />}
 
-         {/* 1. COLUMNA PRODUCTO */}
+         {/* 1. PRODUCTO */}
          <div className="w-full relative flex flex-col justify-center min-w-0">
             <div className="relative w-full">
                {item.isManualName && (
@@ -77,37 +67,37 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
                   type="text"
                   value={item.name}
                   onChange={e => onUpdate(item.id, { name: e.target.value })}
-                  title={item.name}
                   className={`
                      w-full bg-transparent rounded cursor-default focus:cursor-text py-0.5
                      focus:ring-0 border-b border-transparent focus:border-indigo-500/50
-                     outline-none truncate transition-all duration-200 font-bold text-zinc-200 text-sm
+                     outline-none truncate transition-all duration-200 
+                     font-bold text-zinc-100 text-base
                      ${item.isManualName ? 'pl-5' : 'pl-0.5'}
                   `}
                />
             </div>
 
-            <div className="flex items-center gap-2 mt-0.5 pl-0.5">
+            <div className="flex items-center gap-2 mt-1 pl-0.5">
                <span
-                  className="text-[10px] text-zinc-500 font-medium truncate max-w-[150px]"
+                  className="text-xs text-zinc-500 font-medium truncate max-w-[200px]"
                   title={`Proveedor: ${item.supplier}`}
                >
                   {item.supplier}
                </span>
 
                {hasInventoryDiscount && (
-                  <span className="text-[9px] px-1.5 rounded-[4px] font-bold border bg-green-500/10 text-green-400 border-green-500/20 leading-tight">
+                  <span className="text-xs px-1.5 py-0.5 rounded font-bold border bg-green-500/10 text-green-400 border-green-500/20 leading-none font-mono">
                      -{item.discountPercentage}%
                   </span>
                )}
             </div>
          </div>
 
-         {/* 2. COLUMNA VALOR */}
+         {/* 2. VALOR UNITARIO */}
          <div className="flex flex-col justify-center items-end w-full relative h-full">
             {hasInventoryDiscount && !item.isManualPrice && (
                <div className="w-full flex justify-end mb-0.5 pr-1">
-                  <span className="text-[10px] text-zinc-500 line-through decoration-zinc-500 font-medium">
+                  <span className="text-xs text-zinc-500 line-through decoration-zinc-500 font-medium font-mono">
                      ${item.originalPrice.toLocaleString('es-CO')}
                   </span>
                </div>
@@ -127,14 +117,15 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
                   className={`
                      w-full bg-transparent text-right rounded cursor-default focus:cursor-text py-0.5
                      border-b border-transparent focus:border-indigo-500/50
-                     outline-none no-spinners transition-all duration-200 font-medium text-zinc-200 text-sm
+                     outline-none no-spinners transition-all duration-200 
+                     font-medium text-zinc-200 text-base font-mono
                      ${item.isManualPrice ? 'text-indigo-300 pr-1 pl-5' : 'pr-1'} 
                   `}
                />
             </div>
          </div>
 
-         {/* 3. COLUMNA CANTIDAD */}
+         {/* 3. CANTIDAD (Nota: QuantitySelector ya tiene números, asumimos que se heredan o se ajusta el componente interno si fuera necesario, pero aquí lo importante es el layout) */}
          <div className="flex justify-center w-full">
             <QuantitySelector
                value={item.quantity}
@@ -147,21 +138,20 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
             />
          </div>
 
-         {/* 4. COLUMNA SUBTOTAL */}
+         {/* 4. SUBTOTAL */}
          <div className="flex justify-end items-center w-full pr-1">
-            <span className="font-bold text-zinc-100 tracking-tight text-base">
+            <span className="font-bold text-zinc-100 tracking-tight text-lg font-mono">
                ${(item.quantity * item.price).toLocaleString('es-CO')}
             </span>
          </div>
 
-         {/* 5. COLUMNA ELIMINAR */}
+         {/* 5. ACCIONES */}
          <div className="flex justify-end">
-            {/* El botón de borrar ahora aparece más sutil, solo visible fuerte al hover de la fila o del botón */}
             <button
                onClick={() => onRemove(item.id)}
                className="text-zinc-600 p-2 rounded-lg hover:text-red-400 hover:bg-red-400/10 transition-all duration-200 cursor-pointer opacity-50 group-hover:opacity-100"
             >
-               <HiOutlineTrash size={18} />
+               <HiOutlineTrash size={20} />
             </button>
          </div>
       </div>
@@ -176,13 +166,10 @@ export type InvoiceTableProps = {
 
 export const InvoiceTable = ({ items, onUpdateItem, onRemoveItem }: InvoiceTableProps) => {
    return (
-      // CAMBIO: Eliminado 'bg-zinc-950' del contenedor principal.
-      // Ahora es transparente para heredar el zinc-900 del padre en Billing.tsx
       <div className="flex flex-col h-full bg-transparent overflow-x-auto overflow-y-hidden rounded-xl custom-scrollbar">
-         <div className="min-w-[700px] h-full flex flex-col">
-            {/* HEADER: Fondo sólido para sticky header si fuera necesario, o transparente blending */}
+         <div className="min-w-[800px] h-full flex flex-col">
             <div
-               className={`${GRID_LAYOUT} bg-zinc-900/95 backdrop-blur-sm text-zinc-500 font-bold text-[11px] py-3 px-4 uppercase tracking-wider border-b border-zinc-800 shrink-0 select-none z-10`}
+               className={`${GRID_LAYOUT} bg-zinc-900/95 backdrop-blur-sm text-zinc-500 font-bold text-xs py-3 px-4 uppercase tracking-wider border-b border-zinc-800 shrink-0 select-none z-10`}
             >
                <div className="text-left pl-1">Producto</div>
                <div className="text-right">Valor Unidad</div>
@@ -191,7 +178,6 @@ export const InvoiceTable = ({ items, onUpdateItem, onRemoveItem }: InvoiceTable
                <div></div>
             </div>
 
-            {/* BODY: Sin padding extra, las filas definen su espacio */}
             <div className="flex flex-col flex-1 overflow-y-auto custom-scrollbar bg-zinc-900">
                {items.map(item => (
                   <InvoiceItemRow
@@ -204,21 +190,19 @@ export const InvoiceTable = ({ items, onUpdateItem, onRemoveItem }: InvoiceTable
 
                {items.length === 0 && (
                   <div className="h-full flex flex-col items-center justify-center text-zinc-600 animate-in fade-in duration-500">
-                     {/* Círculo decorativo más sutil */}
                      <div className="bg-zinc-800/50 p-6 rounded-full mb-4 border border-zinc-800/50">
                         <HiOutlinePencilSquare size={32} className="opacity-20" />
                      </div>
-                     <p className="text-zinc-500 font-medium mb-2">La factura está vacía</p>
-                     <span className="text-xs bg-zinc-800/50 px-3 py-1.5 rounded-full border border-zinc-800 text-zinc-500">
+                     <p className="text-zinc-500 font-medium mb-2 text-lg">La factura está vacía</p>
+                     <span className="text-sm bg-zinc-800/50 px-4 py-2 rounded-full border border-zinc-800 text-zinc-500">
                         Presiona <kbd className="font-bold text-zinc-400 mx-1">ESPACIO</kbd> para
                         agregar productos
                      </span>
                   </div>
                )}
 
-               {/* Generar filas vacías visuales para llenar el espacio si hay pocos items (Efecto Papel) */}
                {items.length > 0 && items.length < 8 && (
-                  <div className="flex-1 bg-[linear-gradient(to_bottom,#18181b_1px,transparent_1px)] bg-[size:100%_4rem] opacity-5 pointer-events-none" />
+                  <div className="flex-1 bg-[linear-gradient(to_bottom,#18181b_1px,transparent_1px)] bg-[size:100%_5rem] opacity-5 pointer-events-none" />
                )}
             </div>
          </div>

@@ -1,5 +1,4 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import { HiOutlineTrash } from 'react-icons/hi2';
 import { InvoiceTable } from '../components/billing/InvoiceTable';
 import { ProductSearchModal } from '../components/billing/ProductSearchModal';
 import { CustomerSearchModal } from '../components/billing/CustomerSearchModal';
@@ -8,6 +7,7 @@ import { DiscountModal } from '../components/billing/DiscountModal';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { PaymentSuccessModal } from '../components/billing/PaymentSuccessModal';
 import { PaymentWidget } from '../components/billing/PaymentWidget';
+import { BillingTotals } from '../components/billing/BillingTotals'; // NUEVO
 import { useBillingStore, type CheckoutState } from '../store/billingStore';
 import { type InvoiceItem } from '../types/billing';
 
@@ -26,7 +26,6 @@ export const Billing = () => {
       resetInvoice,
    } = useBillingStore();
 
-   // Modales
    const [isProdSearchOpen, setIsProdSearchOpen] = useState(false);
    const [isCustSearchOpen, setIsCustSearchOpen] = useState(false);
    const [isDiscountOpen, setIsDiscountOpen] = useState(false);
@@ -36,7 +35,6 @@ export const Billing = () => {
    const [finalizedData, setFinalizedData] = useState<CheckoutState | null>(null);
    const [isProcessing, setIsProcessing] = useState(false);
 
-   // Cálculos Financieros
    const subtotal = useMemo(
       () => items.reduce((acc, item) => acc + item.price * item.quantity, 0),
       [items],
@@ -51,7 +49,6 @@ export const Billing = () => {
 
    const total = Math.max(0, subtotal - discountAmount);
 
-   // Validaciones
    const cashReceived = parseInt(checkoutData.cashReceivedStr.replace(/[^0-9]/g, '') || '0', 10);
    const isPaymentValid =
       items.length > 0 &&
@@ -59,7 +56,6 @@ export const Billing = () => {
          cashReceived === 0 ||
          (checkoutData.paymentMethod === 'cash' && cashReceived >= total));
 
-   // Handlers (sin cambios)
    const handleProductSelect = (product: Partial<InvoiceItem>) => {
       addItem(product);
       setIsProdSearchOpen(false);
@@ -121,7 +117,6 @@ export const Billing = () => {
       setFinalizedData(null);
    };
 
-   // Shortcuts (sin cambios)
    useEffect(() => {
       const handleKeyDown = (event: KeyboardEvent) => {
          const target = event.target as HTMLElement;
@@ -174,98 +169,41 @@ export const Billing = () => {
          <CustomerHeader onSearchRequest={() => setIsCustSearchOpen(true)} />
 
          <div className="flex flex-col lg:flex-row gap-4 lg:flex-1 lg:min-h-0 lg:overflow-hidden pb-2">
-            {/* Tabla: Altura fija en móvil/tablet, llena en desktop */}
+            {/* Tabla */}
             <div className="h-[500px] lg:h-full flex-1 flex flex-col bg-zinc-900 rounded-xl border border-zinc-800 shadow-sm overflow-hidden min-h-0 shrink-0">
                <div className="flex-1 relative bg-zinc-900 h-full min-h-0">
                   <InvoiceTable items={items} onUpdateItem={updateItem} onRemoveItem={removeItem} />
                </div>
             </div>
 
-            {/* CAMBIO PRINCIPAL: Layout del Sidebar */}
-            <aside className="w-full lg:w-80 lg:shrink-0 flex flex-col h-fit lg:h-full lg:max-h-full lg:overflow-y-auto custom-scrollbar pr-1">
-               {/* Wrapper Responsivo:
-                   - Mobile (<md): flex-col (apilado)
-                   - Tablet (md): flex-row (lado a lado)
-                   - Desktop (lg): flex-col (apilado sidebar)
+            {/* Sidebar derecha */}
+            {/* CAMBIO: Eliminado h-full del contenedor. Ahora se ajusta al contenido. */}
+            <aside className="w-full lg:w-96 lg:shrink-0 flex flex-col h-fit lg:max-h-full lg:overflow-y-auto custom-scrollbar pr-1">
+               {/* 
+                  CONTENEDOR DE WIDGETS:
+                  - Mobile: flex-col (apilados)
+                  - Tablet (md): flex-row (lado a lado). Por defecto 'items-stretch' hará que ambos tengan la altura del más alto.
+                  - Desktop (lg): flex-col (apilados nuevamente).
                */}
                <div className="flex flex-col md:flex-row lg:flex-col gap-3 w-full shrink-0">
-                  {/* Componente 1: Widget de Pago */}
                   <div className="w-full md:flex-1">
                      <PaymentWidget total={total} />
                   </div>
 
-                  {/* Componente 2: Tarjeta de Totales */}
-                  <div className="w-full md:flex-1 bg-zinc-900 rounded-xl p-4 border border-zinc-800 shadow-xl shrink-0 flex flex-col justify-between">
-                     <div className="flex flex-col gap-y-3 text-sm mb-5">
-                        <div className="flex justify-between items-center">
-                           <span className="text-zinc-400 font-bold text-xs uppercase tracking-wider">
-                              Subtotal
-                           </span>
-                           <span className="font-bold text-zinc-200 text-base">
-                              ${subtotal.toLocaleString('es-CO')}
-                           </span>
-                        </div>
-
-                        <div className="flex justify-between items-center">
-                           <button
-                              onClick={() => setIsDiscountOpen(true)}
-                              className="text-blue-400 hover:text-blue-300 underline decoration-dotted cursor-pointer font-bold text-xs uppercase tracking-wider hover:bg-blue-500/10 px-1 -ml-1 rounded transition-colors text-left"
-                           >
-                              Descuento
-                           </button>
-                           <div className="flex items-center gap-2">
-                              <span className="text-zinc-500 text-sm font-medium">
-                                 {discount.type === 'percentage' ? `(${discount.value}%)` : '(-$)'}
-                              </span>
-                              <span
-                                 className={`font-bold text-base ${
-                                    discountAmount > 0 ? 'text-red-400' : 'text-zinc-200'
-                                 }`}
-                              >
-                                 -${discountAmount.toLocaleString('es-CO')}
-                              </span>
-                           </div>
-                        </div>
-
-                        <div className="pt-3 mt-1 border-t border-zinc-800 flex justify-between items-center">
-                           <span className="text-lg font-black text-white uppercase tracking-tight">
-                              Total
-                           </span>
-                           <span className="text-3xl font-black text-white tracking-tight">
-                              ${total.toLocaleString('es-CO')}
-                           </span>
-                        </div>
-                     </div>
-
-                     <div className="flex gap-2 mt-auto">
-                        <button
-                           onClick={triggerDiscard}
-                           className="p-3 rounded-xl bg-zinc-800 hover:bg-red-600/20 hover:text-red-400 text-zinc-400 transition-colors cursor-pointer border border-transparent hover:border-red-900/50"
-                           title="Descartar (X)"
-                        >
-                           <HiOutlineTrash size={20} />
-                        </button>
-                        <button
-                           onClick={handleProcessPayment}
-                           disabled={!isPaymentValid || isProcessing}
-                           className={`
-                              flex-1 font-bold py-3 rounded-xl text-base
-                              transition-all shadow-lg flex justify-center items-center gap-2
-                              ${
-                                 isPaymentValid && !isProcessing
-                                    ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-900/20 cursor-pointer hover:scale-[1.02] active:scale-[0.98]'
-                                    : 'bg-zinc-800 text-zinc-600 cursor-not-allowed opacity-50'
-                              }
-                           `}
-                        >
-                           <span>{isProcessing ? '...' : 'Confirmar'}</span>
-                        </button>
-                     </div>
-                  </div>
+                  <BillingTotals
+                     subtotal={subtotal}
+                     discount={discount}
+                     discountAmount={discountAmount}
+                     total={total}
+                     isPaymentValid={isPaymentValid}
+                     isProcessing={isProcessing}
+                     onOpenDiscount={() => setIsDiscountOpen(true)}
+                     onDiscard={triggerDiscard}
+                     onProcessPayment={handleProcessPayment}
+                  />
                </div>
 
-               {/* Leyenda de Atajos (siempre debajo) */}
-               <div className="mt-4 px-2 grid grid-cols-3 gap-2 text-[11px] text-zinc-600 font-bold text-center uppercase tracking-wide opacity-75 shrink-0">
+               <div className="mt-4 px-2 grid grid-cols-3 gap-2 text-xs text-zinc-600 font-bold text-center uppercase tracking-wide opacity-75 shrink-0">
                   <div>
                      <span className="font-bold text-zinc-500">C</span> Cliente
                   </div>
@@ -279,19 +217,17 @@ export const Billing = () => {
             </aside>
          </div>
 
-         {/* Modales (sin cambios) */}
+         {/* ... Modales (sin cambios) ... */}
          <ProductSearchModal
             isOpen={isProdSearchOpen}
             onClose={() => setIsProdSearchOpen(false)}
             onSelectProduct={handleProductSelect}
          />
-
          <CustomerSearchModal
             isOpen={isCustSearchOpen}
             onClose={() => setIsCustSearchOpen(false)}
             onSelectCustomer={handleCustomerSelect}
          />
-
          <DiscountModal
             isOpen={isDiscountOpen}
             onClose={() => setIsDiscountOpen(false)}
@@ -299,7 +235,6 @@ export const Billing = () => {
             currentDiscount={discount}
             subtotal={subtotal}
          />
-
          <ConfirmModal
             isOpen={isDiscardConfirmOpen}
             onClose={() => setIsDiscardConfirmOpen(false)}
@@ -307,7 +242,6 @@ export const Billing = () => {
             title="¿Descartar factura?"
             message="Eliminarás todos los productos agregados."
          />
-
          <PaymentSuccessModal
             isOpen={isSuccessModalOpen}
             onClose={handleFinalizeSuccess}

@@ -1,4 +1,3 @@
-import { useRef, useState, useEffect } from 'react';
 import {
    HiOutlineUser,
    HiOutlineIdentification,
@@ -9,72 +8,38 @@ import {
 import { HiOutlineMail } from 'react-icons/hi';
 import { useBillingStore } from '../../store/billingStore';
 
-const EditableField = ({
+const InputGroup = ({
    value,
    placeholder,
    onChange,
    icon: Icon,
-   className = '',
+   label,
 }: {
    value: string;
    placeholder: string;
    onChange: (val: string) => void;
    icon: React.ElementType;
-   className?: string;
-}) => {
-   const [isEditing, setIsEditing] = useState(false);
-   const inputRef = useRef<HTMLInputElement>(null);
-
-   useEffect(() => {
-      if (isEditing) {
-         inputRef.current?.focus();
-      }
-   }, [isEditing]);
-
-   const handleBlur = () => setIsEditing(false);
-   const handleKeyDown = (e: React.KeyboardEvent) => {
-      if (e.key === 'Enter') setIsEditing(false);
-   };
-
-   const handleFocus = () => setIsEditing(true);
-
-   return (
-      <div
-         tabIndex={0}
-         onFocus={handleFocus}
-         // REVERTIDO: Estilo original más sólido y oscuro
-         className={`relative flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700/50 hover:border-zinc-600 rounded-lg px-3 py-1.5 transition-all group ${className}`}
-         onClick={() => setIsEditing(true)}
-      >
-         <Icon
-            className={`shrink-0 transition-colors ${
-               value || isEditing ? 'text-blue-400' : 'text-zinc-500'
-            }`}
-            size={16}
+   label: string;
+}) => (
+   <div className="flex flex-col gap-1.5 flex-1 min-w-[150px]">
+      <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider ml-1 flex items-center gap-1">
+         <Icon size={12} /> {label}
+      </label>
+      <div className="relative group">
+         <input
+            value={value}
+            onChange={e => onChange(e.target.value)}
+            placeholder={placeholder}
+            className="
+               w-full bg-zinc-800/50 hover:bg-zinc-800 focus:bg-zinc-800 
+               border border-zinc-800 focus:border-indigo-500/50 
+               rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600
+               outline-none transition-all duration-200
+            "
          />
-
-         {isEditing ? (
-            <input
-               ref={inputRef}
-               value={value}
-               onChange={e => onChange(e.target.value)}
-               onBlur={handleBlur}
-               onKeyDown={handleKeyDown}
-               placeholder={placeholder}
-               className="w-full bg-transparent text-white outline-none text-sm font-medium placeholder:text-zinc-500"
-            />
-         ) : (
-            <span
-               className={`text-sm truncate w-full select-none ${
-                  value ? 'text-zinc-200 font-medium' : 'text-zinc-500 italic'
-               }`}
-            >
-               {value || placeholder}
-            </span>
-         )}
       </div>
-   );
-};
+   </div>
+);
 
 export const CustomerHeader = ({ onSearchRequest }: { onSearchRequest: () => void }) => {
    const { checkoutData, setCheckoutData, resetCustomer } = useBillingStore();
@@ -89,44 +54,45 @@ export const CustomerHeader = ({ onSearchRequest }: { onSearchRequest: () => voi
    const hasCustomerData = Object.values(customer).some(val => val.trim() !== '');
 
    return (
-      <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 p-3 bg-zinc-900 border border-zinc-800 rounded-xl shadow-sm">
-         <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:items-center gap-2 flex-1 min-w-0">
-            <EditableField
-               className="lg:flex-[2] min-w-[140px]"
+      <div className="flex flex-col lg:flex-row items-end gap-4 p-4 bg-zinc-900 border border-zinc-800 rounded-xl shadow-sm">
+         <div className="flex-1 w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <InputGroup
+               label="Cliente / Razón Social"
                value={customer.name}
                placeholder="Consumidor Final"
                onChange={v => updateField('name', v)}
                icon={HiOutlineUser}
             />
-            <EditableField
-               className="lg:flex-1 min-w-[100px]"
+            <InputGroup
+               label="Identificación / NIT"
                value={customer.taxId}
-               placeholder="Identificación"
+               placeholder="22222222"
                onChange={v => updateField('taxId', v)}
                icon={HiOutlineIdentification}
             />
-            <EditableField
-               className="lg:flex-[1.5] min-w-[130px]"
+            <InputGroup
+               label="Correo Electrónico"
                value={customer.email}
-               placeholder="Email"
+               placeholder="cliente@ejemplo.com"
                onChange={v => updateField('email', v)}
                icon={HiOutlineMail}
             />
-            <EditableField
-               className="lg:flex-1 min-w-[90px]"
+            <InputGroup
+               label="Ciudad / Ubicación"
                value={customer.city}
-               placeholder="Ciudad"
+               placeholder="Bogotá, D.C."
                onChange={v => updateField('city', v)}
                icon={HiOutlineMapPin}
             />
          </div>
 
-         <div className="flex items-center gap-2 shrink-0 lg:border-l border-zinc-800 lg:pl-3 lg:ml-1">
+         {/* Botones de Acción */}
+         <div className="flex items-center gap-2 shrink-0 pb-0.5">
             {hasCustomerData && (
                <button
                   onClick={resetCustomer}
-                  className="p-2 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-red-400/10 transition-colors cursor-pointer"
-                  title="Limpiar datos del cliente"
+                  className="h-9 w-9 flex items-center justify-center rounded-lg text-zinc-500 hover:text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 transition-all"
+                  title="Limpiar datos"
                >
                   <HiOutlineXMark size={20} />
                </button>
@@ -135,16 +101,17 @@ export const CustomerHeader = ({ onSearchRequest }: { onSearchRequest: () => voi
             <button
                onClick={onSearchRequest}
                className="
-                  flex items-center gap-2 px-4 py-2 rounded-lg
-                  bg-zinc-800 text-zinc-400 border border-zinc-700
-                  hover:bg-zinc-700 hover:text-zinc-100 hover:border-zinc-600
-                  active:scale-95
-                  transition-all cursor-pointer text-sm font-medium
+                  flex items-center gap-2 px-4 h-9 rounded-lg
+                  bg-zinc-800 text-zinc-300 border border-zinc-700
+                  hover:bg-zinc-700 hover:text-white hover:border-zinc-600
+                  active:scale-95 transition-all text-sm font-semibold shadow-sm
                "
-               title="Buscar Cliente (Tecla C)"
             >
-               <HiOutlineMagnifyingGlass size={18} />
+               <HiOutlineMagnifyingGlass size={16} />
                <span>Buscar</span>
+               <kbd className="hidden lg:inline text-[10px] bg-black/30 px-1.5 py-0.5 rounded text-zinc-500 ml-1">
+                  C
+               </kbd>
             </button>
          </div>
       </div>
