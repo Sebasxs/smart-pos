@@ -1,5 +1,12 @@
 import { useState, useEffect, useRef, startTransition, useCallback } from 'react';
-import { HiOutlineSearch, HiOutlineUser, HiOutlineExclamationCircle } from 'react-icons/hi';
+import {
+   HiOutlineSearch,
+   HiOutlineUser,
+   HiOutlineExclamationCircle,
+   HiOutlineIdentification,
+   HiOutlineMail,
+   HiOutlineUserGroup,
+} from 'react-icons/hi';
 import { CgSpinner } from 'react-icons/cg';
 import { Modal } from '../ui/Modal';
 import { type CheckoutState } from '../../store/billingStore';
@@ -31,18 +38,19 @@ export const CustomerSearchModal = ({
    const [error, setError] = useState('');
    const [selectedIndex, setSelectedIndex] = useState(0);
    const listRef = useRef<HTMLDivElement>(null);
+   const inputRef = useRef<HTMLInputElement>(null);
 
-   // Reset state on close
    useEffect(() => {
       if (!isOpen) {
          setSearchTerm('');
          setResults([]);
          setError('');
          setIsLoading(false);
+      } else {
+         setTimeout(() => inputRef.current?.focus(), 50);
       }
    }, [isOpen]);
 
-   // Search Logic
    useEffect(() => {
       if (!isOpen || searchTerm.trim() === '') {
          setResults([]);
@@ -71,7 +79,6 @@ export const CustomerSearchModal = ({
       return () => clearTimeout(timeoutId);
    }, [searchTerm, isOpen]);
 
-   // Keyboard Navigation
    const handleSelect = useCallback(
       (c: CustomerResult) => {
          onSelectCustomer({
@@ -91,9 +98,7 @@ export const CustomerSearchModal = ({
       const handleKeyDown = (e: KeyboardEvent) => {
          if (e.key === 'Enter') {
             e.preventDefault();
-            if (results[selectedIndex]) {
-               handleSelect(results[selectedIndex]);
-            }
+            if (results[selectedIndex]) handleSelect(results[selectedIndex]);
          } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
             e.preventDefault();
             setSelectedIndex(prev => {
@@ -101,7 +106,8 @@ export const CustomerSearchModal = ({
                   e.key === 'ArrowDown'
                      ? (prev + 1) % results.length
                      : (prev - 1 + results.length) % results.length;
-               listRef.current?.children[next]?.scrollIntoView({ block: 'nearest' });
+               const el = listRef.current?.children[next] as HTMLElement;
+               el?.scrollIntoView({ block: 'nearest' });
                return next;
             });
          }
@@ -112,72 +118,122 @@ export const CustomerSearchModal = ({
    }, [isOpen, results, selectedIndex, handleSelect]);
 
    return (
-      <Modal isOpen={isOpen} onClose={onClose} className="w-full max-w-lg p-0 overflow-hidden">
-         <div className="flex flex-col gap-y-1 w-full">
-            <div className="relative px-4 pt-4">
-               <div className="absolute top-1/2 -translate-y-1 left-8 text-zinc-400">
-                  {isLoading ? (
-                     <CgSpinner className="animate-spin" size={22} />
-                  ) : (
-                     <HiOutlineSearch size={22} />
-                  )}
-               </div>
-               <input
-                  type="text"
-                  placeholder="Buscar cliente (Nombre o NIT)..."
-                  autoFocus
-                  value={searchTerm}
-                  onChange={e => setSearchTerm(e.target.value)}
-                  className="w-full bg-zinc-800 text-lg text-white rounded-full mb-1 pl-11 py-2 border-2 border-zinc-600 focus:border-blue-500 outline-none transition-colors duration-300"
-               />
+      <Modal
+         isOpen={isOpen}
+         onClose={onClose}
+         variant="search"
+         className="flex flex-col p-0 bg-zinc-950 border-zinc-800"
+      >
+         <div className="flex items-center gap-3 px-5 py-5 border-b border-zinc-800/50">
+            <div className="text-zinc-500">
+               {isLoading ? (
+                  <CgSpinner className="animate-spin" size={24} />
+               ) : (
+                  <HiOutlineSearch size={24} />
+               )}
             </div>
+            <input
+               ref={inputRef}
+               type="text"
+               placeholder="Buscar cliente (Nombre, NIT, Email)..."
+               value={searchTerm}
+               onChange={e => setSearchTerm(e.target.value)}
+               className="flex-1 bg-transparent text-xl text-white placeholder:text-zinc-600 outline-none font-medium"
+               autoComplete="off"
+            />
+         </div>
 
-            <div className="h-[1px] bg-zinc-800 w-full mt-1" />
-
-            <div
-               ref={listRef}
-               className="flex flex-col pb-1 max-h-[300px] min-h-[100px] h-fit mb-2 mx-2 overflow-y-auto custom-scrollbar"
-            >
-               {error ? (
-                  <div className="text-red-400 flex flex-col items-center justify-center py-8 gap-2">
-                     <HiOutlineExclamationCircle size={30} />
-                     <span>{error}</span>
+         <div
+            ref={listRef}
+            className="flex-1 overflow-y-auto custom-scrollbar max-h-[50vh] min-h-[300px] p-2 relative"
+         >
+            {error ? (
+               <div className="h-full flex flex-col items-center justify-center text-red-400 gap-3">
+                  <div className="p-4 bg-red-500/10 rounded-full">
+                     <HiOutlineExclamationCircle size={32} />
                   </div>
-               ) : results.length > 0 ? (
-                  results.map((c, index) => (
+                  <span className="font-medium">{error}</span>
+               </div>
+            ) : results.length > 0 ? (
+               results.map((c, index) => {
+                  const isSelected = index === selectedIndex;
+                  return (
                      <div
                         key={c.id}
                         onClick={() => handleSelect(c)}
                         onMouseEnter={() => setSelectedIndex(index)}
                         className={`
-                           mx-2 flex items-center gap-3 px-4 py-2 rounded-xl my-1 cursor-pointer transition-all
+                           group flex justify-between items-center px-4 py-3 rounded-xl mb-1 cursor-pointer transition-all border
                            ${
-                              index === selectedIndex
-                                 ? 'bg-blue-600 text-white'
-                                 : 'hover:bg-zinc-800 text-zinc-300'
+                              isSelected
+                                 ? 'bg-blue-600/10 border-blue-500/30'
+                                 : 'bg-transparent border-transparent hover:bg-zinc-900'
                            }
                         `}
                      >
-                        <HiOutlineUser className="shrink-0 opacity-70" size={20} />
-                        <div className="flex flex-col overflow-hidden">
-                           <span className="font-bold text-sm truncate">{c.name}</span>
-                           <div className="flex gap-2 text-xs opacity-80">
-                              <span>{c.tax_id}</span>
-                              {c.city && <span>• {c.city}</span>}
+                        <div className="flex items-center gap-4 overflow-hidden w-full">
+                           <div
+                              className={`
+                              p-2.5 rounded-xl shrink-0 transition-colors
+                              ${isSelected ? 'bg-blue-500 text-white' : 'bg-zinc-800 text-zinc-500'}
+                           `}
+                           >
+                              <HiOutlineUser size={20} />
                            </div>
+                           <div className="flex flex-col truncate flex-1">
+                              <span
+                                 className={`text-base font-medium truncate ${
+                                    isSelected ? 'text-white' : 'text-zinc-200'
+                                 }`}
+                              >
+                                 {c.name}
+                              </span>
+                              <div className="flex items-center gap-4 text-xs opacity-70 mt-0.5">
+                                 {c.tax_id && (
+                                    <span className="flex items-center gap-1 text-zinc-400">
+                                       <HiOutlineIdentification size={14} /> {c.tax_id}
+                                    </span>
+                                 )}
+                                 {c.email && (
+                                    <span className="flex items-center gap-1 text-zinc-400 truncate">
+                                       <HiOutlineMail size={14} /> {c.email}
+                                    </span>
+                                 )}
+                              </div>
+                           </div>
+                           {c.city && (
+                              <div className="text-xs text-zinc-500 font-medium px-2 shrink-0">
+                                 {c.city}
+                              </div>
+                           )}
                         </div>
                      </div>
-                  ))
-               ) : (
-                  <div className="px-6 py-8 text-zinc-500 text-center">
-                     {searchTerm ? (
-                        'No se encontraron clientes.'
-                     ) : (
-                        <span className="text-sm">Escribe para buscar en la base de datos...</span>
-                     )}
-                  </div>
-               )}
-            </div>
+                  );
+               })
+            ) : (
+               /* EMPTY STATE MEJORADO */
+               <div className="h-full flex flex-col items-center justify-center text-center p-8 animate-in fade-in duration-500 pt-12">
+                  {searchTerm ? (
+                     <div className="flex flex-col items-center">
+                        <div className="w-16 h-16 bg-zinc-900 rounded-full flex items-center justify-center mb-4 border border-zinc-800 shadow-inner">
+                           <HiOutlineUserGroup size={28} className="text-zinc-600" />
+                        </div>
+                        <h3 className="text-zinc-300 font-bold text-lg mb-1">Sin resultados</h3>
+                        <p className="text-zinc-500 text-sm max-w-[250px]">
+                           No encontramos clientes que coincidan con "{searchTerm}".
+                        </p>
+                     </div>
+                  ) : (
+                     <div className="flex flex-col items-center opacity-60 hover:opacity-100 transition-opacity duration-500">
+                        <div className="w-20 h-20 bg-gradient-to-br from-zinc-800 to-zinc-900 rounded-3xl flex items-center justify-center mb-5 border border-zinc-800 shadow-xl -rotate-3">
+                           <HiOutlineUser size={40} className="text-blue-500/80" />
+                        </div>
+                        <h3 className="text-zinc-400 font-medium text-lg">Base de Clientes</h3>
+                        <p className="text-zinc-600 text-sm mt-1">Busca por nombre, NIT o email</p>
+                     </div>
+                  )}
+               </div>
+            )}
          </div>
       </Modal>
    );

@@ -1,18 +1,26 @@
-import { type ReactNode, useEffect } from 'react';
+import { type ReactNode, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 
 type ModalProps = {
    isOpen: boolean;
    onClose: () => void;
    children: ReactNode;
    className?: string;
+   variant?: 'center' | 'search';
 };
 
-export const Modal = ({ isOpen, onClose, children, className = '' }: ModalProps) => {
+export const Modal = ({
+   isOpen,
+   onClose,
+   children,
+   className = '',
+   variant = 'center',
+}: ModalProps) => {
+   const overlayRef = useRef<HTMLDivElement>(null);
+
    useEffect(() => {
       const handleKeyDown = (event: KeyboardEvent) => {
-         if (event.key === 'Escape') {
-            onClose();
-         }
+         if (event.key === 'Escape') onClose();
       };
 
       if (isOpen) {
@@ -26,27 +34,35 @@ export const Modal = ({ isOpen, onClose, children, className = '' }: ModalProps)
       };
    }, [isOpen, onClose]);
 
-   if (!isOpen) {
-      return null;
-   }
+   if (!isOpen) return null;
 
-   return (
+   const contentAnimation =
+      variant === 'search'
+         ? 'animate-in fade-in slide-in-from-top-4 duration-200'
+         : 'animate-in zoom-in-95 duration-200';
+
+   return createPortal(
       <div
-         className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
-         onClick={onClose}
+         ref={overlayRef}
+         className={`fixed inset-0 z-50 flex justify-center bg-black/60 backdrop-blur-sm p-4 transition-all items-center`}
+         onMouseDown={e => {
+            if (e.target === overlayRef.current) onClose();
+         }}
       >
          <div
             className={`
                bg-zinc-900 border border-zinc-800 
-               rounded-3xl shadow-lg shadow-black/50 
-               w-fit h-fit max-h-[90vh] max-w-[95vw] overflow-y-auto custom-scrollbar
-               animate-in zoom-in-95 duration-200
+               shadow-2xl shadow-black/80 
+               w-full max-h-[85vh] overflow-hidden
+               ${variant === 'center' ? 'rounded-3xl' : 'rounded-3xl max-w-2xl'} 
+               ${contentAnimation}
                ${className}
             `}
-            onClick={e => e.stopPropagation()}
+            onMouseDown={e => e.stopPropagation()}
          >
             {children}
          </div>
-      </div>
+      </div>,
+      document.body,
    );
 };

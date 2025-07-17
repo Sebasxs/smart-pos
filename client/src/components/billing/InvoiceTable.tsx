@@ -51,7 +51,7 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
       <div
          className={`
             ${GRID_LAYOUT} 
-            px-4 py-4 transition-colors duration-150 group relative border-b border-zinc-800/50
+            px-4 py-3 transition-colors duration-150 group relative border-b border-zinc-800/50
             ${isModified ? 'bg-indigo-500/5 hover:bg-indigo-500/10' : 'hover:bg-zinc-800/30'}
          `}
       >
