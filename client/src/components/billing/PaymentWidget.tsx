@@ -32,7 +32,7 @@ export const PaymentWidget = ({ total }: PaymentWidgetProps) => {
                   className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-bold transition-all z-10 cursor-pointer ${
                      paymentMethod === 'cash'
                         ? 'text-zinc-200 bg-zinc-400/10 border-2 border-green-400/20 shadow-sm'
-                        : 'text-zinc-500 hover:text-zinc-300'
+                        : 'text-zinc-500 hover:text-zinc-300 border-2 border-transparent'
                   }`}
                >
                   <HiOutlineBanknotes size={18} /> Efectivo
@@ -42,15 +42,16 @@ export const PaymentWidget = ({ total }: PaymentWidgetProps) => {
                   className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-bold transition-all z-10 cursor-pointer ${
                      paymentMethod === 'transfer'
                         ? 'text-purple-400 bg-purple-400/10 border-2 border-purple-400/20 shadow-sm'
-                        : 'text-zinc-500 hover:text-zinc-300'
+                        : 'text-zinc-500 hover:text-zinc-300 border-2 border-transparent'
                   }`}
                >
                   <HiOutlineCreditCard size={18} /> Transferencia
                </button>
             </div>
 
+            {/* Contenido Condicional (Sin animaciones CSS para evitar glitch) */}
             {paymentMethod === 'cash' ? (
-               <div className="space-y-4 animate-in fade-in duration-300">
+               <div className="space-y-4">
                   <div className="relative group">
                      <label className="absolute -top-2.5 left-2 bg-zinc-900 px-2 text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
                         Recibido
