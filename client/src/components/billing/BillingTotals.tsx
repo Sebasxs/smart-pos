@@ -32,7 +32,7 @@ export const BillingTotals = ({
             </h2>
             <button
                onClick={onDiscard}
-               className="text-zinc-600 hover:text-red-400 transition-colors p-1"
+               className="text-zinc-600 hover:text-red-400 transition-colors p-1 cursor-pointer"
                title="Limpiar todo"
             >
                <HiOutlineTrash size={16} />
@@ -60,7 +60,7 @@ export const BillingTotals = ({
                   </button>
                   <div className="flex items-center gap-2">
                      {discount.value > 0 && (
-                        <span className="text-zinc-500 text-xs">
+                        <span className="text-zinc-500 text-md">
                            ({discount.type === 'percentage' ? `${discount.value}%` : '$'})
                         </span>
                      )}
@@ -87,7 +87,7 @@ export const BillingTotals = ({
                   disabled={!isPaymentValid || isProcessing}
                   className={`
                      w-full font-bold py-4 rounded-xl text-lg tracking-wide
-                     transition-all duration-200 shadow-lg flex justify-center items-center gap-2.5
+                     transition-all duration-200 shadow-lg flex justify-center items-center gap-1.5
                      group relative overflow-hidden
                      ${
                         isPaymentValid && !isProcessing
@@ -104,7 +104,9 @@ export const BillingTotals = ({
                      <>
                         <span>Confirmar Venta</span>
                         <HiOutlineCheckCircle
-                           className="text-blue-200 group-hover:text-white transition-colors"
+                           className={`group-hover:text-white transition-colors ${
+                              isPaymentValid ? 'text-blue-200' : 'text-zinc-600'
+                           }`}
                            size={24}
                         />
                      </>

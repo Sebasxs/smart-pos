@@ -25,38 +25,70 @@ export const PaymentWidget = ({ total }: PaymentWidgetProps) => {
          </div>
 
          <div className="p-4 flex flex-col gap-5">
-            {/* Segmented Control */}
-            <div className="bg-zinc-950/50 p-1 rounded-xl flex relative gap-2 border border-zinc-800">
+            {/* CAMBIO: Toggle moderno estilo "Card" Grid */}
+            <div className="grid grid-cols-2 gap-3 pb-1">
+               {/* Opción Efectivo */}
                <button
                   onClick={() => setCheckoutData({ paymentMethod: 'cash' })}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-bold transition-all z-10 cursor-pointer ${
-                     paymentMethod === 'cash'
-                        ? 'text-zinc-200 bg-zinc-400/10 border-2 border-green-400/20 shadow-sm'
-                        : 'text-zinc-500 hover:text-zinc-300 border-2 border-transparent'
-                  }`}
+                  className={`
+                     relative flex flex-row items-center justify-center gap-2 py-4 px-2 rounded-xl border 
+                     transition-all duration-200 cursor-pointer group overflow-hidden
+                     ${
+                        paymentMethod === 'cash'
+                           ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-400 shadow-[0_0_20px_-5px_rgba(16,185,129,0.2)]'
+                           : 'bg-zinc-900/50 border-zinc-800 text-zinc-600 hover:bg-zinc-800 hover:border-zinc-700 hover:text-zinc-300'
+                     }
+                  `}
                >
-                  <HiOutlineBanknotes size={18} /> Efectivo
+                  <div
+                     className={`
+                     rounded-lg transition-colors duration-200
+                     ${paymentMethod === 'cash' ? 'text-emerald-400' : 'text-zinc-700'}
+                  `}
+                  >
+                     <HiOutlineBanknotes size={20} />
+                  </div>
+                  <span className="font-bold text-sm tracking-wide">Efectivo</span>
                </button>
+
+               {/* Opción Transferencia */}
                <button
                   onClick={() => setCheckoutData({ paymentMethod: 'transfer' })}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-bold transition-all z-10 cursor-pointer ${
-                     paymentMethod === 'transfer'
-                        ? 'text-purple-400 bg-purple-400/10 border-2 border-purple-400/20 shadow-sm'
-                        : 'text-zinc-500 hover:text-zinc-300 border-2 border-transparent'
-                  }`}
+                  className={`
+                     relative flex flex-row items-center justify-center gap-2 py-4 px-2 rounded-xl border 
+                     transition-all duration-200 cursor-pointer group overflow-hidden
+                     ${
+                        paymentMethod === 'transfer'
+                           ? 'bg-purple-500/10 border-purple-500/50 text-purple-400 shadow-[0_0_20px_-5px_rgba(168,85,247,0.2)]'
+                           : 'bg-zinc-900/50 border-zinc-800 text-zinc-600 hover:bg-zinc-800 hover:border-zinc-700 hover:text-zinc-300'
+                     }
+                  `}
                >
-                  <HiOutlineCreditCard size={18} /> Transferencia
+                  <div
+                     className={`
+                     rounded-lg transition-colors duration-200
+                                          ${
+                                             paymentMethod === 'cash'
+                                                ? 'text-zinc-700'
+                                                : 'text-purple-400'
+                                          }
+
+                  `}
+                  >
+                     <HiOutlineCreditCard size={20} />
+                  </div>
+                  <span className="font-bold text-sm tracking-wide">Transferencia</span>
                </button>
             </div>
 
-            {/* Contenido Condicional (Sin animaciones CSS para evitar glitch) */}
+            {/* Contenido Condicional */}
             {paymentMethod === 'cash' ? (
                <div className="space-y-4">
                   <div className="relative group">
                      <label className="absolute -top-2.5 left-2 bg-zinc-900 px-2 text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
                         Recibido
                      </label>
-                     <div className="flex items-center border border-zinc-700 rounded-xl px-4 py-3 bg-zinc-800/30 focus-within:bg-zinc-800/50 focus-within:border-green-500/50 transition-all">
+                     <div className="flex items-center border border-zinc-700 rounded-xl px-4 py-3 bg-zinc-800/30 focus-within:bg-zinc-800/50 focus-within:border-emerald-500/50 transition-all">
                         <span className="text-zinc-500 text-xl font-medium mr-2">$</span>
                         <input
                            type="text"
@@ -68,11 +100,13 @@ export const PaymentWidget = ({ total }: PaymentWidgetProps) => {
                      </div>
                   </div>
 
-                  <div className="flex justify-between items-center px-2 py-2 rounded-lg border border-zinc-800/50">
-                     <span className="text-xs font-bold text-zinc-500 uppercase">Cambio</span>
+                  <div className="flex justify-between items-center px-3 py-2.5 rounded-xl border border-zinc-800/50 bg-zinc-900/30">
+                     <span className="text-xs font-bold text-zinc-500 uppercase tracking-wide">
+                        Cambio
+                     </span>
                      <span
                         className={`text-2xl font-mono font-bold ${
-                           change > 0 ? 'text-green-400' : 'text-zinc-600'
+                           change > 0 ? 'text-emerald-400' : 'text-zinc-600'
                         }`}
                      >
                         ${change.toLocaleString('es-CO')}
@@ -80,9 +114,14 @@ export const PaymentWidget = ({ total }: PaymentWidgetProps) => {
                   </div>
                </div>
             ) : (
-               <div className="h-[120px] flex flex-col items-center justify-center text-center border-2 border-dashed border-zinc-800 rounded-xl bg-zinc-800/20 text-zinc-500 gap-2">
-                  <HiOutlineCreditCard size={28} className="opacity-50" />
-                  <span className="text-xs font-medium">Validar transacción externa</span>
+               <div className="h-[135px] flex flex-col items-center justify-center text-center border border-dashed border-zinc-800 rounded-xl bg-zinc-800/10 text-zinc-500 gap-3">
+                  <div className="p-3 bg-zinc-800/50 rounded-full">
+                     <HiOutlineCreditCard size={24} className="opacity-50" />
+                  </div>
+                  <div className="flex flex-col">
+                     <span className="text-sm font-medium text-zinc-400">Pago Digital</span>
+                     <span className="text-xs text-zinc-600">Validar transacción externa</span>
+                  </div>
                </div>
             )}
          </div>
