@@ -1,43 +1,51 @@
+import { type ReactNode } from 'react';
 import {
    HiOutlineUser,
    HiOutlineIdentification,
    HiOutlineMapPin,
    HiOutlineMagnifyingGlass,
-   HiOutlineXMark,
+   HiOutlineTrash,
 } from 'react-icons/hi2';
 import { HiOutlineMail } from 'react-icons/hi';
 import { useBillingStore } from '../../store/billingStore';
 
 const InputGroup = ({
    value,
-   placeholder,
    onChange,
    icon: Icon,
    label,
+   rightElement,
 }: {
    value: string;
-   placeholder: string;
    onChange: (val: string) => void;
    icon: React.ElementType;
    label: string;
+   rightElement?: ReactNode;
 }) => (
-   <div className="flex flex-col gap-1.5 flex-1 min-w-[150px]">
-      <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider ml-1 flex items-center gap-1">
-         <Icon size={12} /> {label}
-      </label>
-      <div className="relative group">
-         <input
-            value={value}
-            onChange={e => onChange(e.target.value)}
-            placeholder={placeholder}
-            className="
-               w-full bg-zinc-800/50 hover:bg-zinc-800 focus:bg-zinc-800 
-               border border-zinc-800 focus:border-indigo-500/50 
-               rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600
-               outline-none transition-all duration-200
-            "
-         />
+   <div className="relative group flex-1 min-w-[150px]">
+      {/* Icono a la izquierda (Posición absoluta) */}
+      <div className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none transition-colors group-focus-within:text-blue-500/80">
+         <Icon size={18} />
       </div>
+
+      {/* Input */}
+      <input
+         value={value}
+         onChange={e => onChange(e.target.value)}
+         placeholder={label} // El label ahora es el placeholder
+         className={`
+            w-full bg-zinc-800/50 hover:bg-zinc-800 focus:bg-zinc-800 
+            border border-zinc-800 focus:border-blue-500/50 
+            rounded-lg py-2.5 text-sm text-zinc-200 placeholder:text-zinc-500
+            outline-none transition-all duration-200
+            pl-10 ${rightElement ? 'pr-10' : 'pr-3'} 
+         `}
+      />
+
+      {/* Elemento a la derecha (Botón de búsqueda) */}
+      {rightElement && (
+         <div className="absolute right-1 top-1/2 -translate-y-1/2">{rightElement}</div>
+      )}
    </div>
 );
 
@@ -54,65 +62,60 @@ export const CustomerHeader = ({ onSearchRequest }: { onSearchRequest: () => voi
    const hasCustomerData = Object.values(customer).some(val => val.trim() !== '');
 
    return (
-      <div className="flex flex-col lg:flex-row items-end gap-4 p-4 bg-zinc-900 border border-zinc-800 rounded-xl shadow-sm">
-         <div className="flex-1 w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="flex flex-col bg-zinc-900 border border-zinc-800 rounded-xl shadow-sm overflow-hidden">
+         {/* Header Estilo Unificado */}
+         <div className="py-3 px-4 border-b border-zinc-800 bg-zinc-900/50 flex justify-between items-center">
+            <h2 className="text-zinc-500 text-[11px] font-bold uppercase tracking-wider">
+               Cliente
+            </h2>
+
+            {hasCustomerData && (
+               <button
+                  onClick={resetCustomer}
+                  className="text-zinc-600 hover:text-red-400 transition-colors cursor-pointer"
+                  title="Limpiar datos del cliente"
+               >
+                  <HiOutlineTrash size={16} />
+               </button>
+            )}
+         </div>
+
+         {/* Contenido de Inputs (Labels convertidos en Placeholders) */}
+         <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <InputGroup
                label="Cliente / Razón Social"
                value={customer.name}
-               placeholder="Consumidor Final"
                onChange={v => updateField('name', v)}
                icon={HiOutlineUser}
+               rightElement={
+                  <button
+                     onClick={onSearchRequest}
+                     className="p-1.5 text-zinc-500 hover:text-white hover:bg-zinc-700 rounded-md transition-colors cursor-pointer"
+                     title="Buscar Cliente (C)"
+                  >
+                     <HiOutlineMagnifyingGlass size={16} />
+                  </button>
+               }
             />
+
             <InputGroup
                label="Identificación / NIT"
                value={customer.taxId}
-               placeholder="22222222"
                onChange={v => updateField('taxId', v)}
                icon={HiOutlineIdentification}
             />
             <InputGroup
                label="Correo Electrónico"
                value={customer.email}
-               placeholder="cliente@ejemplo.com"
                onChange={v => updateField('email', v)}
                icon={HiOutlineMail}
             />
             <InputGroup
                label="Ciudad / Ubicación"
                value={customer.city}
-               placeholder="Bogotá, D.C."
                onChange={v => updateField('city', v)}
                icon={HiOutlineMapPin}
             />
-         </div>
-
-         {/* Botones de Acción */}
-         <div className="flex items-center gap-2 shrink-0 pb-0.5">
-            {hasCustomerData && (
-               <button
-                  onClick={resetCustomer}
-                  className="h-9 w-9 flex items-center justify-center rounded-lg text-zinc-500 hover:text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 transition-all"
-                  title="Limpiar datos"
-               >
-                  <HiOutlineXMark size={20} />
-               </button>
-            )}
-
-            <button
-               onClick={onSearchRequest}
-               className="
-                  flex items-center gap-2 px-4 h-9 rounded-lg
-                  bg-zinc-800 text-zinc-300 border border-zinc-700
-                  hover:bg-zinc-700 hover:text-white hover:border-zinc-600
-                  active:scale-95 transition-all text-sm font-semibold shadow-sm
-               "
-            >
-               <HiOutlineMagnifyingGlass size={16} />
-               <span>Buscar</span>
-               <kbd className="hidden lg:inline text-[10px] bg-black/30 px-1.5 py-0.5 rounded text-zinc-500 ml-1">
-                  C
-               </kbd>
-            </button>
          </div>
       </div>
    );
