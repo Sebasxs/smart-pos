@@ -20,14 +20,13 @@ export const PaymentWidget = ({ total }: PaymentWidgetProps) => {
 
    return (
       <div className="bg-zinc-900 rounded-xl border border-zinc-800 shadow-sm flex flex-col overflow-hidden h-full">
-         <div className="p-3 border-b border-zinc-800 bg-zinc-900/50 flex justify-between items-center">
+         {/* CAMBIO: Header unificado */}
+         <div className="py-3 px-4 border-b border-zinc-800 bg-zinc-900/50 flex justify-between items-center">
             <h2 className="text-zinc-500 text-[11px] font-bold uppercase tracking-wider">Pago</h2>
          </div>
 
          <div className="p-4 flex flex-col gap-5">
-            {/* CAMBIO: Toggle moderno estilo "Card" Grid */}
             <div className="grid grid-cols-2 gap-3 pb-1">
-               {/* Opción Efectivo */}
                <button
                   onClick={() => setCheckoutData({ paymentMethod: 'cash' })}
                   className={`
@@ -51,7 +50,6 @@ export const PaymentWidget = ({ total }: PaymentWidgetProps) => {
                   <span className="font-bold text-sm tracking-wide">Efectivo</span>
                </button>
 
-               {/* Opción Transferencia */}
                <button
                   onClick={() => setCheckoutData({ paymentMethod: 'transfer' })}
                   className={`
@@ -81,7 +79,6 @@ export const PaymentWidget = ({ total }: PaymentWidgetProps) => {
                </button>
             </div>
 
-            {/* Contenido Condicional */}
             {paymentMethod === 'cash' ? (
                <div className="space-y-4">
                   <div className="relative group">

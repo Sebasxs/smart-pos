@@ -106,7 +106,7 @@ export const ProductSearchModal = ({
                   name: searchTerm,
                   price: 0,
                   stock: 9999,
-                  supplier: 'Manual',
+                  supplier: 'No especificado',
                   discountPercentage: 0,
                });
             }
@@ -275,7 +275,7 @@ export const ProductSearchModal = ({
                                  name: searchTerm,
                                  price: 0,
                                  stock: 9999,
-                                 supplier: 'Manual',
+                                 supplier: 'No especificado',
                                  discountPercentage: 0,
                               })
                            }

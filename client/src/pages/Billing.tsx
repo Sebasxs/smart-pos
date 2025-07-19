@@ -7,7 +7,7 @@ import { DiscountModal } from '../components/billing/DiscountModal';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { PaymentSuccessModal } from '../components/billing/PaymentSuccessModal';
 import { PaymentWidget } from '../components/billing/PaymentWidget';
-import { BillingTotals } from '../components/billing/BillingTotals'; // NUEVO
+import { BillingTotals } from '../components/billing/BillingTotals';
 import { useBillingStore, type CheckoutState } from '../store/billingStore';
 import { type InvoiceItem } from '../types/billing';
 
@@ -177,14 +177,8 @@ export const Billing = () => {
             </div>
 
             {/* Sidebar derecha */}
-            {/* CAMBIO: Eliminado h-full del contenedor. Ahora se ajusta al contenido. */}
-            <aside className="w-full lg:w-96 lg:shrink-0 flex flex-col h-fit lg:max-h-full lg:overflow-y-auto custom-scrollbar pr-1">
-               {/* 
-                  CONTENEDOR DE WIDGETS:
-                  - Mobile: flex-col (apilados)
-                  - Tablet (md): flex-row (lado a lado). Por defecto 'items-stretch' hará que ambos tengan la altura del más alto.
-                  - Desktop (lg): flex-col (apilados nuevamente).
-               */}
+            {/* CAMBIO: lg:w-[340px] para hacer el sidebar más angosto en desktop */}
+            <aside className="w-full lg:w-[340px] lg:shrink-0 flex flex-col h-fit lg:max-h-full lg:overflow-y-auto custom-scrollbar pr-1">
                <div className="flex flex-col md:flex-row lg:flex-col gap-3 w-full shrink-0">
                   <div className="w-full md:flex-1">
                      <PaymentWidget total={total} />
@@ -217,7 +211,6 @@ export const Billing = () => {
             </aside>
          </div>
 
-         {/* ... Modales (sin cambios) ... */}
          <ProductSearchModal
             isOpen={isProdSearchOpen}
             onClose={() => setIsProdSearchOpen(false)}
