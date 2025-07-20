@@ -53,8 +53,12 @@ export const Modal = ({
             className={`
                bg-zinc-900 border border-zinc-800 
                shadow-2xl shadow-black/80 
-               w-full max-h-[85vh] overflow-hidden
-               ${variant === 'center' ? 'rounded-3xl' : 'rounded-3xl max-w-2xl'} 
+               max-h-[85vh] overflow-hidden
+               ${
+                  variant === 'center'
+                     ? 'w-fit min-w-[300px] rounded-3xl' // CAMBIO: w-fit ajusta al contenido, min-w evita que sea muy delgado
+                     : 'w-full max-w-2xl rounded-3xl' // Search se mantiene ancho
+               }
                ${contentAnimation}
                ${className}
             `}
