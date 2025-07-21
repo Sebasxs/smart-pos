@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Modal } from './Modal';
-import { HiOutlineExclamationCircle, HiOutlineXMark } from 'react-icons/hi2';
+import { HiOutlineExclamationCircle } from 'react-icons/hi2';
 
 type ErrorModalProps = {
    isOpen: boolean;
@@ -34,16 +34,16 @@ export const ErrorModal = ({
 
             <h3 className="text-xl font-bold mb-2 text-white">{title}</h3>
 
-            <div className="bg-zinc-950/50 rounded-lg p-4 border border-zinc-800 mb-6 text-sm text-zinc-400 leading-relaxed">
+            <div className="bg-zinc-950/50 rounded-lg p-4 border border-zinc-800 mb-6 text-sm text-zinc-400 leading-relaxed break-words">
                {message}
             </div>
 
             <button
                onClick={onClose}
-               className="w-full py-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-bold text-sm border border-zinc-700 transition-all cursor-pointer flex items-center justify-center gap-2 group"
+               autoFocus
+               className="w-full py-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-bold text-sm border border-zinc-700 transition-all cursor-pointer hover:text-white active:scale-[0.98]"
             >
-               <span>Cerrar</span>
-               <HiOutlineXMark className="group-hover:text-white transition-colors" size={18} />
+               Entendido
             </button>
          </div>
       </Modal>
