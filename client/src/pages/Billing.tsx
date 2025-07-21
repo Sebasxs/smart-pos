@@ -8,6 +8,7 @@ import { CustomerHeader } from '../components/billing/CustomerHeader';
 import { DiscountModal } from '../components/billing/DiscountModal';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { PaymentSuccessModal } from '../components/billing/PaymentSuccessModal';
+import { ErrorModal } from '../components/ui/ErrorModal'; // Importamos el nuevo modal
 import { PaymentWidget } from '../components/billing/PaymentWidget';
 import { BillingTotals } from '../components/billing/BillingTotals';
 
@@ -36,11 +37,13 @@ export const Billing = () => {
       discount: false,
       discardConfirm: false,
       success: false,
+      error: false,
    });
+
    const [finalizedData, setFinalizedData] = useState<CheckoutState | null>(null);
    const [isProcessing, setIsProcessing] = useState(false);
+   const [errorMessage, setErrorMessage] = useState('');
 
-   // Derived Calculations
    const subtotal = useMemo(
       () => items.reduce((acc, item) => acc + item.price * item.quantity, 0),
       [items],
@@ -88,6 +91,8 @@ export const Billing = () => {
       if (!isPaymentValid || isProcessing) return;
 
       setIsProcessing(true);
+      setErrorMessage('');
+
       try {
          const payload = {
             customer: checkoutData.customer,
@@ -113,13 +118,17 @@ export const Billing = () => {
             body: JSON.stringify(payload),
          });
 
-         if (!res.ok) throw new Error('Error al procesar venta');
+         if (!res.ok) {
+            const errorData = await res.json().catch(() => ({}));
+            throw new Error(errorData.error || 'Error desconocido al procesar la venta');
+         }
 
          setFinalizedData({ ...checkoutData });
          toggleModal('success', true);
       } catch (error) {
          console.error(error);
-         alert('Hubo un error al procesar la venta');
+         setErrorMessage(error instanceof Error ? error.message : 'Ocurrió un error inesperado');
+         toggleModal('error', true);
       } finally {
          setIsProcessing(false);
       }
@@ -265,6 +274,11 @@ export const Billing = () => {
             paymentMethod={finalizedData?.paymentMethod || 'cash'}
             cashReceived={finalizedCash}
             change={Math.max(0, finalizedChange)}
+         />
+         <ErrorModal
+            isOpen={modals.error}
+            onClose={() => toggleModal('error', false)}
+            message={errorMessage}
          />
       </div>
    );
