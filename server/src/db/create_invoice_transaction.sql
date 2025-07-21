@@ -51,7 +51,7 @@ BEGIN
       unit_price, total_price, 
       original_price, is_manual_price, is_manual_name,
       recorded_cost,
-      discount_percentage -- << Nombre corregido
+      discount_percentage
     ) VALUES (
       v_invoice_id,
       v_product_id,
@@ -63,7 +63,7 @@ BEGIN
       COALESCE((v_item->>'isManualPrice')::BOOLEAN, false),
       COALESCE((v_item->>'isManualName')::BOOLEAN, false),
       v_product_cost,
-      COALESCE((v_item->>'discountPercentage')::SMALLINT, 0) -- << Mapeo consistente JSON -> DB
+      COALESCE((v_item->>'discountPercentage')::SMALLINT, 0)
     );
   END LOOP;
 

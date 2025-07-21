@@ -1,4 +1,3 @@
-
   select *
   from customers
   where name ilike '%' || search_term || '%'

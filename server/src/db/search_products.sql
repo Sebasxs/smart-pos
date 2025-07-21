@@ -5,7 +5,7 @@ RETURNS TABLE (
   price BIGINT,
   stock INT,
   supplier TEXT,
-  "discountPercentage" SMALLINT -- << Alias con comillas fuerza camelCase en el JSON de retorno
+  "discountPercentage" SMALLINT
 ) AS $$
 BEGIN
   RETURN QUERY
