@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react';
+import { type ReactNode, type ElementType } from 'react';
 import {
    HiOutlineUser,
    HiOutlineIdentification,
@@ -9,30 +9,27 @@ import {
 import { HiOutlineMail } from 'react-icons/hi';
 import { useBillingStore } from '../../store/billingStore';
 
-const InputGroup = ({
+const HeaderInput = ({
    value,
    onChange,
    icon: Icon,
-   label,
+   placeholder,
    rightElement,
 }: {
    value: string;
    onChange: (val: string) => void;
-   icon: React.ElementType;
-   label: string;
+   icon: ElementType;
+   placeholder: string;
    rightElement?: ReactNode;
 }) => (
    <div className="relative group flex-1 min-w-[150px]">
-      {/* Icono a la izquierda (Posición absoluta) */}
       <div className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none transition-colors group-focus-within:text-blue-500/80">
          <Icon size={18} />
       </div>
-
-      {/* Input */}
       <input
          value={value}
          onChange={e => onChange(e.target.value)}
-         placeholder={label} // El label ahora es el placeholder
+         placeholder={placeholder}
          className={`
             w-full bg-zinc-800/50 hover:bg-zinc-800 focus:bg-zinc-800 
             border border-zinc-800 focus:border-blue-500/50 
@@ -41,8 +38,6 @@ const InputGroup = ({
             pl-10 ${rightElement ? 'pr-10' : 'pr-3'} 
          `}
       />
-
-      {/* Elemento a la derecha (Botón de búsqueda) */}
       {rightElement && (
          <div className="absolute right-1 top-1/2 -translate-y-1/2">{rightElement}</div>
       )}
@@ -63,12 +58,10 @@ export const CustomerHeader = ({ onSearchRequest }: { onSearchRequest: () => voi
 
    return (
       <div className="flex flex-col bg-zinc-900 border border-zinc-800 rounded-xl shadow-sm overflow-hidden">
-         {/* Header Estilo Unificado */}
          <div className="py-3 px-4 border-b border-zinc-800 bg-zinc-900/50 flex justify-between items-center">
             <h2 className="text-zinc-500 text-[11px] font-bold uppercase tracking-wider">
                Cliente
             </h2>
-
             {hasCustomerData && (
                <button
                   onClick={resetCustomer}
@@ -80,10 +73,9 @@ export const CustomerHeader = ({ onSearchRequest }: { onSearchRequest: () => voi
             )}
          </div>
 
-         {/* Contenido de Inputs (Labels convertidos en Placeholders) */}
          <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            <InputGroup
-               label="Cliente / Razón Social"
+            <HeaderInput
+               placeholder="Cliente / Razón Social"
                value={customer.name}
                onChange={v => updateField('name', v)}
                icon={HiOutlineUser}
@@ -97,21 +89,20 @@ export const CustomerHeader = ({ onSearchRequest }: { onSearchRequest: () => voi
                   </button>
                }
             />
-
-            <InputGroup
-               label="Identificación / NIT"
+            <HeaderInput
+               placeholder="Identificación / NIT"
                value={customer.taxId}
                onChange={v => updateField('taxId', v)}
                icon={HiOutlineIdentification}
             />
-            <InputGroup
-               label="Correo Electrónico"
+            <HeaderInput
+               placeholder="Correo Electrónico"
                value={customer.email}
                onChange={v => updateField('email', v)}
                icon={HiOutlineMail}
             />
-            <InputGroup
-               label="Ciudad / Ubicación"
+            <HeaderInput
+               placeholder="Ciudad / Ubicación"
                value={customer.city}
                onChange={v => updateField('city', v)}
                icon={HiOutlineMapPin}

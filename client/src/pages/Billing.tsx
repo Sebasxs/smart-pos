@@ -1,4 +1,6 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
+
+// Components
 import { InvoiceTable } from '../components/billing/InvoiceTable';
 import { ProductSearchModal } from '../components/billing/ProductSearchModal';
 import { CustomerSearchModal } from '../components/billing/CustomerSearchModal';
@@ -8,6 +10,8 @@ import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { PaymentSuccessModal } from '../components/billing/PaymentSuccessModal';
 import { PaymentWidget } from '../components/billing/PaymentWidget';
 import { BillingTotals } from '../components/billing/BillingTotals';
+
+// Store & Types
 import { useBillingStore, type CheckoutState } from '../store/billingStore';
 import { type InvoiceItem } from '../types/billing';
 
@@ -26,49 +30,59 @@ export const Billing = () => {
       resetInvoice,
    } = useBillingStore();
 
-   const [isProdSearchOpen, setIsProdSearchOpen] = useState(false);
-   const [isCustSearchOpen, setIsCustSearchOpen] = useState(false);
-   const [isDiscountOpen, setIsDiscountOpen] = useState(false);
-   const [isDiscardConfirmOpen, setIsDiscardConfirmOpen] = useState(false);
-   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
-
+   const [modals, setModals] = useState({
+      productSearch: false,
+      customerSearch: false,
+      discount: false,
+      discardConfirm: false,
+      success: false,
+   });
    const [finalizedData, setFinalizedData] = useState<CheckoutState | null>(null);
    const [isProcessing, setIsProcessing] = useState(false);
 
+   // Derived Calculations
    const subtotal = useMemo(
       () => items.reduce((acc, item) => acc + item.price * item.quantity, 0),
       [items],
    );
 
    const discountAmount = useMemo(() => {
-      if (discount.type === 'percentage') {
-         return Math.round(subtotal * (discount.value / 100));
-      }
-      return discount.value;
+      return discount.type === 'percentage'
+         ? Math.round(subtotal * (discount.value / 100))
+         : discount.value;
    }, [subtotal, discount]);
 
    const total = Math.max(0, subtotal - discountAmount);
 
-   const cashReceived = parseInt(checkoutData.cashReceivedStr.replace(/[^0-9]/g, '') || '0', 10);
+   const cashReceived = useMemo(
+      () => parseInt(checkoutData.cashReceivedStr.replace(/[^0-9]/g, '') || '0', 10),
+      [checkoutData.cashReceivedStr],
+   );
+
    const isPaymentValid =
       items.length > 0 &&
       (checkoutData.paymentMethod === 'transfer' ||
          cashReceived === 0 ||
          (checkoutData.paymentMethod === 'cash' && cashReceived >= total));
 
+   // Handlers
+   const toggleModal = useCallback((key: keyof typeof modals, value: boolean) => {
+      setModals(prev => ({ ...prev, [key]: value }));
+   }, []);
+
    const handleProductSelect = (product: Partial<InvoiceItem>) => {
       addItem(product);
-      setIsProdSearchOpen(false);
+      toggleModal('productSearch', false);
    };
 
    const handleCustomerSelect = (customer: Partial<CheckoutState['customer']>) => {
       setCheckoutData({ customer: { ...checkoutData.customer, ...customer } });
-      setIsCustSearchOpen(false);
+      toggleModal('customerSearch', false);
    };
 
    const triggerDiscard = useCallback(() => {
-      if (items.length > 0) setIsDiscardConfirmOpen(true);
-   }, [items.length]);
+      if (items.length > 0) toggleModal('discardConfirm', true);
+   }, [items.length, toggleModal]);
 
    const handleProcessPayment = useCallback(async () => {
       if (!isPaymentValid || isProcessing) return;
@@ -102,82 +116,89 @@ export const Billing = () => {
          if (!res.ok) throw new Error('Error al procesar venta');
 
          setFinalizedData({ ...checkoutData });
-         setIsSuccessModalOpen(true);
+         toggleModal('success', true);
       } catch (error) {
          console.error(error);
          alert('Hubo un error al procesar la venta');
       } finally {
          setIsProcessing(false);
       }
-   }, [isPaymentValid, isProcessing, checkoutData, items, subtotal, discountAmount, total]);
+   }, [
+      isPaymentValid,
+      isProcessing,
+      checkoutData,
+      items,
+      subtotal,
+      discountAmount,
+      total,
+      toggleModal,
+   ]);
 
    const handleFinalizeSuccess = () => {
       resetInvoice();
-      setIsSuccessModalOpen(false);
+      toggleModal('success', false);
       setFinalizedData(null);
    };
 
+   // Keyboard Shortcuts
    useEffect(() => {
       const handleKeyDown = (event: KeyboardEvent) => {
          const target = event.target as HTMLElement;
          const isInputFocused = ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName);
-         const isModalOpen =
-            isProdSearchOpen || isCustSearchOpen || isDiscountOpen || isDiscardConfirmOpen;
+         const isAnyModalOpen = Object.values(modals).some(Boolean);
 
-         if (isModalOpen) return;
+         if (isAnyModalOpen) return;
 
-         if (event.code === 'Space' && !isInputFocused) {
-            event.preventDefault();
-            setIsProdSearchOpen(true);
+         if (!isInputFocused) {
+            switch (event.code) {
+               case 'Space':
+                  event.preventDefault();
+                  toggleModal('productSearch', true);
+                  break;
+               case 'KeyC':
+                  event.preventDefault();
+                  toggleModal('customerSearch', true);
+                  break;
+               case 'KeyD':
+                  event.preventDefault();
+                  toggleModal('discount', true);
+                  break;
+               case 'KeyX':
+                  event.preventDefault();
+                  triggerDiscard();
+                  break;
+            }
          }
 
-         if ((event.code === 'KeyC' || event.key === 'c') && !isInputFocused) {
+         if (event.code === 'Enter' && !isInputFocused && isPaymentValid) {
             event.preventDefault();
-            setIsCustSearchOpen(true);
-         }
-
-         if ((event.code === 'KeyD' || event.key === 'd') && !isInputFocused) {
-            event.preventDefault();
-            setIsDiscountOpen(true);
-         }
-
-         if ((event.code === 'KeyX' || event.key === 'x') && !isInputFocused) {
-            event.preventDefault();
-            triggerDiscard();
-         }
-
-         if (event.code === 'Enter' && !isInputFocused) {
-            event.preventDefault();
-            if (isPaymentValid) handleProcessPayment();
+            handleProcessPayment();
          }
       };
 
       window.addEventListener('keydown', handleKeyDown);
       return () => window.removeEventListener('keydown', handleKeyDown);
-   }, [
-      isProdSearchOpen,
-      isCustSearchOpen,
-      isDiscountOpen,
-      isDiscardConfirmOpen,
-      isPaymentValid,
-      triggerDiscard,
-      handleProcessPayment,
-   ]);
+   }, [modals, isPaymentValid, triggerDiscard, handleProcessPayment, toggleModal]);
+
+   const finalizedCash = finalizedData
+      ? parseInt(finalizedData.cashReceivedStr.replace(/[^0-9]/g, '') || '0', 10)
+      : 0;
+   const finalizedChange = finalizedData?.paymentMethod === 'cash' ? finalizedCash - total : -total;
 
    return (
       <div className="relative w-full flex flex-col gap-4 lg:h-full lg:max-h-screen">
-         <CustomerHeader onSearchRequest={() => setIsCustSearchOpen(true)} />
+         {/* 1. HEADER CLIENTE */}
+         <CustomerHeader onSearchRequest={() => toggleModal('customerSearch', true)} />
 
          <div className="flex flex-col lg:flex-row gap-4 lg:flex-1 lg:min-h-0 lg:overflow-hidden pb-2">
-            {/* Tabla */}
+            {/* 2. TABLA DE PRODUCTOS */}
             <div className="h-[500px] lg:h-full flex-1 flex flex-col bg-zinc-900 rounded-xl border border-zinc-800 shadow-sm overflow-hidden min-h-0 shrink-0">
                <div className="flex-1 relative bg-zinc-900 h-full min-h-0">
                   <InvoiceTable items={items} onUpdateItem={updateItem} onRemoveItem={removeItem} />
                </div>
             </div>
 
-            {/* Sidebar derecha */}
-            {/* CAMBIO: lg:w-[340px] para hacer el sidebar más angosto en desktop */}
+            {/* 3. SIDEBAR (TOTALES Y PAGO) */}
             <aside className="w-full lg:w-[340px] lg:shrink-0 flex flex-col h-fit lg:max-h-full lg:overflow-y-auto custom-scrollbar pr-1">
                <div className="flex flex-col md:flex-row lg:flex-col gap-3 w-full shrink-0">
                   <div className="w-full md:flex-1">
@@ -191,13 +212,14 @@ export const Billing = () => {
                      total={total}
                      isPaymentValid={isPaymentValid}
                      isProcessing={isProcessing}
-                     onOpenDiscount={() => setIsDiscountOpen(true)}
+                     onOpenDiscount={() => toggleModal('discount', true)}
                      onDiscard={triggerDiscard}
                      onProcessPayment={handleProcessPayment}
                   />
                </div>
 
-               <div className="mt-4 px-2 grid grid-cols-3 gap-2 text-xs text-zinc-600 font-bold text-center uppercase tracking-wide opacity-75 shrink-0">
+               {/* Leyenda de Atajos */}
+               <div className="mt-4 px-2 grid grid-cols-3 gap-2 text-xs text-zinc-600 text-center uppercase tracking-wide opacity-75 shrink-0">
                   <div>
                      <span className="font-bold text-zinc-500">C</span> Cliente
                   </div>
@@ -211,43 +233,38 @@ export const Billing = () => {
             </aside>
          </div>
 
+         {/* 4. MODALES */}
          <ProductSearchModal
-            isOpen={isProdSearchOpen}
-            onClose={() => setIsProdSearchOpen(false)}
+            isOpen={modals.productSearch}
+            onClose={() => toggleModal('productSearch', false)}
             onSelectProduct={handleProductSelect}
          />
          <CustomerSearchModal
-            isOpen={isCustSearchOpen}
-            onClose={() => setIsCustSearchOpen(false)}
+            isOpen={modals.customerSearch}
+            onClose={() => toggleModal('customerSearch', false)}
             onSelectCustomer={handleCustomerSelect}
          />
          <DiscountModal
-            isOpen={isDiscountOpen}
-            onClose={() => setIsDiscountOpen(false)}
+            isOpen={modals.discount}
+            onClose={() => toggleModal('discount', false)}
             onApply={setDiscount}
             currentDiscount={discount}
             subtotal={subtotal}
          />
          <ConfirmModal
-            isOpen={isDiscardConfirmOpen}
-            onClose={() => setIsDiscardConfirmOpen(false)}
+            isOpen={modals.discardConfirm}
+            onClose={() => toggleModal('discardConfirm', false)}
             onConfirm={resetInvoice}
             title="¿Descartar factura?"
             message="Eliminarás todos los productos agregados."
          />
          <PaymentSuccessModal
-            isOpen={isSuccessModalOpen}
+            isOpen={modals.success}
             onClose={handleFinalizeSuccess}
             total={total}
             paymentMethod={finalizedData?.paymentMethod || 'cash'}
-            cashReceived={
-               parseInt(finalizedData?.cashReceivedStr.replace(/[^0-9]/g, '') || '0', 10) || 0
-            }
-            change={
-               (finalizedData?.paymentMethod === 'cash'
-                  ? parseInt(finalizedData?.cashReceivedStr.replace(/[^0-9]/g, '') || '0', 10)
-                  : 0) - total
-            }
+            cashReceived={finalizedCash}
+            change={Math.max(0, finalizedChange)}
          />
       </div>
    );

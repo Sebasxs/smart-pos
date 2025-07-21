@@ -41,24 +41,22 @@ export const Modal = ({
          ? 'animate-in fade-in slide-in-from-top-4 duration-200'
          : 'animate-in zoom-in-95 duration-200';
 
+   const widthClass =
+      variant === 'center' ? 'w-fit min-w-[300px] rounded-3xl' : 'w-full max-w-2xl rounded-3xl';
+
    return createPortal(
       <div
          ref={overlayRef}
-         className={`fixed inset-0 z-50 flex justify-center bg-black/60 backdrop-blur-sm p-4 transition-all items-center`}
+         className="fixed inset-0 z-50 flex justify-center bg-black/60 backdrop-blur-sm p-4 transition-all items-center"
          onMouseDown={e => {
             if (e.target === overlayRef.current) onClose();
          }}
       >
          <div
             className={`
-               bg-zinc-900 border border-zinc-800 
-               shadow-2xl shadow-black/80 
+               bg-zinc-900 border border-zinc-800 shadow-2xl shadow-black/80 
                max-h-[85vh] overflow-hidden
-               ${
-                  variant === 'center'
-                     ? 'w-fit min-w-[300px] rounded-3xl' // CAMBIO: w-fit ajusta al contenido, min-w evita que sea muy delgado
-                     : 'w-full max-w-2xl rounded-3xl' // Search se mantiene ancho
-               }
+               ${widthClass}
                ${contentAnimation}
                ${className}
             `}

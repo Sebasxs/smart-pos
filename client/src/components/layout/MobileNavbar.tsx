@@ -7,9 +7,7 @@ export const MobileNavbar = () => {
    const { toggleMobileMenu } = useUIStore();
 
    return (
-      // CAMBIO: z-30 (antes z-50) para que el backdrop del Sidebar (z-40) lo cubra
       <header className="md:hidden h-16 bg-zinc-900 border-b border-zinc-800 flex items-center px-4 justify-between shrink-0 z-30 relative">
-         {/* Izquierda: Menú + Título con Link */}
          <div className="flex items-center gap-3">
             <button
                onClick={toggleMobileMenu}
@@ -22,7 +20,6 @@ export const MobileNavbar = () => {
             </Link>
          </div>
 
-         {/* Derecha: Icono Logo con Link */}
          <Link to="/">
             <Logo showText={false} />
          </Link>

@@ -14,7 +14,6 @@ import {
 import { useUIStore } from '../../store/uiStore';
 import { Logo } from '../ui/Logo';
 
-// --- CONFIGURACIÓN (Fuente única de la verdad) ---
 const menuItemsGroups = {
    primary: [
       { name: 'Chat', path: '/chat', icon: <HiOutlineChatBubbleLeftRight size={22} /> },
@@ -29,12 +28,6 @@ const menuItemsGroups = {
    ],
 };
 
-// --- SUB-COMPONENTES (Piezas reutilizables) ---
-
-/**
- * SidebarItem: Renderiza un enlace individual.
- * Maneja internamente la lógica de ocultar texto según la variante.
- */
 const SidebarItem = ({
    icon,
    name,
@@ -58,21 +51,15 @@ const SidebarItem = ({
       `}
       title={name}
    >
-      {/* RAIL SYSTEM: Icono siempre centrado en caja fija */}
       <div className="w-[56px] min-w-[56px] flex items-center justify-center shrink-0">{icon}</div>
-
-      {/* TEXTO RESPONSIVO:
-          - Mobile: Siempre visible (w-auto).
-          - Desktop: Reactivo (oculto en md, visible en xl).
-      */}
       <div className="whitespace-nowrap overflow-hidden w-full">
          <span
             className={`
             text-sm font-medium tracking-wide pr-4 block transition-opacity duration-300
             ${
                variant === 'desktop'
-                  ? 'opacity-0 w-0 xl:w-auto xl:opacity-100' // Lógica Desktop (Rail -> Full)
-                  : 'opacity-100 w-auto' // Lógica Mobile (Siempre Full)
+                  ? 'opacity-0 w-0 xl:w-auto xl:opacity-100'
+                  : 'opacity-100 w-auto'
             }
          `}
          >
@@ -82,12 +69,8 @@ const SidebarItem = ({
    </NavLink>
 );
 
-/**
- * SectionHeader: Separadores de secciones.
- */
 const SectionHeader = ({ label, variant }: { label: string; variant: 'mobile' | 'desktop' }) => (
    <div className="px-0 mt-6 mb-2 flex items-center h-5 overflow-hidden shrink-0 transition-all duration-300">
-      {/* Línea divisoria (Solo visible en Desktop modo Rail) */}
       <div
          className={`w-[72px] justify-center items-center shrink-0 ${
             variant === 'desktop' ? 'flex xl:hidden' : 'hidden'
@@ -95,16 +78,10 @@ const SectionHeader = ({ label, variant }: { label: string; variant: 'mobile' | 
       >
          <div className="w-8 h-px bg-zinc-800" />
       </div>
-
-      {/* Etiqueta de Texto */}
       <span
          className={`
          pl-6 text-[10px] font-bold text-zinc-600 uppercase tracking-widest truncate
-         ${
-            variant === 'desktop'
-               ? 'hidden xl:block' // Desktop: Solo visible expandido
-               : 'block' // Mobile: Siempre visible
-         }
+         ${variant === 'desktop' ? 'hidden xl:block' : 'block'}
       `}
       >
          {label}
@@ -112,10 +89,6 @@ const SectionHeader = ({ label, variant }: { label: string; variant: 'mobile' | 
    </div>
 );
 
-/**
- * SidebarContent: EL NÚCLEO COMPARTIDO
- * Contiene toda la estructura visual interna para no repetir código.
- */
 const SidebarContent = ({
    variant,
    onCloseMobile,
@@ -124,7 +97,7 @@ const SidebarContent = ({
    onCloseMobile?: () => void;
 }) => (
    <div className="flex flex-col h-full w-full bg-zinc-950">
-      {/* HEADER: Logo + Botón Cerrar */}
+      {/* HEADER */}
       <div className="h-20 flex items-center shrink-0 relative px-0">
          <a href="/" className="flex items-center h-full w-full overflow-hidden group">
             <div className="w-[72px] min-w-[72px] h-full flex items-center justify-center shrink-0 z-20 bg-zinc-950">
@@ -143,7 +116,6 @@ const SidebarContent = ({
                AudioVideoFP
             </span>
          </a>
-         {/* Botón cerrar solo en móvil */}
          {variant === 'mobile' && onCloseMobile && (
             <button
                onClick={onCloseMobile}
@@ -154,7 +126,7 @@ const SidebarContent = ({
          )}
       </div>
 
-      {/* LISTA DE NAVEGACIÓN */}
+      {/* NAV */}
       <div className="flex flex-col flex-grow overflow-y-auto overflow-x-hidden py-2 custom-scrollbar">
          <nav className="flex flex-col gap-y-1">
             <SectionHeader label="Principal" variant={variant} />
@@ -170,7 +142,7 @@ const SidebarContent = ({
          </nav>
       </div>
 
-      {/* FOOTER: Perfil de Usuario */}
+      {/* FOOTER */}
       <div className="mt-auto p-4 border-t border-zinc-900 shrink-0 overflow-hidden">
          <div className="flex items-center rounded-xl transition-all duration-300 cursor-pointer hover:bg-zinc-900 p-0 -mx-2 h-10">
             <div className="w-[56px] min-w-[56px] flex items-center justify-center shrink-0">
@@ -195,22 +167,18 @@ const SidebarContent = ({
    </div>
 );
 
-// --- COMPONENTE PRINCIPAL (Wrappers de Layout) ---
-
 export const Sidebar = () => {
    const { isMobileMenuOpen, closeMobileMenu } = useUIStore();
    const location = useLocation();
 
-   // Cerrar menú móvil al navegar
    useEffect(() => {
       closeMobileMenu();
    }, [location.pathname, closeMobileMenu]);
 
    return (
       <>
-         {/* 1. WRAPPER MÓVIL (Fixed + Slide Animation) */}
+         {/* MOBILE OVERLAY */}
          <div className="md:hidden">
-            {/* Overlay Oscuro */}
             <div
                className={`
                   fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity duration-300
@@ -222,7 +190,6 @@ export const Sidebar = () => {
                `}
                onClick={closeMobileMenu}
             />
-            {/* Panel Lateral */}
             <aside
                className={`
                   fixed inset-y-0 left-0 z-50 w-64 border-r border-zinc-800
@@ -234,7 +201,7 @@ export const Sidebar = () => {
             </aside>
          </div>
 
-         {/* 2. WRAPPER DESKTOP (Sticky + Width Animation) */}
+         {/* DESKTOP SIDEBAR */}
          <aside
             className={`
                hidden md:flex flex-col shrink-0 h-screen sticky top-0 border-r border-zinc-800
@@ -242,10 +209,6 @@ export const Sidebar = () => {
                md:w-[72px] xl:w-64 overflow-hidden
             `}
          >
-            {/* 
-               Aquí usamos el mismo SidebarContent.
-               El ancho lo controla el wrapper (<aside>), el contenido se adapta gracias a variant="desktop".
-            */}
             <div className="w-64 h-full">
                <SidebarContent variant="desktop" />
             </div>

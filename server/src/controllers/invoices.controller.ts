@@ -7,7 +7,7 @@ type InvoiceItemPayload = {
    price: number;
    quantity: number;
    originalPrice: number;
-   discountPercentage: number; // Estandarizado
+   discountPercentage: number;
    isManualPrice: boolean;
    isManualName: boolean;
 };
@@ -36,7 +36,7 @@ export const createInvoice = async (req: Request<{}, {}, CreateInvoiceBody>, res
          quantity: Math.floor(item.quantity),
          price: Math.floor(item.price),
          originalPrice: Math.floor(item.originalPrice || item.price),
-         discountPercentage: Math.floor(item.discountPercentage || 0), // Uso directo de discountPercentage
+         discountPercentage: Math.floor(item.discountPercentage || 0),
          isManualPrice: !!item.isManualPrice,
          isManualName: !!item.isManualName,
       }));
@@ -58,10 +58,10 @@ export const createInvoice = async (req: Request<{}, {}, CreateInvoiceBody>, res
          message: result.message,
          invoiceId: result.invoice_id,
       });
-   } catch (error: any) {
-      console.error('Server Error:', error);
-      res.status(500).json({
-         error: error.message || 'Error interno al procesar la transacción',
-      });
+   } catch (error) {
+      console.error('Transaction Error:', error);
+      const message =
+         error instanceof Error ? error.message : 'Error interno al procesar la transacción';
+      res.status(500).json({ error: message });
    }
 };

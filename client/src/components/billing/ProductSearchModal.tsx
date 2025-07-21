@@ -74,9 +74,7 @@ export const ProductSearchModal = ({
    const inputRef = useRef<HTMLInputElement>(null);
 
    useEffect(() => {
-      if (isOpen) {
-         setTimeout(() => inputRef.current?.focus(), 50);
-      }
+      if (isOpen) setTimeout(() => inputRef.current?.focus(), 50);
    }, [isOpen]);
 
    useEffect(() => {
@@ -254,7 +252,6 @@ export const ProductSearchModal = ({
                   );
                })
             ) : (
-               /* EMPTY STATE MEJORADO */
                <div className="h-full flex flex-col items-center justify-center text-center p-8 animate-in fade-in duration-500">
                   {searchTerm ? (
                      <div className="flex flex-col items-center pb-3">

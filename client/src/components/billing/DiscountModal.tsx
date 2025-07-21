@@ -3,6 +3,38 @@ import { Modal } from '../ui/Modal';
 import { type Discount } from '../../types/billing';
 import { HiOutlineCurrencyDollar, HiOutlineReceiptPercent } from 'react-icons/hi2';
 
+type TypeButtonProps = {
+   isActive: boolean;
+   onClick: () => void;
+   label: string;
+   icon: React.ElementType;
+   activeColor: string;
+   borderColor: string;
+};
+
+const TypeButton = ({
+   isActive,
+   onClick,
+   label,
+   icon: Icon,
+   activeColor,
+   borderColor,
+}: TypeButtonProps) => {
+   const activeClass = isActive
+      ? `${activeColor} text-white shadow-sm ${borderColor}`
+      : 'bg-transparent text-zinc-500 border-transparent hover:text-zinc-300 hover:bg-zinc-700/50';
+
+   return (
+      <button
+         onClick={onClick}
+         className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-md text-sm font-bold transition-all cursor-pointer border ${activeClass}`}
+      >
+         <Icon size={18} />
+         <span>{label}</span>
+      </button>
+   );
+};
+
 type DiscountModalProps = {
    isOpen: boolean;
    onClose: () => void;
@@ -33,12 +65,6 @@ export const DiscountModal = ({
       }
    }, [isOpen, currentDiscount]);
 
-   const handleKeyDown = (e: React.KeyboardEvent) => {
-      if (e.key === 'Enter') {
-         handleSubmit();
-      }
-   };
-
    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const raw = e.target.value.replace(/[^0-9]/g, '');
       setLocalDiscount(prev => ({ ...prev, value: Number(raw) }));
@@ -54,42 +80,30 @@ export const DiscountModal = ({
          ? Math.round(subtotal * (localDiscount.value / 100))
          : localDiscount.value;
 
+   const isPercentage = localDiscount.type === 'percentage';
+
    return (
       <Modal isOpen={isOpen} onClose={onClose}>
          <div className="p-5 text-center w-[340px]">
             <h3 className="text-lg font-bold mb-5 text-white">Aplicar Descuento</h3>
 
-            {/* CAMBIO: Toggle compacto estilo PaymentWidget pero con colores específicos */}
             <div className="bg-zinc-800 p-1 rounded-lg flex gap-1 mb-6 border border-zinc-700/50">
-               <button
+               <TypeButton
+                  isActive={isPercentage}
                   onClick={() => setLocalDiscount(prev => ({ ...prev, type: 'percentage' }))}
-                  className={`
-                     flex-1 flex items-center justify-center gap-2 py-2 rounded-md text-sm font-bold transition-all cursor-pointer border
-                     ${
-                        localDiscount.type === 'percentage'
-                           ? 'bg-blue-500/20 text-white border-blue-500/50 shadow-sm' // Activo Azul
-                           : 'bg-transparent text-zinc-500 border-transparent hover:text-zinc-300 hover:bg-zinc-700/50' // Inactivo
-                     }
-                  `}
-               >
-                  <HiOutlineReceiptPercent size={18} />
-                  <span>Porcentaje</span>
-               </button>
-
-               <button
+                  label="Porcentaje"
+                  icon={HiOutlineReceiptPercent}
+                  activeColor="bg-blue-500/20"
+                  borderColor="border-blue-500/50"
+               />
+               <TypeButton
+                  isActive={!isPercentage}
                   onClick={() => setLocalDiscount(prev => ({ ...prev, type: 'fixed' }))}
-                  className={`
-                     flex-1 flex items-center justify-center gap-2 py-2 rounded-md text-sm font-bold transition-all cursor-pointer border
-                     ${
-                        localDiscount.type === 'fixed'
-                           ? 'bg-green-500/20 text-white border-green-500/50 shadow-sm' // Activo Verde
-                           : 'bg-transparent text-zinc-500 border-transparent hover:text-zinc-300 hover:bg-zinc-700/50' // Inactivo
-                     }
-                  `}
-               >
-                  <HiOutlineCurrencyDollar size={18} />
-                  <span>Monto Fijo</span>
-               </button>
+                  label="Monto Fijo"
+                  icon={HiOutlineCurrencyDollar}
+                  activeColor="bg-green-500/20"
+                  borderColor="border-green-500/50"
+               />
             </div>
 
             <div className="mb-6">
@@ -99,28 +113,19 @@ export const DiscountModal = ({
                      type="text"
                      value={localDiscount.value.toLocaleString('es-CO')}
                      onChange={handleChange}
-                     onKeyDown={handleKeyDown}
+                     onKeyDown={e => e.key === 'Enter' && handleSubmit()}
                      className={`
                         w-full bg-zinc-900 border rounded-lg px-4 py-2 text-center text-2xl font-bold text-white
-                        outline-none transition-colors
-                        ${
-                           localDiscount.type === 'percentage'
-                              ? 'focus:border-blue-500/50 border-zinc-700'
-                              : 'focus:border-green-500/50 border-zinc-700'
-                        }
+                        outline-none transition-colors border-zinc-700
+                        ${isPercentage ? 'focus:border-blue-500/50' : 'focus:border-green-500/50'}
                      `}
                   />
                   <span
-                     className={`
-                     absolute right-4 top-1/2 -translate-y-1/2 font-bold
-                     ${
-                        localDiscount.type === 'percentage'
-                           ? 'text-blue-500' // Icono azul si es porcentaje
-                           : 'text-green-500' // Icono verde si es fijo
-                     }
-                  `}
+                     className={`absolute right-4 top-1/2 -translate-y-1/2 font-bold ${
+                        isPercentage ? 'text-blue-500' : 'text-green-500'
+                     }`}
                   >
-                     {localDiscount.type === 'percentage' ? '%' : '$'}
+                     {isPercentage ? '%' : '$'}
                   </span>
                </div>
                <div className="mt-3 flex flex-row justify-center items-center gap-2 text-sm">
@@ -143,7 +148,7 @@ export const DiscountModal = ({
                   className={`
                      flex-1 py-2.5 rounded-lg text-white transition-colors font-bold cursor-pointer text-sm shadow-lg
                      ${
-                        localDiscount.type === 'percentage'
+                        isPercentage
                            ? 'bg-blue-600 hover:bg-blue-500 shadow-blue-900/20'
                            : 'bg-green-600 hover:bg-green-500 shadow-green-900/20'
                      }

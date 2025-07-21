@@ -24,9 +24,18 @@ export const BillingTotals = ({
    onDiscard,
    onProcessPayment,
 }: BillingTotalsProps) => {
+   const formatCurrency = (amount: number) => `$${amount.toLocaleString('es-CO')}`;
+
+   const buttonBaseClass =
+      'w-full font-bold py-4 rounded-xl text-lg tracking-wide transition-all duration-200 shadow-lg flex justify-center items-center gap-1.5 group relative overflow-hidden';
+
+   const buttonStateClass =
+      isPaymentValid && !isProcessing
+         ? 'bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white shadow-blue-900/20 translate-y-0 hover:-translate-y-0.5 cursor-pointer'
+         : 'bg-zinc-800 text-zinc-600 cursor-not-allowed border border-zinc-700 shadow-none';
+
    return (
       <div className="w-full md:flex-1 bg-zinc-900 rounded-xl border border-zinc-800 shadow-sm shrink-0 flex flex-col overflow-hidden">
-         {/* CAMBIO: Header unificado */}
          <div className="py-3 px-4 border-b border-zinc-800 bg-zinc-900/50 flex justify-between items-center">
             <h2 className="text-zinc-500 text-[11px] font-bold uppercase tracking-wider">
                Resumen
@@ -45,7 +54,7 @@ export const BillingTotals = ({
                <div className="flex justify-between items-center text-sm">
                   <span className="text-zinc-400 font-medium">Subtotal</span>
                   <span className="font-mono font-medium text-zinc-300">
-                     ${subtotal.toLocaleString('es-CO')}
+                     {formatCurrency(subtotal)}
                   </span>
                </div>
 
@@ -70,7 +79,7 @@ export const BillingTotals = ({
                            discountAmount > 0 ? 'text-red-400' : 'text-zinc-500'
                         }`}
                      >
-                        -${discountAmount.toLocaleString('es-CO')}
+                        -{formatCurrency(discountAmount)}
                      </span>
                   </div>
                </div>
@@ -80,22 +89,14 @@ export const BillingTotals = ({
                <div className="flex justify-between items-end mb-4">
                   <span className="text-lg font-bold text-zinc-300">Total</span>
                   <span className="text-4xl font-mono font-black text-white tracking-tighter">
-                     ${total.toLocaleString('es-CO')}
+                     {formatCurrency(total)}
                   </span>
                </div>
+
                <button
                   onClick={onProcessPayment}
                   disabled={!isPaymentValid || isProcessing}
-                  className={`
-                     w-full font-bold py-4 rounded-xl text-lg tracking-wide
-                     transition-all duration-200 shadow-lg flex justify-center items-center gap-1.5
-                     group relative overflow-hidden
-                     ${
-                        isPaymentValid && !isProcessing
-                           ? 'bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white shadow-blue-900/20 translate-y-0 hover:-translate-y-0.5 cursor-pointer'
-                           : 'bg-zinc-800 text-zinc-600 cursor-not-allowed border border-zinc-700 shadow-none'
-                     }
-                  `}
+                  className={`${buttonBaseClass} ${buttonStateClass}`}
                >
                   <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 

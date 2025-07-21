@@ -34,6 +34,10 @@ interface BillingState {
    resetInvoice: () => void;
 }
 
+const calculateIdealPrice = (original: number, discountPercent: number) => {
+   return Math.round(original * (1 - discountPercent / 100));
+};
+
 export const useBillingStore = create<BillingState>(set => ({
    items: [],
    discount: { value: 0, type: 'percentage' },
@@ -41,37 +45,34 @@ export const useBillingStore = create<BillingState>(set => ({
 
    addItem: product => {
       set(state => {
-         const existingIndex = state.items.findIndex(p => p.id === product.id);
+         const existingIndex = state.items.findIndex(
+            p => p.id === product.id && product.id !== undefined,
+         );
 
-         if (existingIndex >= 0 && product.id) {
+         if (existingIndex >= 0) {
             const newItems = [...state.items];
-            newItems[existingIndex] = {
-               ...newItems[existingIndex],
-               quantity: newItems[existingIndex].quantity + 1,
-            };
+            newItems[existingIndex].quantity += 1;
             return { items: newItems };
          }
 
          const originalPrice = product.originalPrice || product.price || 0;
-         // Definimos el nombre base
-         const baseName = product.name || 'Producto Manual';
          const discountPercentage = product.discountPercentage || 0;
+         const baseName = product.name || 'Producto genérico';
 
+         const idealPrice = calculateIdealPrice(originalPrice, discountPercentage);
          const finalPrice =
-            product.price && product.price < originalPrice
-               ? product.price
-               : Math.round(originalPrice * (1 - discountPercentage / 100));
+            product.price && product.price < originalPrice ? product.price : idealPrice;
 
          const newItem: InvoiceItem = {
             id: product.id || crypto.randomUUID(),
             name: baseName,
-            originalName: baseName, // Guardamos referencia del nombre original
+            originalName: baseName,
             price: finalPrice,
             originalPrice: originalPrice,
             discountPercentage: discountPercentage,
             quantity: 1,
             stock: product.stock || 9999,
-            supplier: product.supplier || 'Genérico',
+            supplier: product.supplier || 'No especificado',
             isManualName: product.isManualName ?? !product.id,
             isManualPrice: product.isManualPrice ?? !product.id,
          };
@@ -87,19 +88,15 @@ export const useBillingStore = create<BillingState>(set => ({
 
             const updatedItem = { ...item, ...newValues };
 
-            // Lógica para nombre: Si el nuevo nombre coincide con el original, quitamos la marca manual
             if (newValues.name !== undefined) {
-               const isNameChanged = newValues.name.trim() !== item.originalName.trim();
-               updatedItem.isManualName = isNameChanged;
+               updatedItem.isManualName = newValues.name.trim() !== item.originalName.trim();
             }
 
-            // Lógica para precio (mantenida igual)
             if (newValues.price !== undefined) {
-               const idealPrice = Math.round(
-                  item.originalPrice * (1 - item.discountPercentage / 100),
-               );
+               const idealPrice = calculateIdealPrice(item.originalPrice, item.discountPercentage);
                updatedItem.isManualPrice = newValues.price !== idealPrice;
             }
+
             return updatedItem;
          }),
       }));
@@ -111,26 +108,22 @@ export const useBillingStore = create<BillingState>(set => ({
       }));
    },
 
-   setDiscount: discount => {
-      set({ discount });
-   },
+   setDiscount: discount => set({ discount }),
 
    setCheckoutData: newData =>
       set(state => ({
          checkoutData: { ...state.checkoutData, ...newData },
       })),
 
-   resetCustomer: () => {
+   resetCustomer: () =>
       set(state => ({
          checkoutData: { ...state.checkoutData, customer: initialCustomer },
-      }));
-   },
+      })),
 
-   resetInvoice: () => {
+   resetInvoice: () =>
       set({
          items: [],
          discount: { value: 0, type: 'percentage' },
          checkoutData: initialCheckoutState,
-      });
-   },
+      }),
 }));

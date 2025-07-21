@@ -14,10 +14,13 @@ const GRID_LAYOUT = 'grid grid-cols-[1fr_7rem_8rem_6rem_1.5rem] gap-6 items-cent
 const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
    const [localPrice, setLocalPrice] = useState(item.price.toLocaleString('es-CO'));
 
+   const parseCurrency = (val: string) => parseInt(val.replace(/[^0-9]/g, '') || '0', 10);
+   const formatCurrency = (val: number) => val.toLocaleString('es-CO');
+
    useEffect(() => {
       const currentNumeric = parseInt(localPrice.replace(/\./g, '') || '0', 10);
       if (currentNumeric !== item.price) {
-         setLocalPrice(item.price.toLocaleString('es-CO'));
+         setLocalPrice(formatCurrency(item.price));
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
    }, [item.price]);
@@ -25,47 +28,39 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
    const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const rawValue = e.target.value;
       setLocalPrice(rawValue);
-      const numericValue = parseInt(rawValue.replace(/[^0-9]/g, '') || '0', 10);
-      onUpdate(item.id, { price: numericValue });
+      onUpdate(item.id, { price: parseCurrency(rawValue) });
    };
 
    const handleBlur = () => {
-      const numericValue = parseInt(localPrice.replace(/[^0-9]/g, '') || '0', 10);
-      setLocalPrice(numericValue.toLocaleString('es-CO'));
-   };
-
-   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === 'Enter') {
-         e.currentTarget.blur();
-      }
+      setLocalPrice(formatCurrency(parseCurrency(localPrice)));
    };
 
    const hasInventoryDiscount = item.discountPercentage > 0;
    const isModified = item.isManualPrice || item.isManualName;
 
+   // Row Styles
+   let rowStyle = 'bg-zinc-800/50 hover:bg-zinc-800 border-transparent';
+   let indicatorColor = 'bg-zinc-600';
+
+   if (isModified) {
+      rowStyle = 'bg-indigo-900/10 hover:bg-indigo-900/20 border-indigo-500/20';
+      indicatorColor = 'bg-indigo-500';
+   } else if (hasInventoryDiscount) {
+      rowStyle = 'bg-emerald-900/10 hover:bg-emerald-900/20 border-emerald-500/20';
+      indicatorColor = 'bg-emerald-500';
+   }
+
    return (
       <div
          className={`
             ${GRID_LAYOUT} 
-            group relative px-3 py-2 mb-2 rounded-xl transition-all duration-200 mx-2
-            ${
-               isModified
-                  ? 'bg-indigo-900/10 hover:bg-indigo-900/20 border border-indigo-500/20'
-                  : hasInventoryDiscount
-                  ? 'bg-emerald-900/10 hover:bg-emerald-900/20 border border-emerald-500/20'
-                  : 'bg-zinc-800/50 hover:bg-zinc-800 border border-transparent'
-            }
+            group relative px-3 py-2 mb-2 rounded-xl transition-all duration-200 mx-2 border
+            ${rowStyle}
          `}
       >
-         {/* Indicador lateral de color */}
+         {/* Indicador lateral */}
          <div
-            className={`absolute left-0 top-3 bottom-3 w-[3px] rounded-r-full shadow-[0_0_8px_rgba(99,102,241,0.6)] ${
-               isModified
-                  ? 'bg-indigo-500'
-                  : hasInventoryDiscount
-                  ? 'bg-emerald-500'
-                  : 'bg-zinc-600'
-            }`}
+            className={`absolute left-0 top-3 bottom-3 w-[3px] rounded-r-full shadow-[0_0_8px_rgba(99,102,241,0.6)] ${indicatorColor}`}
          />
 
          {/* 1. PRODUCTO */}
@@ -79,15 +74,11 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
                />
             </div>
 
-            <div className={`flex items-center gap-2 mt-1`}>
-               <span
-                  className="text-[12px] font-medium truncate text-zinc-500"
-                  title={`Proveedor: ${item.supplier}`}
-               >
+            <div className="flex items-center gap-2 mt-1">
+               <span className="text-[12px] font-medium truncate text-zinc-500">
                   {item.supplier}
                </span>
 
-               {/* CAMBIO: Icono de edición ahora aquí */}
                {isModified && (
                   <div className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-md font-bold bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 leading-none">
                      <HiOutlinePencilSquare size={11} />
@@ -108,7 +99,7 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
          <div className="flex flex-col justify-center items-end w-full pr-2">
             {hasInventoryDiscount && !item.isManualPrice && (
                <div className="text-[10px] text-zinc-500 line-through decoration-zinc-600 mb-0.5 font-mono text-right w-full">
-                  ${item.originalPrice.toLocaleString('es-CO')}
+                  ${formatCurrency(item.originalPrice)}
                </div>
             )}
 
@@ -121,7 +112,7 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
                   value={localPrice}
                   onChange={handlePriceChange}
                   onBlur={handleBlur}
-                  onKeyDown={handleKeyDown}
+                  onKeyDown={e => e.key === 'Enter' && e.currentTarget.blur()}
                   className="w-full bg-transparent text-right py-1 border-b border-transparent focus:border-indigo-500 outline-none font-mono font-medium text-[15px] tracking-tight transition-colors duration-200 text-zinc-300"
                />
             </div>
@@ -143,7 +134,7 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
          {/* 4. SUBTOTAL */}
          <div className="flex flex-col items-end w-full pr-2">
             <span className="font-bold text-white tracking-tight text-[17px] font-mono tabular-nums">
-               ${(item.quantity * item.price).toLocaleString('es-CO')}
+               ${formatCurrency(item.quantity * item.price)}
             </span>
          </div>
 

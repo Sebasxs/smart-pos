@@ -27,57 +27,48 @@ export const QuantitySelector = ({
       onDecreaseRef.current = onDecrease;
    }, [onIncrease, onDecrease]);
 
-   const startAction = (actionType: 'inc' | 'dec') => {
-      const runAction = () => {
-         if (actionType === 'inc') {
-            onIncreaseRef.current();
-         } else {
-            onDecreaseRef.current();
-         }
-      };
-
-      runAction();
-
-      timeoutRef.current = window.setTimeout(() => {
-         intervalRef.current = window.setInterval(() => {
-            console.log('interval');
-            runAction();
-         }, 100);
-      }, 400);
-   };
-
    const stopAction = () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       if (intervalRef.current) clearInterval(intervalRef.current);
    };
 
+   const startAction = (actionType: 'inc' | 'dec') => {
+      const runAction = () => {
+         if (actionType === 'inc') onIncreaseRef.current();
+         else onDecreaseRef.current();
+      };
+
+      runAction();
+
+      timeoutRef.current = window.setTimeout(() => {
+         intervalRef.current = window.setInterval(runAction, 100);
+      }, 400);
+   };
+
    const handleManualChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const newValue = e.target.value.replace(/[^0-9]/g, '');
-      const newQuantity = parseInt(newValue, 10);
-      if (isNaN(newQuantity)) {
+      const numericValue = parseInt(e.target.value.replace(/[^0-9]/g, ''), 10);
+
+      if (isNaN(numericValue)) {
          onQuantityChange(1);
          return;
       }
 
-      if (newQuantity > stock) {
-         onQuantityChange(stock);
-         return;
-      }
-
-      onQuantityChange(newQuantity);
+      onQuantityChange(Math.min(numericValue, stock));
    };
 
+   const btnBaseClass = 'p-2 rounded-full transition-colors focus:outline-none';
+
    return (
-      <div className="flex items-center justify-center gap-x-1 bg-zinc-800 rounded-full hover:bg-zinc-900">
+      <div className="flex items-center justify-center gap-x-1 bg-zinc-800 rounded-full hover:bg-zinc-900 p-1 border border-zinc-700/50">
          <button
             onMouseDown={() => startAction('dec')}
             onMouseUp={stopAction}
             onMouseLeave={stopAction}
             tabIndex={-1}
-            className={`p-2 rounded-full transition-colors ${
-               value <= 1 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-sky-400 '
-            }`}
             disabled={value <= 1}
+            className={`${btnBaseClass} ${
+               value <= 1 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-red-400'
+            }`}
             onDragStart={e => e.preventDefault()}
          >
             <HiOutlineMinus size={14} />
@@ -89,7 +80,7 @@ export const QuantitySelector = ({
             value={value}
             onChange={handleManualChange}
             onFocus={e => e.target.select()}
-            className="w-9 text-center rounded-full font-semibold outline-none no-spinners cursor-text focus:cursor-text text-zinc-300"
+            className="w-9 text-center rounded-full font-semibold outline-none no-spinners cursor-text focus:cursor-text text-zinc-300 bg-transparent"
          />
 
          <button
@@ -97,12 +88,12 @@ export const QuantitySelector = ({
             onMouseUp={stopAction}
             onMouseLeave={stopAction}
             tabIndex={-1}
-            className={`p-2 rounded-full transition-colors ${
+            disabled={value >= stock}
+            className={`${btnBaseClass} ${
                value >= stock
                   ? 'opacity-50 cursor-not-allowed'
-                  : 'cursor-pointer hover:bg-indigo-600 '
+                  : 'cursor-pointer hover:bg-emerald-400'
             }`}
-            disabled={value >= stock}
             onDragStart={e => e.preventDefault()}
          >
             <HiOutlinePlus size={14} />

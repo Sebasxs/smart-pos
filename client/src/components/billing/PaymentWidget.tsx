@@ -1,6 +1,45 @@
 import { HiOutlineBanknotes, HiOutlineCreditCard } from 'react-icons/hi2';
 import { useBillingStore } from '../../store/billingStore';
 
+type PaymentMethodButtonProps = {
+   isActive: boolean;
+   onClick: () => void;
+   label: string;
+   icon: React.ElementType;
+   activeClass: string;
+   textClass: string;
+};
+
+const PaymentMethodButton = ({
+   isActive,
+   onClick,
+   label,
+   icon: Icon,
+   activeClass,
+   textClass,
+}: PaymentMethodButtonProps) => {
+   const baseClass =
+      'relative flex flex-row items-center justify-center gap-2 py-4 px-2 rounded-xl border transition-all duration-200 cursor-pointer group overflow-hidden';
+   const inactiveClass =
+      'bg-zinc-900/50 border-zinc-800 text-zinc-600 hover:bg-zinc-800 hover:border-zinc-700 hover:text-zinc-300';
+
+   return (
+      <button
+         onClick={onClick}
+         className={`${baseClass} ${isActive ? activeClass : inactiveClass}`}
+      >
+         <div
+            className={`rounded-lg transition-colors duration-200 ${
+               isActive ? textClass : 'text-zinc-700'
+            }`}
+         >
+            <Icon size={20} />
+         </div>
+         <span className="font-bold text-sm tracking-wide">{label}</span>
+      </button>
+   );
+};
+
 type PaymentWidgetProps = {
    total: number;
 };
@@ -20,63 +59,28 @@ export const PaymentWidget = ({ total }: PaymentWidgetProps) => {
 
    return (
       <div className="bg-zinc-900 rounded-xl border border-zinc-800 shadow-sm flex flex-col overflow-hidden h-full">
-         {/* CAMBIO: Header unificado */}
          <div className="py-3 px-4 border-b border-zinc-800 bg-zinc-900/50 flex justify-between items-center">
             <h2 className="text-zinc-500 text-[11px] font-bold uppercase tracking-wider">Pago</h2>
          </div>
 
          <div className="p-4 flex flex-col gap-5">
             <div className="grid grid-cols-2 gap-3 pb-1">
-               <button
+               <PaymentMethodButton
+                  isActive={paymentMethod === 'cash'}
                   onClick={() => setCheckoutData({ paymentMethod: 'cash' })}
-                  className={`
-                     relative flex flex-row items-center justify-center gap-2 py-4 px-2 rounded-xl border 
-                     transition-all duration-200 cursor-pointer group overflow-hidden
-                     ${
-                        paymentMethod === 'cash'
-                           ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-400 shadow-[0_0_20px_-5px_rgba(16,185,129,0.2)]'
-                           : 'bg-zinc-900/50 border-zinc-800 text-zinc-600 hover:bg-zinc-800 hover:border-zinc-700 hover:text-zinc-300'
-                     }
-                  `}
-               >
-                  <div
-                     className={`
-                     rounded-lg transition-colors duration-200
-                     ${paymentMethod === 'cash' ? 'text-emerald-400' : 'text-zinc-700'}
-                  `}
-                  >
-                     <HiOutlineBanknotes size={20} />
-                  </div>
-                  <span className="font-bold text-sm tracking-wide">Efectivo</span>
-               </button>
-
-               <button
+                  label="Efectivo"
+                  icon={HiOutlineBanknotes}
+                  activeClass="bg-emerald-500/10 border-emerald-500/50 text-emerald-400 shadow-[0_0_20px_-5px_rgba(16,185,129,0.2)]"
+                  textClass="text-emerald-400"
+               />
+               <PaymentMethodButton
+                  isActive={paymentMethod === 'transfer'}
                   onClick={() => setCheckoutData({ paymentMethod: 'transfer' })}
-                  className={`
-                     relative flex flex-row items-center justify-center gap-2 py-4 px-2 rounded-xl border 
-                     transition-all duration-200 cursor-pointer group overflow-hidden
-                     ${
-                        paymentMethod === 'transfer'
-                           ? 'bg-purple-500/10 border-purple-500/50 text-purple-400 shadow-[0_0_20px_-5px_rgba(168,85,247,0.2)]'
-                           : 'bg-zinc-900/50 border-zinc-800 text-zinc-600 hover:bg-zinc-800 hover:border-zinc-700 hover:text-zinc-300'
-                     }
-                  `}
-               >
-                  <div
-                     className={`
-                     rounded-lg transition-colors duration-200
-                                          ${
-                                             paymentMethod === 'cash'
-                                                ? 'text-zinc-700'
-                                                : 'text-purple-400'
-                                          }
-
-                  `}
-                  >
-                     <HiOutlineCreditCard size={20} />
-                  </div>
-                  <span className="font-bold text-sm tracking-wide">Transferencia</span>
-               </button>
+                  label="Transferencia"
+                  icon={HiOutlineCreditCard}
+                  activeClass="bg-purple-500/10 border-purple-500/50 text-purple-400 shadow-[0_0_20px_-5px_rgba(168,85,247,0.2)]"
+                  textClass="text-purple-400"
+               />
             </div>
 
             {paymentMethod === 'cash' ? (

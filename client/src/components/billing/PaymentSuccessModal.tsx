@@ -22,7 +22,6 @@ export const PaymentSuccessModal = ({
 
    return (
       <Modal isOpen={isOpen} onClose={onClose}>
-         {/* CAMBIO: Agregado w-[400px] para mantener consistencia visual */}
          <div className="p-6 text-center mx-auto w-full md:w-[400px]">
             <div className="w-20 h-20 bg-green-500/20 text-green-500 rounded-full flex items-center justify-center mx-auto mb-6 animate-in zoom-in duration-300">
                <HiOutlineCheckCircle size={48} />

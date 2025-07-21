@@ -3,8 +3,7 @@ import { supabase } from '../config/supabase';
 
 export const searchCustomers = async (req: Request, res: Response) => {
    try {
-      const { search } = req.query;
-      const term = String(search || '').trim();
+      const term = String(req.query.search || '').trim();
 
       if (!term) return res.json([]);
 
@@ -15,8 +14,9 @@ export const searchCustomers = async (req: Request, res: Response) => {
       if (error) throw error;
 
       res.json(data);
-   } catch (error: any) {
+   } catch (error) {
       console.error('Error searching customers:', error);
-      res.status(500).json({ error: error.message });
+      const message = error instanceof Error ? error.message : 'Error desconocido';
+      res.status(500).json({ error: message });
    }
 };

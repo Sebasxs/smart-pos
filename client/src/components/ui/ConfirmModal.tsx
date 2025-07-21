@@ -22,9 +22,7 @@ export const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message }: Con
       };
 
       document.addEventListener('keydown', handleKeyDown);
-      return () => {
-         document.removeEventListener('keydown', handleKeyDown);
-      };
+      return () => document.removeEventListener('keydown', handleKeyDown);
    }, [isOpen, onClose, onConfirm]);
 
    return (
@@ -33,6 +31,7 @@ export const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message }: Con
             <div className="w-16 h-16 bg-amber-500/20 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-4">
                <HiOutlineExclamationTriangle size={32} />
             </div>
+
             <h3 className="text-xl font-bold mb-2 text-white">{title}</h3>
             <p className="w-80 text-zinc-400 mb-6">{message}</p>
 

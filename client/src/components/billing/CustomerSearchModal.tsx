@@ -13,18 +13,18 @@ import { type CheckoutState } from '../../store/billingStore';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-type CustomerSearchModalProps = {
-   isOpen: boolean;
-   onClose: () => void;
-   onSelectCustomer: (customer: Partial<CheckoutState['customer']>) => void;
-};
-
 type CustomerResult = {
    id: string;
    name: string;
    tax_id: string;
    email: string;
    city: string;
+};
+
+type CustomerSearchModalProps = {
+   isOpen: boolean;
+   onClose: () => void;
+   onSelectCustomer: (customer: Partial<CheckoutState['customer']>) => void;
 };
 
 export const CustomerSearchModal = ({
@@ -40,6 +40,7 @@ export const CustomerSearchModal = ({
    const listRef = useRef<HTMLDivElement>(null);
    const inputRef = useRef<HTMLInputElement>(null);
 
+   // Reset state on close / Focus on open
    useEffect(() => {
       if (!isOpen) {
          setSearchTerm('');
@@ -51,6 +52,7 @@ export const CustomerSearchModal = ({
       }
    }, [isOpen]);
 
+   // Search effect
    useEffect(() => {
       if (!isOpen || searchTerm.trim() === '') {
          setResults([]);
@@ -92,6 +94,7 @@ export const CustomerSearchModal = ({
       [onSelectCustomer, onClose],
    );
 
+   // Keyboard navigation
    useEffect(() => {
       if (!isOpen) return;
 
@@ -211,7 +214,6 @@ export const CustomerSearchModal = ({
                   );
                })
             ) : (
-               /* EMPTY STATE MEJORADO */
                <div className="h-full flex flex-col items-center justify-center text-center p-8 animate-in fade-in duration-500 pt-12">
                   {searchTerm ? (
                      <div className="flex flex-col items-center">
