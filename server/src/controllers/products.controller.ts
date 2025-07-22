@@ -3,19 +3,44 @@ import { supabase } from '../config/supabase';
 
 export const getProducts = async (req: Request, res: Response) => {
    try {
-      const term = String(req.query.search || '').trim();
+      const search = String(req.query.search || '').trim();
 
-      if (!term) return res.json([]);
+      let query = supabase
+         .from('products')
+         .select('*, suppliers (name)')
+         .order('name', { ascending: true });
 
-      const { data, error } = await supabase.rpc('search_products', {
-         search_term: term,
-      });
+      if (search) {
+         query = query.ilike('name', `%${search}%`);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
 
-      res.json(data);
+      const formattedData = data.map((product: any) => ({
+         ...product,
+         supplier: product.suppliers?.name || 'Sin proveedor',
+      }));
+
+      res.json(formattedData);
    } catch (error) {
       console.error('Error fetching products:', error);
-      res.status(500).json({ error: 'Error interno al obtener productos' });
+      res.status(500).json({ error: 'Error al obtener el inventario' });
+   }
+};
+
+export const deleteProduct = async (req: Request, res: Response) => {
+   try {
+      const { id } = req.params;
+
+      const { error } = await supabase.from('products').delete().eq('id', id);
+
+      if (error) throw error;
+
+      res.json({ message: 'Producto eliminado correctamente' });
+   } catch (error) {
+      console.error('Error deleting product:', error);
+      res.status(500).json({ error: 'No se pudo eliminar el producto' });
    }
 };

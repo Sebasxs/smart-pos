@@ -224,29 +224,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      create_invoice_transaction:
-        | {
-            Args: {
-              p_customer: Json
-              p_discount: number
-              p_items: Json
-              p_payment_method: string
-              p_subtotal: number
-              p_total: number
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_customer: Json
-              p_discount: number
-              p_items: Json
-              p_payment_method: string
-              p_subtotal: number
-              p_total: number
-            }
-            Returns: Json
-          }
+      create_invoice_transaction: {
+        Args: {
+          p_customer: Json
+          p_discount: number
+          p_items: Json
+          p_payment_method: string
+          p_subtotal: number
+          p_total: number
+        }
+        Returns: Json
+      }
       search_customers: {
         Args: { search_term: string }
         Returns: {

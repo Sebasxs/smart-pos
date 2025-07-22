@@ -15,7 +15,7 @@ DECLARE
   v_product_id UUID;
   v_item_id_text TEXT;
 BEGIN
-  -- A. Cliente
+  -- A. Cliente: Buscar o Crear/Actualizar
   IF (p_customer->>'taxId') IS NOT NULL AND (p_customer->>'taxId') != '' THEN
     SELECT id INTO v_customer_id FROM customers WHERE tax_id = (p_customer->>'taxId');
     IF v_customer_id IS NOT NULL THEN
@@ -36,10 +36,16 @@ BEGIN
   FOR v_item IN SELECT * FROM jsonb_array_elements(p_items) LOOP
     v_item_id_text := (v_item->>'id');
     
+    -- Manejo de inventario solo si el producto tiene ID (no es agregado manualmente)
     IF v_item_id_text IS NOT NULL AND v_item_id_text != '' THEN
        v_product_id := v_item_id_text::UUID;
        SELECT stock, COALESCE(cost, 0) INTO v_product_stock, v_product_cost FROM products WHERE id = v_product_id FOR UPDATE;
-       IF v_product_stock IS NULL THEN RAISE EXCEPTION 'Producto no encontrado'; END IF;
+       
+       IF v_product_stock IS NULL THEN 
+         RAISE EXCEPTION 'El producto % ya no existe en el sistema', (v_item->>'name'); 
+       END IF;
+       
+       -- Validar stock negativo opcionalmente, por ahora permitimos pero restamos
        UPDATE products SET stock = stock - (v_item->>'quantity')::INT WHERE id = v_product_id;
     ELSE
        v_product_id := NULL; 
@@ -69,6 +75,7 @@ BEGIN
 
   RETURN jsonb_build_object('success', true, 'invoice_id', v_invoice_id, 'message', 'Venta registrada correctamente');
 EXCEPTION WHEN OTHERS THEN
-  RAISE EXCEPTION 'Error en transacción: %', SQLERRM;
+  -- Revertir todo si algo falla
+  RAISE EXCEPTION '%', SQLERRM;
 END;
 $$ LANGUAGE plpgsql;
