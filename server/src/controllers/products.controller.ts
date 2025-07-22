@@ -8,7 +8,8 @@ export const getProducts = async (req: Request, res: Response) => {
       let query = supabase
          .from('products')
          .select('*, suppliers (name)')
-         .order('name', { ascending: true });
+         .order('name', { ascending: true })
+         .range(0, 9999);
 
       if (search) {
          query = query.ilike('name', `%${search}%`);

@@ -3,11 +3,14 @@ import { type Product } from '../types/inventory';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
+export type InventoryFilter = 'all' | 'lowStock';
+
 export const useInventory = () => {
    const [products, setProducts] = useState<Product[]>([]);
    const [isLoading, setIsLoading] = useState(true);
    const [search, setSearch] = useState('');
    const [error, setError] = useState('');
+   const [activeFilter, setActiveFilter] = useState<InventoryFilter>('all');
 
    const fetchProducts = useCallback(async () => {
       setIsLoading(true);
@@ -37,11 +40,8 @@ export const useInventory = () => {
 
    const deleteProduct = async (id: string) => {
       try {
-         const res = await fetch(`${API_URL}/products/${id}`, {
-            method: 'DELETE',
-         });
+         const res = await fetch(`${API_URL}/products/${id}`, { method: 'DELETE' });
          if (!res.ok) throw new Error('Error eliminando');
-
          setProducts(prev => prev.filter(p => p.id !== id));
          return true;
       } catch (err) {
@@ -50,6 +50,7 @@ export const useInventory = () => {
       }
    };
 
+   // Estadísticas calculadas sobre el total de datos
    const stats = useMemo(() => {
       return {
          totalProducts: products.length,
@@ -58,8 +59,19 @@ export const useInventory = () => {
       };
    }, [products]);
 
+   const filteredProducts = useMemo(() => {
+      if (activeFilter === 'lowStock') {
+         return products.filter(p => p.stock <= 5);
+      }
+      return products;
+   }, [products, activeFilter]);
+
+   const toggleFilter = (filter: InventoryFilter) => {
+      setActiveFilter(prev => (prev === filter ? 'all' : filter));
+   };
+
    return {
-      products,
+      products: filteredProducts,
       isLoading,
       error,
       search,
@@ -67,5 +79,7 @@ export const useInventory = () => {
       deleteProduct,
       refresh: fetchProducts,
       stats,
+      activeFilter,
+      toggleFilter,
    };
 };

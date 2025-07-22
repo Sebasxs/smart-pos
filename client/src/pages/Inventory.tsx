@@ -4,10 +4,21 @@ import { InventoryHeader } from '../components/inventory/InventoryHeader';
 import { InventoryStats } from '../components/inventory/InventoryStats';
 import { InventoryList } from '../components/inventory/InventoryList';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
+
+// Types
 import { type Product } from '../types/inventory';
 
 export const Inventory = () => {
-   const { products, isLoading, search, setSearch, deleteProduct, stats } = useInventory();
+   const {
+      products,
+      isLoading,
+      search,
+      setSearch,
+      deleteProduct,
+      stats,
+      activeFilter,
+      toggleFilter,
+   } = useInventory();
 
    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
    const [productToDelete, setProductToDelete] = useState<Product | null>(null);
@@ -24,35 +35,37 @@ export const Inventory = () => {
       }
    };
 
-   const handleEditClick = (product: Product) => {
-      console.log('Editar:', product);
-      // TODO: Implementar en el siguiente paso
-   };
-
-   const handleAddClick = () => {
-      console.log('Crear nuevo');
-      // TODO: Implementar en el siguiente paso
-   };
-
    return (
-      <div className="flex flex-col h-full max-w-[1200px] mx-auto p-4 md:p-6 animate-in fade-in duration-300">
-         <InventoryHeader search={search} onSearchChange={setSearch} onAddClick={handleAddClick} />
+      <div className="flex flex-col h-full w-full p-4 md:p-6 animate-in fade-in duration-300 overflow-hidden">
+         <div className="max-w-[1400px] mx-auto w-full flex flex-col h-full">
+            <InventoryHeader
+               search={search}
+               onSearchChange={setSearch}
+               onAddClick={() => console.log('Add')}
+            />
 
-         <InventoryStats stats={stats} />
+            <InventoryStats
+               stats={stats}
+               activeFilter={activeFilter}
+               onToggleFilter={toggleFilter}
+            />
 
-         <InventoryList
-            products={products}
-            isLoading={isLoading}
-            onEdit={handleEditClick}
-            onDelete={handleDeleteClick}
-         />
+            <div className="flex-1 min-h-0">
+               <InventoryList
+                  products={products}
+                  isLoading={isLoading}
+                  onEdit={p => console.log('Edit', p)}
+                  onDelete={handleDeleteClick}
+               />
+            </div>
+         </div>
 
          <ConfirmModal
             isOpen={deleteModalOpen}
             onClose={() => setDeleteModalOpen(false)}
             onConfirm={handleConfirmDelete}
             title="¿Eliminar producto?"
-            message={`Estás a punto de eliminar "${productToDelete?.name}". Esta acción no se puede deshacer.`}
+            message={`Estás a punto de eliminar "${productToDelete?.name}".`}
          />
       </div>
    );
