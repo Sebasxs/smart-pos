@@ -1,15 +1,18 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
+
+// Types
 import { type Product } from '../types/inventory';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-export type InventoryFilter = 'all' | 'lowStock';
+export type InventoryFilter = 'all' | 'lowStock' | 'discounted';
 
 export const useInventory = () => {
    const [products, setProducts] = useState<Product[]>([]);
    const [isLoading, setIsLoading] = useState(true);
    const [search, setSearch] = useState('');
    const [error, setError] = useState('');
+
    const [activeFilter, setActiveFilter] = useState<InventoryFilter>('all');
 
    const fetchProducts = useCallback(async () => {
@@ -17,9 +20,7 @@ export const useInventory = () => {
       try {
          const queryParams = search ? `?search=${encodeURIComponent(search)}` : '';
          const res = await fetch(`${API_URL}/products${queryParams}`);
-
          if (!res.ok) throw new Error('Error cargando inventario');
-
          const data = await res.json();
          setProducts(data);
          setError('');
@@ -50,18 +51,21 @@ export const useInventory = () => {
       }
    };
 
-   // Estadísticas calculadas sobre el total de datos
    const stats = useMemo(() => {
       return {
          totalProducts: products.length,
          totalValue: products.reduce((acc, curr) => acc + curr.price * curr.stock, 0),
          lowStock: products.filter(p => p.stock <= 5).length,
+         discounted: products.filter(p => p.discount_percentage > 0).length,
       };
    }, [products]);
 
    const filteredProducts = useMemo(() => {
       if (activeFilter === 'lowStock') {
          return products.filter(p => p.stock <= 5);
+      }
+      if (activeFilter === 'discounted') {
+         return products.filter(p => p.discount_percentage > 0);
       }
       return products;
    }, [products, activeFilter]);
