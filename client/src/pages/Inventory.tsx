@@ -37,26 +37,29 @@ export const Inventory = () => {
    };
 
    return (
-      <div className="relative w-full flex flex-col h-full max-h-screen overflow-hidden p-2 md:p-0">
-         <InventoryHeader
-            search={search}
-            onSearchChange={setSearch}
-            onAddClick={() => console.log('Add')}
-            onRefresh={refresh}
-            isLoading={isLoading}
-         />
+      <div className="flex flex-col h-full max-h-screen overflow-hidden p-2 md:p-0 gap-4">
+         <div className="shrink-0 flex flex-col">
+            <InventoryHeader
+               search={search}
+               onSearchChange={setSearch}
+               onAddClick={() => console.log('Add')}
+               onRefresh={refresh}
+               isLoading={isLoading}
+            />
+            <InventoryStats
+               stats={stats}
+               activeFilter={activeFilter}
+               onToggleFilter={toggleFilter}
+            />
+         </div>
 
-         <InventoryStats stats={stats} activeFilter={activeFilter} onToggleFilter={toggleFilter} />
-
-         <div className="flex-1 min-h-0 bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden shadow-sm relative">
-            <div className="absolute inset-0">
-               <InventoryList
-                  products={products}
-                  isLoading={isLoading}
-                  onEdit={p => console.log('Edit', p)}
-                  onDelete={handleDeleteClick}
-               />
-            </div>
+         <div className="flex-1 min-h-0">
+            <InventoryList
+               products={products}
+               isLoading={isLoading}
+               onEdit={p => console.log('Edit', p)}
+               onDelete={handleDeleteClick}
+            />
          </div>
 
          <ConfirmModal
