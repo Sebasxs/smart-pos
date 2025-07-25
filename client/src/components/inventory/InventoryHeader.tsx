@@ -1,14 +1,22 @@
-import { HiOutlineMagnifyingGlass, HiOutlinePlus } from 'react-icons/hi2';
+import { HiOutlineMagnifyingGlass, HiOutlinePlus, HiOutlineArrowPath } from 'react-icons/hi2';
 
 type InventoryHeaderProps = {
    search: string;
    onSearchChange: (val: string) => void;
    onAddClick: () => void;
+   onRefresh: () => void;
+   isLoading: boolean;
 };
 
-export const InventoryHeader = ({ search, onSearchChange, onAddClick }: InventoryHeaderProps) => {
+export const InventoryHeader = ({
+   search,
+   onSearchChange,
+   onAddClick,
+   onRefresh,
+   isLoading,
+}: InventoryHeaderProps) => {
    return (
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4 shrink-0">
          <div>
             <h1 className="text-3xl font-bold text-white tracking-tight">Inventario</h1>
             <p className="text-zinc-500 text-sm mt-1">
@@ -29,6 +37,17 @@ export const InventoryHeader = ({ search, onSearchChange, onAddClick }: Inventor
                   className="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-blue-500/50 transition-all"
                />
             </div>
+
+            <button
+               onClick={onRefresh}
+               className={`
+                  p-2.5 rounded-xl border border-zinc-800 bg-zinc-900 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all cursor-pointer
+                  ${isLoading ? 'animate-spin text-blue-500' : ''}
+               `}
+               title="Actualizar lista"
+            >
+               <HiOutlineArrowPath size={20} />
+            </button>
 
             <button
                onClick={onAddClick}

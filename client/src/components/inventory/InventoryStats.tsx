@@ -90,9 +90,12 @@ type InventoryStatsProps = {
 };
 
 export const InventoryStats = ({ stats, activeFilter, onToggleFilter }: InventoryStatsProps) => {
+   const commonCardClass = 'flex-1 min-w-[200px]';
+   const valueCardClass = 'flex-1 lg:flex-[1.5] min-w-[200px] lg:min-w-[260px]';
+
    return (
-      <div className="grid grid-cols-2 lg:grid-cols-12 gap-4 mb-6">
-         {/* 1. TOTAL (Activo = Borde Azul) */}
+      <div className="flex flex-wrap gap-3 lg:gap-4 mb-4 shrink-0">
+         {/* 1. TOTAL */}
          <StatCard
             label="Total Items"
             value={stats.totalProducts}
@@ -102,12 +105,12 @@ export const InventoryStats = ({ stats, activeFilter, onToggleFilter }: Inventor
             activeBorderClass="border-blue-500/50"
             isActive={activeFilter === 'all'}
             onClick={() => onToggleFilter('all')}
-            className="col-span-1 lg:col-span-3"
+            className={commonCardClass}
          />
 
-         {/* 2. OFERTAS (Activo = Borde Verde/Emerald) */}
+         {/* 2. OFERTAS */}
          <StatCard
-            label="Ofertas"
+            label="Ofertas Activas"
             value={stats.discounted}
             icon={HiOutlineTag}
             colorClass="text-emerald-400"
@@ -115,12 +118,12 @@ export const InventoryStats = ({ stats, activeFilter, onToggleFilter }: Inventor
             activeBorderClass="border-emerald-500/50"
             isActive={activeFilter === 'discounted'}
             onClick={() => onToggleFilter('discounted')}
-            className="col-span-1 lg:col-span-2"
+            className={commonCardClass}
          />
 
-         {/* 3. STOCK BAJO (Activo = Borde Ámbar) */}
+         {/* 3. STOCK BAJO */}
          <StatCard
-            label="Stock Bajo"
+            label="Stock Crítico"
             value={stats.lowStock}
             icon={HiOutlineExclamationTriangle}
             colorClass="text-amber-400"
@@ -128,17 +131,17 @@ export const InventoryStats = ({ stats, activeFilter, onToggleFilter }: Inventor
             activeBorderClass="border-amber-500/50"
             isActive={activeFilter === 'lowStock'}
             onClick={() => onToggleFilter('lowStock')}
-            className="col-span-1 lg:col-span-2"
+            className={commonCardClass}
          />
 
-         {/* 4. VALOR (Sin interacción, estilo base sutil) */}
+         {/* 4. VALOR (La tarjeta "pesada") */}
          <StatCard
             label="Valor Inventario"
             value={`$${stats.totalValue.toLocaleString('es-CO')}`}
             icon={HiOutlineCurrencyDollar}
             colorClass="text-zinc-200"
             bgClass="bg-zinc-700/30"
-            className="col-span-1 lg:col-span-5"
+            className={valueCardClass}
          />
       </div>
    );

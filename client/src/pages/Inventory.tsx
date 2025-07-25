@@ -18,6 +18,7 @@ export const Inventory = () => {
       stats,
       activeFilter,
       toggleFilter,
+      refresh,
    } = useInventory();
 
    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -36,21 +37,19 @@ export const Inventory = () => {
    };
 
    return (
-      <div className="flex flex-col h-full w-full p-4 md:p-6 animate-in fade-in duration-300 overflow-hidden">
-         <div className="max-w-[1400px] mx-auto w-full flex flex-col h-full">
-            <InventoryHeader
-               search={search}
-               onSearchChange={setSearch}
-               onAddClick={() => console.log('Add')}
-            />
+      <div className="relative w-full flex flex-col h-full max-h-screen overflow-hidden p-2 md:p-0">
+         <InventoryHeader
+            search={search}
+            onSearchChange={setSearch}
+            onAddClick={() => console.log('Add')}
+            onRefresh={refresh}
+            isLoading={isLoading}
+         />
 
-            <InventoryStats
-               stats={stats}
-               activeFilter={activeFilter}
-               onToggleFilter={toggleFilter}
-            />
+         <InventoryStats stats={stats} activeFilter={activeFilter} onToggleFilter={toggleFilter} />
 
-            <div className="flex-1 min-h-0">
+         <div className="flex-1 min-h-0 bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden shadow-sm relative">
+            <div className="absolute inset-0">
                <InventoryList
                   products={products}
                   isLoading={isLoading}

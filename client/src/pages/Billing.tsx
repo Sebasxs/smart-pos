@@ -8,11 +8,12 @@ import { CustomerHeader } from '../components/billing/CustomerHeader';
 import { DiscountModal } from '../components/billing/DiscountModal';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { PaymentSuccessModal } from '../components/billing/PaymentSuccessModal';
-import { ErrorModal } from '../components/ui/ErrorModal'; // Importamos el nuevo modal
+import { ErrorModal } from '../components/ui/ErrorModal';
 import { PaymentWidget } from '../components/billing/PaymentWidget';
 import { BillingTotals } from '../components/billing/BillingTotals';
+import { useInventoryStore } from '../store/inventoryStore';
 
-// Store & Types
+// Types
 import { useBillingStore, type CheckoutState } from '../store/billingStore';
 import { type InvoiceItem } from '../types/billing';
 
@@ -30,6 +31,7 @@ export const Billing = () => {
       setCheckoutData,
       resetInvoice,
    } = useBillingStore();
+   const { decreaseStockBatch } = useInventoryStore();
 
    const [modals, setModals] = useState({
       productSearch: false,
@@ -123,6 +125,11 @@ export const Billing = () => {
             throw new Error(errorData.error || 'Error desconocido al procesar la venta');
          }
 
+         decreaseStockBatch(
+            items
+               .filter(i => i.id && i.id.length === 36)
+               .map(i => ({ id: i.id, quantity: i.quantity })),
+         );
          setFinalizedData({ ...checkoutData });
          toggleModal('success', true);
       } catch (error) {
@@ -141,6 +148,7 @@ export const Billing = () => {
       discountAmount,
       total,
       toggleModal,
+      decreaseStockBatch,
    ]);
 
    const handleFinalizeSuccess = () => {
