@@ -9,7 +9,9 @@ type InvoiceItemRowProps = {
    onRemove: (id: string) => void;
 };
 
-const GRID_LAYOUT = 'grid grid-cols-[1fr_7rem_8rem_6rem_1.5rem] gap-6 items-center';
+// Mantenemos el layout igual, ya es eficiente.
+// Estructura: 1fr (Nombre) | 7rem (Precio) | 8rem (Cantidad) | 6.5rem (Subtotal) | 2rem (Trash)
+const GRID_LAYOUT = 'grid grid-cols-[1fr_7rem_8rem_6.5rem_2rem] gap-4 items-center';
 
 const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
    const [localPrice, setLocalPrice] = useState(item.price.toLocaleString('es-CO'));
@@ -63,8 +65,8 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
             className={`absolute left-0 top-3 bottom-3 w-[3px] rounded-r-full shadow-[0_0_8px_rgba(99,102,241,0.6)] ${indicatorColor}`}
          />
 
-         {/* 1. PRODUCTO */}
-         <div className="flex flex-col min-w-0 pr-2 pl-3">
+         {/* 1. PRODUCTO (Elástico) */}
+         <div className="flex flex-col min-w-0 pl-3">
             <div className="flex items-center w-full">
                <input
                   type="text"
@@ -74,20 +76,20 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
                />
             </div>
 
-            <div className="flex items-center gap-2 mt-1">
-               <span className="text-[12px] font-medium truncate text-zinc-500">
+            <div className="flex items-center gap-2 mt-1 min-w-0">
+               <span className="text-[12px] font-medium truncate text-zinc-500 max-w-full">
                   {item.supplier}
                </span>
 
                {isModified && (
-                  <div className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-md font-bold bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 leading-none">
+                  <div className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-md font-bold bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 leading-none shrink-0">
                      <HiOutlinePencilSquare size={11} />
                      <span>Editado</span>
                   </div>
                )}
 
                {hasInventoryDiscount && (
-                  <div className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-md font-bold bg-emerald-500/10 border border-emerald-500/50 text-emerald-400 leading-none">
+                  <div className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-md font-bold bg-emerald-500/10 border border-emerald-500/50 text-emerald-400 leading-none shrink-0">
                      <HiOutlineTag size={10} />
                      <span>-{item.discountPercentage}%</span>
                   </div>
@@ -95,8 +97,8 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
             </div>
          </div>
 
-         {/* 2. VALOR UNITARIO */}
-         <div className="flex flex-col justify-center items-end w-full pr-2">
+         {/* 2. VALOR UNITARIO (Fijo) */}
+         <div className="flex flex-col justify-center items-end w-full">
             {hasInventoryDiscount && !item.isManualPrice && (
                <div className="text-[10px] text-zinc-500 line-through decoration-zinc-600 mb-0.5 font-mono text-right w-full">
                   ${formatCurrency(item.originalPrice)}
@@ -118,7 +120,7 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
             </div>
          </div>
 
-         {/* 3. CANTIDAD */}
+         {/* 3. CANTIDAD (Fijo) */}
          <div className="flex justify-center w-full">
             <QuantitySelector
                value={item.quantity}
@@ -131,14 +133,14 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
             />
          </div>
 
-         {/* 4. SUBTOTAL */}
-         <div className="flex flex-col items-end w-full pr-2">
+         {/* 4. SUBTOTAL (Fijo) */}
+         <div className="flex flex-col items-end w-full">
             <span className="font-bold text-white tracking-tight text-[17px] font-mono tabular-nums">
                ${formatCurrency(item.quantity * item.price)}
             </span>
          </div>
 
-         {/* 5. ACCIONES */}
+         {/* 5. ACCIONES (Fijo) */}
          <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             <button
                onClick={() => onRemove(item.id)}
@@ -161,14 +163,15 @@ export type InvoiceTableProps = {
 export const InvoiceTable = ({ items, onUpdateItem, onRemoveItem }: InvoiceTableProps) => {
    return (
       <div className="flex flex-col h-full bg-transparent overflow-x-auto overflow-y-hidden rounded-xl custom-scrollbar">
-         <div className="min-w-[800px] flex flex-col h-full">
+         {/* CAMBIO: min-w reducido de 800px a 600px para permitir mayor compresión del nombre */}
+         <div className="min-w-[640px] flex flex-col h-full">
             <div
                className={`${GRID_LAYOUT} py-3 px-4 mb-1 text-[11px] font-bold text-zinc-500 uppercase tracking-wider border-b border-zinc-800/50 shrink-0 select-none`}
             >
-               <div>Producto</div>
-               <div className="text-right pr-3">Valor Und.</div>
-               <div className="text-center pr-3">Cantidad</div>
-               <div className="text-right pr-3">Subtotal</div>
+               <div className="pl-3">Producto</div>
+               <div className="text-right">Valor Und.</div>
+               <div className="text-center">Cantidad</div>
+               <div className="text-right">Subtotal</div>
                <div></div>
             </div>
 

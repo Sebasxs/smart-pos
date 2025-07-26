@@ -10,13 +10,6 @@ type InventoryListProps = {
    onDelete: (product: Product) => void;
 };
 
-// CAMBIO: Usamos anchos fijos para datos y 1fr para el nombre.
-// Col 1 (Producto): 1fr (Absorbe el espacio y se encoge)
-// Col 2 (Costo): 7rem (Fijo)
-// Col 3 (Precio): 8rem (Fijo, un poco más ancho por los descuentos)
-// Col 4 (Ganancia): 6rem (Fijo)
-// Col 5 (Stock): 5rem (Fijo)
-// Col 6 (Acciones): 3.5rem (Fijo)
 const GRID_LAYOUT = 'grid grid-cols-[1fr_7rem_8rem_6rem_5rem_3.5rem] gap-4 items-center px-6';
 
 export const InventoryList = ({ products, isLoading, onEdit, onDelete }: InventoryListProps) => {
@@ -57,14 +50,7 @@ export const InventoryList = ({ products, isLoading, onEdit, onDelete }: Invento
 
    return (
       <div className="flex flex-col h-full w-full bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden shadow-sm">
-         {/* Contenedor de Scroll Horizontal */}
          <div className="flex-1 overflow-x-auto overflow-y-hidden custom-scrollbar">
-            {/* 
-               CAMBIO: Reducimos min-width a 800px.
-               Esto significa que entre el ancho total de pantalla y 800px, 
-               la columna "1fr" (Nombre) se encogerá.
-               Solo si la pantalla baja de 800px saldrá el scroll.
-            */}
             <div className="min-w-[800px] flex flex-col h-full">
                {/* 1. HEADER */}
                <div className="border-b border-zinc-800 bg-zinc-950/50 shrink-0">
@@ -115,7 +101,7 @@ export const InventoryList = ({ products, isLoading, onEdit, onDelete }: Invento
                               />
 
                               <div className={`${GRID_LAYOUT} py-3`}>
-                                 {/* 1. PRODUCTO (Este absorbe el cambio de tamaño) */}
+                                 {/* 1. PRODUCTO */}
                                  <div className="flex flex-col justify-center min-w-0 pr-2">
                                     <span
                                        className="font-bold text-zinc-200 text-[15px] truncate w-full"
