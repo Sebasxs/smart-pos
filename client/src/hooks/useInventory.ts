@@ -43,7 +43,7 @@ export const useInventory = () => {
          totalProducts: products.length,
          totalValue: products.reduce((acc, curr) => acc + curr.price * curr.stock, 0),
          lowStock: products.filter(p => p.stock <= 5).length,
-         discounted: products.filter(p => p.discount_percentage > 0).length,
+         discounted: products.filter(p => p.discountPercentage > 0).length,
       };
    }, [products]);
 
@@ -52,7 +52,7 @@ export const useInventory = () => {
          return products.filter(p => p.stock <= 5);
       }
       if (activeFilter === 'discounted') {
-         return products.filter(p => p.discount_percentage > 0);
+         return products.filter(p => p.discountPercentage > 0);
       }
       return products;
    }, [products, activeFilter]);

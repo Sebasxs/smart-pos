@@ -5,7 +5,7 @@ export interface Product {
    price: number;
    cost: number;
    stock: number;
-   discount_percentage: number;
+   discountPercentage: number;
    supplier: string;
    supplier_id?: string;
    created_at?: string;

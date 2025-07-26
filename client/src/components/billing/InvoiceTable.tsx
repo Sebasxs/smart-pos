@@ -1,7 +1,9 @@
 import { HiOutlineTrash, HiOutlinePencilSquare, HiOutlineTag } from 'react-icons/hi2';
 import { QuantitySelector } from '../ui/QuantitySelector';
-import { type InvoiceItem } from '../../types/billing';
 import { useState, useEffect } from 'react';
+
+// Types
+import { type InvoiceItem } from '../../types/billing';
 
 type InvoiceItemRowProps = {
    item: InvoiceItem;
@@ -9,8 +11,6 @@ type InvoiceItemRowProps = {
    onRemove: (id: string) => void;
 };
 
-// Mantenemos el layout igual, ya es eficiente.
-// Estructura: 1fr (Nombre) | 7rem (Precio) | 8rem (Cantidad) | 6.5rem (Subtotal) | 2rem (Trash)
 const GRID_LAYOUT = 'grid grid-cols-[1fr_7rem_8rem_6.5rem_2rem] gap-4 items-center';
 
 const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
@@ -40,7 +40,6 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
    const hasInventoryDiscount = item.discountPercentage > 0;
    const isModified = item.isManualPrice || item.isManualName;
 
-   // Row Styles
    let rowStyle = 'bg-zinc-800/50 hover:bg-zinc-800 border-transparent';
    let indicatorColor = 'bg-zinc-600';
 
@@ -65,7 +64,7 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
             className={`absolute left-0 top-3 bottom-3 w-[3px] rounded-r-full shadow-[0_0_8px_rgba(99,102,241,0.6)] ${indicatorColor}`}
          />
 
-         {/* 1. PRODUCTO (Elástico) */}
+         {/* 1. PRODUCTO */}
          <div className="flex flex-col min-w-0 pl-3">
             <div className="flex items-center w-full">
                <input
@@ -97,7 +96,7 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
             </div>
          </div>
 
-         {/* 2. VALOR UNITARIO (Fijo) */}
+         {/* 2. VALOR UNITARIO */}
          <div className="flex flex-col justify-center items-end w-full">
             {hasInventoryDiscount && !item.isManualPrice && (
                <div className="text-[10px] text-zinc-500 line-through decoration-zinc-600 mb-0.5 font-mono text-right w-full">
@@ -120,7 +119,7 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
             </div>
          </div>
 
-         {/* 3. CANTIDAD (Fijo) */}
+         {/* 3. CANTIDAD */}
          <div className="flex justify-center w-full">
             <QuantitySelector
                value={item.quantity}
@@ -133,14 +132,14 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
             />
          </div>
 
-         {/* 4. SUBTOTAL (Fijo) */}
+         {/* 4. SUBTOTAL */}
          <div className="flex flex-col items-end w-full">
             <span className="font-bold text-white tracking-tight text-[17px] font-mono tabular-nums">
                ${formatCurrency(item.quantity * item.price)}
             </span>
          </div>
 
-         {/* 5. ACCIONES (Fijo) */}
+         {/* 5. ACCIONES */}
          <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             <button
                onClick={() => onRemove(item.id)}
@@ -163,7 +162,6 @@ export type InvoiceTableProps = {
 export const InvoiceTable = ({ items, onUpdateItem, onRemoveItem }: InvoiceTableProps) => {
    return (
       <div className="flex flex-col h-full bg-transparent overflow-x-auto overflow-y-hidden rounded-xl custom-scrollbar">
-         {/* CAMBIO: min-w reducido de 800px a 600px para permitir mayor compresión del nombre */}
          <div className="min-w-[640px] flex flex-col h-full">
             <div
                className={`${GRID_LAYOUT} py-3 px-4 mb-1 text-[11px] font-bold text-zinc-500 uppercase tracking-wider border-b border-zinc-800/50 shrink-0 select-none`}

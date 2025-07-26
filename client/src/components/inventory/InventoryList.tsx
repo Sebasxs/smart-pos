@@ -73,10 +73,10 @@ export const InventoryList = ({ products, isLoading, onEdit, onDelete }: Invento
                         const { finalPrice, margin } = calculateStats(
                            product.price,
                            product.cost || 0,
-                           product.discount_percentage,
+                           product.discountPercentage,
                         );
                         const isLowStock = product.stock <= 5;
-                        const hasDiscount = product.discount_percentage > 0;
+                        const hasDiscount = product.discountPercentage > 0;
 
                         const rowClass = hasDiscount
                            ? 'bg-emerald-500/[0.04] hover:bg-emerald-500/[0.04]'
@@ -138,7 +138,7 @@ export const InventoryList = ({ products, isLoading, onEdit, onDelete }: Invento
                                                 {formatCurrency(product.price)}
                                              </span>
                                              <span className="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-1.5 rounded-sm leading-none py-0.5">
-                                                -{product.discount_percentage}%
+                                                -{product.discountPercentage}%
                                              </span>
                                           </div>
                                        )}

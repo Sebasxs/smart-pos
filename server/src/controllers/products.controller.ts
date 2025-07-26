@@ -20,8 +20,16 @@ export const getProducts = async (req: Request, res: Response) => {
       if (error) throw error;
 
       const formattedData = data.map((product: any) => ({
-         ...product,
+         id: product.id,
+         name: product.name,
+         description: product.description,
+         price: product.price,
+         cost: product.cost,
+         stock: product.stock,
+         discountPercentage: product.discount_percentage || 0,
          supplier: product.suppliers?.name || 'Sin proveedor',
+         supplierId: product.supplier_id,
+         createdAt: product.created_at,
       }));
 
       res.json(formattedData);
