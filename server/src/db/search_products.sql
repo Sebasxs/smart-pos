@@ -20,6 +20,11 @@ BEGIN
   LEFT JOIN suppliers s ON p.supplier_id = s.id
   WHERE 
     unaccent(p.name) ILIKE '%' || unaccent(search_term) || '%'
+    OR
+    similarity(unaccent(p.name), unaccent(search_term)) > 0.1
+  ORDER BY 
+    similarity(unaccent(p.name), unaccent(search_term)) DESC,
+    p.name ASC
   LIMIT 20;
 END;
 $$ LANGUAGE plpgsql;
