@@ -40,14 +40,14 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
    const hasInventoryDiscount = item.discountPercentage > 0;
    const isModified = item.isManualPrice || item.isManualName;
 
-   let rowStyle = 'bg-zinc-800/50 hover:bg-zinc-800 border-transparent';
-   let indicatorColor = 'bg-zinc-600';
+   let rowStyle = 'bg-transparent hover:bg-zinc-800/30';
+   let indicatorColor = 'bg-transparent';
 
    if (isModified) {
-      rowStyle = 'bg-indigo-900/10 hover:bg-indigo-900/20 border-indigo-500/20';
+      rowStyle = 'bg-indigo-500/[0.04] hover:bg-indigo-500/[0.08]';
       indicatorColor = 'bg-indigo-500';
    } else if (hasInventoryDiscount) {
-      rowStyle = 'bg-emerald-900/10 hover:bg-emerald-900/20 border-emerald-500/20';
+      rowStyle = 'bg-emerald-500/[0.04] hover:bg-emerald-500/[0.08]';
       indicatorColor = 'bg-emerald-500';
    }
 
@@ -55,17 +55,17 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
       <div
          className={`
             ${GRID_LAYOUT} 
-            group relative px-3 py-2 mb-2 rounded-xl transition-all duration-200 mx-2 border
+            group relative px-6 py-3 border-b border-zinc-800/50 transition-all duration-200
             ${rowStyle}
          `}
       >
          {/* Indicador lateral */}
          <div
-            className={`absolute left-0 top-3 bottom-3 w-[3px] rounded-r-full shadow-[0_0_8px_rgba(99,102,241,0.6)] ${indicatorColor}`}
+            className={`absolute left-0 top-0 bottom-0 w-[2px] transition-colors duration-200 ${indicatorColor}`}
          />
 
          {/* 1. PRODUCTO */}
-         <div className="flex flex-col min-w-0 pl-3">
+         <div className="flex flex-col min-w-0 pl-2">
             <div className="flex items-center w-full">
                <input
                   type="text"
@@ -92,7 +92,7 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
          {/* 2. VALOR UNITARIO */}
          <div className="flex flex-col justify-center items-end w-full">
             <div className="relative w-full flex items-center justify-end group/price">
-               <span className="absolute left-auto right-full mr-1 text-xs font-medium pointer-events-none transition-opacity duration-200 opacity-0 group-focus-within/price:opacity-100 text-indigo-600">
+               <span className="absolute left-auto right-full mr-1 text-xs font-medium pointer-events-none transition-opacity duration-200 opacity-0 group-focus-within/price:opacity-100 text-zinc-600">
                   $
                </span>
                <input
@@ -102,7 +102,7 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
                   onBlur={handleBlur}
                   onKeyDown={e => e.key === 'Enter' && e.currentTarget.blur()}
                   className={`
-                     w-full bg-transparent text-right border-b border-transparent focus:border-indigo-500 outline-none font-mono font-medium tracking-tight transition-colors duration-200
+                     w-full bg-transparent text-right py-0 border-b border-transparent focus:border-indigo-500 outline-none font-mono font-medium tracking-tight transition-colors duration-200
                      ${
                         hasInventoryDiscount
                            ? 'text-emerald-400 font-bold'
@@ -169,16 +169,16 @@ export const InvoiceTable = ({ items, onUpdateItem, onRemoveItem }: InvoiceTable
       <div className="flex flex-col h-full bg-transparent overflow-x-auto overflow-y-hidden rounded-xl custom-scrollbar">
          <div className="min-w-[640px] flex flex-col h-full">
             <div
-               className={`${GRID_LAYOUT} py-3 px-4 mb-1 text-[11px] font-bold text-zinc-500 uppercase tracking-wider border-b border-zinc-800/50 shrink-0 select-none`}
+               className={`${GRID_LAYOUT} py-3 px-6 mb-0 text-[11px] font-bold text-zinc-500 uppercase tracking-wider border-b border-zinc-800 bg-zinc-900/50 shrink-0 select-none`}
             >
-               <div>Producto</div>
-               <div className="text-right pr-2">Valor Und.</div>
-               <div className="text-center pr-5">Cantidad</div>
-               <div className="text-right pr-2">Subtotal</div>
+               <div className="pl-2">Producto</div>
+               <div className="text-right">Valor Und.</div>
+               <div className="text-center">Cantidad</div>
+               <div className="text-right">Subtotal</div>
                <div></div>
             </div>
 
-            <div className="flex flex-col flex-1 overflow-y-auto custom-scrollbar px-1 pt-2">
+            <div className="flex flex-col flex-1 overflow-y-auto custom-scrollbar pt-0">
                {items.map(item => (
                   <InvoiceItemRow
                      key={item.id}

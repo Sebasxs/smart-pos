@@ -93,10 +93,10 @@ export const InventoryStats = ({ stats, activeFilter, onToggleFilter }: Inventor
             value={stats.totalProducts}
             icon={HiOutlineCube}
             colorInfo={{
-               text: 'text-indigo-400',
-               bg: 'bg-indigo-500',
-               iconBg: 'bg-indigo-500/20',
-               border: 'border-indigo-500/50',
+               text: 'text-purple-400',
+               bg: 'bg-purple-500',
+               iconBg: 'bg-purple-500/20',
+               border: 'border-purple-500/50',
                shadow: 'shadow-[0_0_15px_-3px_rgba(99,102,241,0.15)]',
             }}
             isActive={activeFilter === 'all'}
