@@ -7,6 +7,8 @@ import {
 } from 'react-icons/hi';
 import { CgSpinner } from 'react-icons/cg';
 import { Modal } from '../ui/Modal';
+
+// Types
 import { type InvoiceItem } from '../../types/billing';
 
 const API_URL = import.meta.env.VITE_API_URL;

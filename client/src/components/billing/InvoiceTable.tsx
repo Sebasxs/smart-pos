@@ -1,4 +1,4 @@
-import { HiOutlineTrash, HiOutlinePencilSquare, HiOutlineTag } from 'react-icons/hi2';
+import { HiOutlineTrash, HiOutlinePencilSquare } from 'react-icons/hi2';
 import { QuantitySelector } from '../ui/QuantitySelector';
 import { useState, useEffect } from 'react';
 
@@ -86,26 +86,13 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
                      <span>Editado</span>
                   </div>
                )}
-
-               {hasInventoryDiscount && (
-                  <div className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-md font-bold bg-emerald-500/10 border border-emerald-500/50 text-emerald-400 leading-none shrink-0">
-                     <HiOutlineTag size={10} />
-                     <span>-{item.discountPercentage}%</span>
-                  </div>
-               )}
             </div>
          </div>
 
          {/* 2. VALOR UNITARIO */}
          <div className="flex flex-col justify-center items-end w-full">
-            {hasInventoryDiscount && !item.isManualPrice && (
-               <div className="text-[10px] text-zinc-500 line-through decoration-zinc-600 mb-0.5 font-mono text-right w-full">
-                  ${formatCurrency(item.originalPrice)}
-               </div>
-            )}
-
             <div className="relative w-full flex items-center justify-end group/price">
-               <span className="absolute left-auto right-full mr-1 text-xs font-medium pointer-events-none transition-opacity duration-200 opacity-0 group-focus-within/price:opacity-100 text-zinc-600">
+               <span className="absolute left-auto right-full mr-1 text-xs font-medium pointer-events-none transition-opacity duration-200 opacity-0 group-focus-within/price:opacity-100 text-indigo-600">
                   $
                </span>
                <input
@@ -114,9 +101,27 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
                   onChange={handlePriceChange}
                   onBlur={handleBlur}
                   onKeyDown={e => e.key === 'Enter' && e.currentTarget.blur()}
-                  className="w-full bg-transparent text-right py-1 border-b border-transparent focus:border-indigo-500 outline-none font-mono font-medium text-[15px] tracking-tight transition-colors duration-200 text-zinc-300"
+                  className={`
+                     w-full bg-transparent text-right border-b border-transparent focus:border-indigo-500 outline-none font-mono font-medium tracking-tight transition-colors duration-200
+                     ${
+                        hasInventoryDiscount
+                           ? 'text-emerald-400 font-bold'
+                           : 'text-zinc-300 text-[15px]'
+                     }
+                  `}
                />
             </div>
+
+            {hasInventoryDiscount && !item.isManualPrice && (
+               <div className="flex items-center gap-1.5 mt-0.5 justify-end w-full">
+                  <span className="text-xs text-zinc-500 line-through decoration-zinc-600 font-mono">
+                     ${formatCurrency(item.originalPrice)}
+                  </span>
+                  <span className="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-1.5 rounded-sm leading-none py-0.5 border border-emerald-500/20">
+                     -{item.discountPercentage}%
+                  </span>
+               </div>
+            )}
          </div>
 
          {/* 3. CANTIDAD */}
@@ -166,10 +171,10 @@ export const InvoiceTable = ({ items, onUpdateItem, onRemoveItem }: InvoiceTable
             <div
                className={`${GRID_LAYOUT} py-3 px-4 mb-1 text-[11px] font-bold text-zinc-500 uppercase tracking-wider border-b border-zinc-800/50 shrink-0 select-none`}
             >
-               <div className="pl-3">Producto</div>
-               <div className="text-right">Valor Und.</div>
-               <div className="text-center">Cantidad</div>
-               <div className="text-right">Subtotal</div>
+               <div>Producto</div>
+               <div className="text-right pr-2">Valor Und.</div>
+               <div className="text-center pr-5">Cantidad</div>
+               <div className="text-right pr-2">Subtotal</div>
                <div></div>
             </div>
 
