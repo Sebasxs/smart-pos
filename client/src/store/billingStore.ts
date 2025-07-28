@@ -1,4 +1,6 @@
 import { create } from 'zustand';
+
+// Types
 import { type InvoiceItem, type Discount } from '../types/billing';
 
 export type CheckoutState = {
@@ -46,7 +48,7 @@ export const useBillingStore = create<BillingState>(set => ({
    addItem: product => {
       set(state => {
          const existingIndex = state.items.findIndex(
-            p => p.id === product.id && product.id !== undefined,
+            p => product.id && p.id === product.id && product.id.length > 0,
          );
 
          if (existingIndex >= 0) {
@@ -63,8 +65,10 @@ export const useBillingStore = create<BillingState>(set => ({
          const finalPrice =
             product.price && product.price < originalPrice ? product.price : idealPrice;
 
+         const hasValidDbId = !!(product.id && product.id.length === 36);
+
          const newItem: InvoiceItem = {
-            id: product.id || crypto.randomUUID(),
+            id: hasValidDbId ? product.id! : crypto.randomUUID(),
             name: baseName,
             originalName: baseName,
             price: finalPrice,
@@ -73,8 +77,9 @@ export const useBillingStore = create<BillingState>(set => ({
             quantity: 1,
             stock: product.stock || 9999,
             supplier: product.supplier || 'No especificado',
-            isManualName: product.isManualName ?? !product.id,
-            isManualPrice: product.isManualPrice ?? !product.id,
+            isManualName: product.isManualName ?? !hasValidDbId,
+            isManualPrice: product.isManualPrice ?? !hasValidDbId,
+            isDatabaseItem: hasValidDbId,
          };
 
          return { items: [...state.items, newItem] };

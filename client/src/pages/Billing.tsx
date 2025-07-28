@@ -89,7 +89,7 @@ export const Billing = () => {
       if (items.length > 0) toggleModal('discardConfirm', true);
    }, [items.length, toggleModal]);
 
-   const handleProcessPayment = useCallback(async () => {
+   const handlePaymentProcess = useCallback(async () => {
       if (!isPaymentValid || isProcessing) return;
 
       setIsProcessing(true);
@@ -99,7 +99,7 @@ export const Billing = () => {
          const payload = {
             customer: checkoutData.customer,
             items: items.map(i => ({
-               id: i.id.length === 36 ? i.id : null,
+               id: i.isDatabaseItem ? i.id : null,
                name: i.name,
                price: i.price,
                quantity: i.quantity,
@@ -126,9 +126,7 @@ export const Billing = () => {
          }
 
          decreaseStockBatch(
-            items
-               .filter(i => i.id && i.id.length === 36)
-               .map(i => ({ id: i.id, quantity: i.quantity })),
+            items.filter(i => i.isDatabaseItem).map(i => ({ id: i.id, quantity: i.quantity })),
          );
          setFinalizedData({ ...checkoutData });
          toggleModal('success', true);
@@ -189,13 +187,13 @@ export const Billing = () => {
 
          if (event.code === 'Enter' && !isInputFocused && isPaymentValid) {
             event.preventDefault();
-            handleProcessPayment();
+            handlePaymentProcess();
          }
       };
 
       window.addEventListener('keydown', handleKeyDown);
       return () => window.removeEventListener('keydown', handleKeyDown);
-   }, [modals, isPaymentValid, triggerDiscard, handleProcessPayment, toggleModal]);
+   }, [modals, isPaymentValid, triggerDiscard, handlePaymentProcess, toggleModal]);
 
    const finalizedCash = finalizedData
       ? parseInt(finalizedData.cashReceivedStr.replace(/[^0-9]/g, '') || '0', 10)
@@ -231,7 +229,7 @@ export const Billing = () => {
                      isProcessing={isProcessing}
                      onOpenDiscount={() => toggleModal('discount', true)}
                      onDiscard={triggerDiscard}
-                     onProcessPayment={handleProcessPayment}
+                     onProcessPayment={handlePaymentProcess}
                   />
                </div>
 

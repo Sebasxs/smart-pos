@@ -238,20 +238,14 @@ export type Database = {
       search_customers: {
         Args: { search_term: string }
         Returns: {
-          city: string | null
-          created_at: string | null
+          city: string
+          created_at: string
           current_balance: number
-          email: string | null
+          email: string
           id: string
           name: string
-          tax_id: string | null
+          tax_id: string
         }[]
-        SetofOptions: {
-          from: "*"
-          to: "customers"
-          isOneToOne: false
-          isSetofReturn: true
-        }
       }
       search_products: {
         Args: { search_term: string }

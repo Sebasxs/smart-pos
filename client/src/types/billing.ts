@@ -13,6 +13,8 @@ export type InvoiceItem = {
 
    isManualPrice: boolean;
    isManualName: boolean;
+
+   isDatabaseItem: boolean;
 };
 
 export type Discount = {
