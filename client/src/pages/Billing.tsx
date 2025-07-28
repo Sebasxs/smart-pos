@@ -44,6 +44,7 @@ export const Billing = () => {
 
    const [finalizedData, setFinalizedData] = useState<CheckoutState | null>(null);
    const [isProcessing, setIsProcessing] = useState(false);
+   const [generatedInvoiceId, setGeneratedInvoiceId] = useState<number | undefined>(undefined);
    const [errorMessage, setErrorMessage] = useState('');
 
    const subtotal = useMemo(
@@ -125,10 +126,13 @@ export const Billing = () => {
             throw new Error(errorData.error || 'Error desconocido al procesar la venta');
          }
 
+         const responseData = await res.json();
+
          decreaseStockBatch(
             items.filter(i => i.isDatabaseItem).map(i => ({ id: i.id, quantity: i.quantity })),
          );
          setFinalizedData({ ...checkoutData });
+         setGeneratedInvoiceId(responseData.invoiceId);
          toggleModal('success', true);
       } catch (error) {
          console.error(error);
@@ -153,6 +157,7 @@ export const Billing = () => {
       resetInvoice();
       toggleModal('success', false);
       setFinalizedData(null);
+      setGeneratedInvoiceId(undefined);
    };
 
    // Keyboard Shortcuts
@@ -280,6 +285,7 @@ export const Billing = () => {
             paymentMethod={finalizedData?.paymentMethod || 'cash'}
             cashReceived={finalizedCash}
             change={Math.max(0, finalizedChange)}
+            invoiceId={generatedInvoiceId}
          />
          <ErrorModal
             isOpen={modals.error}
