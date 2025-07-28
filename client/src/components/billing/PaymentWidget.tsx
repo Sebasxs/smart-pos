@@ -48,8 +48,12 @@ export const PaymentWidget = ({ total }: PaymentWidgetProps) => {
    const { checkoutData, setCheckoutData } = useBillingStore();
    const { paymentMethod, cashReceivedStr } = checkoutData;
 
-   const cashReceived = parseInt(cashReceivedStr.replace(/[^0-9]/g, '') || '0', 10);
-   const change = paymentMethod === 'cash' && cashReceived > total ? cashReceived - total : 0;
+   const inputVal = parseInt(cashReceivedStr.replace(/[^0-9]/g, '') || '0', 10);
+
+   const effectiveReceived = cashReceivedStr === '' || cashReceivedStr === '0' ? total : inputVal;
+
+   const change =
+      paymentMethod === 'cash' && effectiveReceived >= total ? effectiveReceived - total : 0;
 
    const handleCashChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const raw = e.target.value.replace(/[^0-9]/g, '');
@@ -96,7 +100,7 @@ export const PaymentWidget = ({ total }: PaymentWidgetProps) => {
                            value={cashReceivedStr}
                            onChange={handleCashChange}
                            className="w-full bg-transparent text-right text-3xl font-mono font-bold text-white outline-none placeholder:text-zinc-700"
-                           placeholder="0"
+                           placeholder={total > 0 ? total.toLocaleString('es-CO') : '0'}
                         />
                      </div>
                   </div>

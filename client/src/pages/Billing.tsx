@@ -61,14 +61,13 @@ export const Billing = () => {
    const total = Math.max(0, subtotal - discountAmount);
 
    const cashReceived = useMemo(
-      () => parseInt(checkoutData.cashReceivedStr.replace(/[^0-9]/g, '') || '0', 10),
-      [checkoutData.cashReceivedStr],
+      () => parseInt(checkoutData.cashReceivedStr.replace(/[^0-9]/g, '') || '0', 10) || total,
+      [checkoutData.cashReceivedStr, total],
    );
 
    const isPaymentValid =
       items.length > 0 &&
       (checkoutData.paymentMethod === 'transfer' ||
-         cashReceived === 0 ||
          (checkoutData.paymentMethod === 'cash' && cashReceived >= total));
 
    // Handlers
@@ -201,9 +200,9 @@ export const Billing = () => {
    }, [modals, isPaymentValid, triggerDiscard, handlePaymentProcess, toggleModal]);
 
    const finalizedCash = finalizedData
-      ? parseInt(finalizedData.cashReceivedStr.replace(/[^0-9]/g, '') || '0', 10)
+      ? parseInt(finalizedData.cashReceivedStr.replace(/[^0-9]/g, '') || '0', 10) || total
       : 0;
-   const finalizedChange = finalizedData?.paymentMethod === 'cash' ? finalizedCash - total : -total;
+   const finalizedChange = finalizedData?.paymentMethod === 'cash' ? finalizedCash - total : 0;
 
    return (
       <div className="relative w-full flex flex-col gap-4 lg:h-full lg:max-h-screen">
@@ -218,7 +217,7 @@ export const Billing = () => {
                </div>
             </div>
 
-            {/* 3. SIDEBAR (TOTALES Y PAGO) */}
+            {/* 3. RESUMEN */}
             <aside className="w-full lg:w-[340px] lg:shrink-0 flex flex-col h-fit lg:max-h-full lg:overflow-y-auto custom-scrollbar pr-1">
                <div className="flex flex-col md:flex-row lg:flex-col gap-3 w-full shrink-0">
                   <div className="w-full md:flex-1">

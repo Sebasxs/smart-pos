@@ -70,7 +70,7 @@ export const PaymentSuccessModal = ({
                   <button
                      onClick={onClose}
                      autoFocus
-                     className="w-full py-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-lg shadow-lg shadow-blue-900/20 transition-all cursor-pointer active:scale-[0.98]"
+                     className="w-full py-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-lg shadow-lg shadow-blue-900/20 transition-all cursor-pointer active:scale-[0.98] focus:outline-none"
                   >
                      Nueva Venta
                   </button>
