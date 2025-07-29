@@ -19,11 +19,8 @@ export const useInventory = () => {
    } = useInventoryStore();
 
    useEffect(() => {
-      const timeoutId = setTimeout(() => {
-         fetchProducts();
-      }, 300);
-      return () => clearTimeout(timeoutId);
-   }, [fetchProducts, search]);
+      fetchProducts();
+   }, [fetchProducts]);
 
    const deleteProduct = async (id: string) => {
       try {
@@ -48,14 +45,27 @@ export const useInventory = () => {
    }, [products]);
 
    const filteredProducts = useMemo(() => {
+      let result = products;
+
+      // 1. Filtro por búsqueda
+      if (search) {
+         const lowerSearch = search.toLowerCase();
+         result = result.filter(
+            p =>
+               p.name.toLowerCase().includes(lowerSearch) ||
+               p.supplier.toLowerCase().includes(lowerSearch)
+         );
+      }
+
+      // 2. Filtros rápidos
       if (activeFilter === 'lowStock') {
-         return products.filter(p => p.stock <= 5);
+         result = result.filter(p => p.stock <= 5);
+      } else if (activeFilter === 'discounted') {
+         result = result.filter(p => p.discountPercentage > 0);
       }
-      if (activeFilter === 'discounted') {
-         return products.filter(p => p.discountPercentage > 0);
-      }
-      return products;
-   }, [products, activeFilter]);
+
+      return result;
+   }, [products, activeFilter, search]);
 
    return {
       products: filteredProducts,

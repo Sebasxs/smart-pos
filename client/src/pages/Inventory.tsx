@@ -3,6 +3,7 @@ import { useInventory } from '../hooks/useInventory';
 import { InventoryHeader } from '../components/inventory/InventoryHeader';
 import { InventoryStats } from '../components/inventory/InventoryStats';
 import { InventoryList } from '../components/inventory/InventoryList';
+import { ProductModal } from '../components/inventory/ProductModal';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 
 // Types
@@ -24,6 +25,9 @@ export const Inventory = () => {
    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
    const [productToDelete, setProductToDelete] = useState<Product | null>(null);
 
+   const [productModalOpen, setProductModalOpen] = useState(false);
+   const [productToEdit, setProductToEdit] = useState<Product | null>(null);
+
    const handleDeleteClick = (product: Product) => {
       setProductToDelete(product);
       setDeleteModalOpen(true);
@@ -36,13 +40,23 @@ export const Inventory = () => {
       }
    };
 
+   const handleAddClick = () => {
+      setProductToEdit(null);
+      setProductModalOpen(true);
+   };
+
+   const handleEditClick = (product: Product) => {
+      setProductToEdit(product);
+      setProductModalOpen(true);
+   };
+
    return (
       <div className="flex flex-col h-full max-h-screen overflow-hidden p-2 md:p-0 gap-4">
          <div className="shrink-0 flex flex-col">
             <InventoryHeader
                search={search}
                onSearchChange={setSearch}
-               onAddClick={() => console.log('Add')}
+               onAddClick={handleAddClick}
                onRefresh={refresh}
                isLoading={isLoading}
             />
@@ -57,10 +71,16 @@ export const Inventory = () => {
             <InventoryList
                products={products}
                isLoading={isLoading}
-               onEdit={p => console.log('Edit', p)}
+               onEdit={handleEditClick}
                onDelete={handleDeleteClick}
             />
          </div>
+
+         <ProductModal
+            isOpen={productModalOpen}
+            onClose={() => setProductModalOpen(false)}
+            productToEdit={productToEdit}
+         />
 
          <ConfirmModal
             isOpen={deleteModalOpen}

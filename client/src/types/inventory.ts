@@ -7,8 +7,8 @@ export interface Product {
    stock: number;
    discountPercentage: number;
    supplier: string;
-   supplier_id?: string;
-   created_at?: string;
+   supplierId?: string;
+   createdAt?: string;
 }
 
 export interface InventoryStatsData {

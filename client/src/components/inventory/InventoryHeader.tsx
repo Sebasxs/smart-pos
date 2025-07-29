@@ -1,4 +1,4 @@
-import { HiOutlineMagnifyingGlass, HiOutlinePlus, HiOutlineArrowPath } from 'react-icons/hi2';
+import { HiOutlineMagnifyingGlass, HiOutlinePlus, HiOutlineArrowPath, HiOutlineXMark } from 'react-icons/hi2';
 
 type InventoryHeaderProps = {
    search: string;
@@ -34,8 +34,16 @@ export const InventoryHeader = ({
                   value={search}
                   onChange={e => onSearchChange(e.target.value)}
                   placeholder="Buscar producto..."
-                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-blue-500/50 transition-all"
+                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-2.5 pl-10 pr-9 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-blue-500/50 transition-all"
                />
+               {search && (
+                  <button
+                     onClick={() => onSearchChange('')}
+                     className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition-colors cursor-pointer"
+                  >
+                     <HiOutlineXMark size={16} />
+                  </button>
+               )}
             </div>
 
             <button

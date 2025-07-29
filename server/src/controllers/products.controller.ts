@@ -9,7 +9,6 @@ export const getProducts = async (req: Request, res: Response) => {
          .from('products')
          .select('*, suppliers (name)')
          .order('name', { ascending: true })
-         .range(0, 9999);
 
       if (search) {
          query = query.ilike('name', `%${search}%`);
@@ -39,10 +38,79 @@ export const getProducts = async (req: Request, res: Response) => {
    }
 };
 
+export const getSuppliersList = async (_req: Request, res: Response) => {
+   try {
+      const { data, error } = await supabase
+         .from('suppliers')
+         .select('id, name')
+         .order('name');
+
+      if (error) throw error;
+      res.json(data);
+   } catch (error) {
+      res.status(500).json({ error: 'Error cargando proveedores' });
+   }
+};
+
+export const createProduct = async (req: Request, res: Response) => {
+   try {
+      const { name, description, price, cost, stock, discountPercentage, supplierId } = req.body;
+
+      const { data, error } = await supabase
+         .from('products')
+         .insert({
+            name,
+            description,
+            price,
+            cost,
+            stock,
+            discount_percentage: discountPercentage,
+            supplier_id: supplierId || null
+         })
+         .select()
+         .single();
+
+      if (error) throw error;
+
+      res.status(201).json(data);
+   } catch (error) {
+      console.error('Error creating product:', error);
+      res.status(500).json({ error: 'No se pudo crear el producto' });
+   }
+};
+
+export const updateProduct = async (req: Request, res: Response) => {
+   try {
+      const { id } = req.params;
+      const { name, description, price, cost, stock, discountPercentage, supplierId } = req.body;
+
+      const { data, error } = await supabase
+         .from('products')
+         .update({
+            name,
+            description,
+            price,
+            cost,
+            stock,
+            discount_percentage: discountPercentage,
+            supplier_id: supplierId || null
+         })
+         .eq('id', id)
+         .select()
+         .single();
+
+      if (error) throw error;
+
+      res.json(data);
+   } catch (error) {
+      console.error('Error updating product:', error);
+      res.status(500).json({ error: 'No se pudo actualizar el producto' });
+   }
+};
+
 export const deleteProduct = async (req: Request, res: Response) => {
    try {
       const { id } = req.params;
-
       const { error } = await supabase.from('products').delete().eq('id', id);
 
       if (error) throw error;

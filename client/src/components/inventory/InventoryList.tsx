@@ -1,4 +1,4 @@
-import { HiOutlinePencilSquare, HiOutlineTrash, HiOutlineArchiveBoxXMark } from 'react-icons/hi2';
+import { HiOutlineTrash, HiOutlineArchiveBoxXMark } from 'react-icons/hi2';
 
 // Types
 import { type Product } from '../../types/inventory';
@@ -58,8 +58,8 @@ export const InventoryList = ({ products, isLoading, onEdit, onDelete }: Invento
                      className={`${GRID_LAYOUT} py-4 text-xs font-bold text-zinc-500 uppercase tracking-wider`}
                   >
                      <div>Producto / Proveedor</div>
-                     <div className="text-right pr-1">Costo</div>
-                     <div className="text-right pr-1">Precio Venta</div>
+                     <div className="text-right pr-2">Costo</div>
+                     <div className="text-right pr-2">Precio Venta</div>
                      <div className="text-center pr-4">Ganancia</div>
                      <div className="text-center pr-5">Stock</div>
                      <div></div>
@@ -79,21 +79,23 @@ export const InventoryList = ({ products, isLoading, onEdit, onDelete }: Invento
                         const hasDiscount = product.discountPercentage > 0;
 
                         const rowClass = hasDiscount
-                           ? 'bg-emerald-500/[0.04] hover:bg-emerald-500/[0.04]'
+                           ? 'bg-emerald-500/[0.04] hover:bg-emerald-500/[0.08]'
                            : isLowStock
-                           ? 'bg-amber-500/[0.04]'
-                           : 'hover:bg-zinc-800/30';
+                              ? 'bg-amber-500/[0.04] hover:bg-amber-500/[0.08]'
+                              : 'hover:bg-zinc-800/30';
 
                         const indicatorClass = hasDiscount
                            ? 'bg-emerald-500'
                            : isLowStock
-                           ? 'bg-amber-500'
-                           : 'bg-transparent';
+                              ? 'bg-amber-500'
+                              : 'bg-transparent';
 
                         return (
                            <div
                               key={product.id}
-                              className={`relative group transition-colors ${rowClass}`}
+                              onClick={() => onEdit(product)}
+                              className={`relative group transition-colors cursor-pointer ${rowClass}`}
+                              title="Click para editar"
                            >
                               {/* Indicador lateral */}
                               <div
@@ -105,7 +107,6 @@ export const InventoryList = ({ products, isLoading, onEdit, onDelete }: Invento
                                  <div className="flex flex-col justify-center min-w-0 pr-2">
                                     <span
                                        className="font-bold text-zinc-200 text-[15px] truncate w-full"
-                                       title={product.name}
                                     >
                                        {product.name}
                                     </span>
@@ -125,9 +126,8 @@ export const InventoryList = ({ products, isLoading, onEdit, onDelete }: Invento
                                  <div className="text-right">
                                     <div className="flex flex-col items-end justify-center">
                                        <span
-                                          className={`font-mono font-bold text-base ${
-                                             hasDiscount ? 'text-emerald-400' : 'text-zinc-200'
-                                          }`}
+                                          className={`font-mono font-bold text-base ${hasDiscount ? 'text-emerald-400' : 'text-zinc-200'
+                                             }`}
                                        >
                                           {formatCurrency(finalPrice)}
                                        </span>
@@ -162,29 +162,24 @@ export const InventoryList = ({ products, isLoading, onEdit, onDelete }: Invento
                                     <span
                                        className={`
                                        inline-flex items-center justify-center w-12 py-0.5 rounded-md font-mono font-bold text-sm
-                                       ${
-                                          isLowStock
+                                       ${isLowStock
                                              ? 'text-amber-500 bg-amber-500/5'
                                              : 'text-zinc-400 bg-zinc-400/10'
-                                       }
+                                          }
                                        `}
                                     >
                                        {product.stock}
                                     </span>
                                  </div>
 
-                                 {/* 6. ACCIONES */}
+                                 {/* 6. ACCIONES (Solo Eliminar) */}
                                  <div className="text-right">
                                     <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                        <button
-                                          onClick={() => onEdit(product)}
-                                          className="p-1.5 text-zinc-500 hover:text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors cursor-pointer"
-                                          title="Editar"
-                                       >
-                                          <HiOutlinePencilSquare size={18} />
-                                       </button>
-                                       <button
-                                          onClick={() => onDelete(product)}
+                                          onClick={(e) => {
+                                             e.stopPropagation();
+                                             onDelete(product);
+                                          }}
                                           className="p-1.5 text-zinc-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors cursor-pointer"
                                           title="Eliminar"
                                        >
