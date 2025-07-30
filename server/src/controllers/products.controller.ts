@@ -4,17 +4,24 @@ import { supabase } from '../config/supabase';
 export const getProducts = async (req: Request, res: Response) => {
    try {
       const search = String(req.query.search || '').trim();
-
-      let query = supabase
-         .from('products')
-         .select('*, suppliers (name)')
-         .order('name', { ascending: true })
+      let data: any[] = [];
+      let error: any = null;
 
       if (search) {
-         query = query.ilike('name', `%${search}%`);
+         const result = await supabase.rpc('search_products', {
+            search_term: search,
+         });
+         data = result.data || [];
+         error = result.error;
+      } else {
+         const result = await supabase
+            .from('products')
+            .select('*, suppliers (name)')
+            .order('name', { ascending: true })
+            .range(0, 1000);
+         data = result.data || [];
+         error = result.error;
       }
-
-      const { data, error } = await query;
 
       if (error) throw error;
 
@@ -26,7 +33,7 @@ export const getProducts = async (req: Request, res: Response) => {
          cost: product.cost,
          stock: product.stock,
          discountPercentage: product.discount_percentage || 0,
-         supplier: product.suppliers?.name || 'Sin proveedor',
+         supplier: product.supplier_name || product.suppliers?.name || 'Sin proveedor',
          supplierId: product.supplier_id,
          createdAt: product.created_at,
       }));
