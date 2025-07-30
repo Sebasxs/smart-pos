@@ -18,7 +18,7 @@ export const getProducts = async (req: Request, res: Response) => {
             .from('products')
             .select('*, suppliers (name)')
             .order('name', { ascending: true })
-            .range(0, 1000);
+            .range(0, 10000);
          data = result.data || [];
          error = result.error;
       }
