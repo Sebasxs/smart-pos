@@ -250,12 +250,16 @@ export type Database = {
       search_products: {
         Args: { search_term: string }
         Returns: {
-          discountPercentage: number
+          cost: number
+          created_at: string
+          description: string
+          discount_percentage: number
           id: string
           name: string
           price: number
           stock: number
-          supplier: string
+          supplier_id: string
+          supplier_name: string
         }[]
       }
       show_limit: { Args: never; Returns: number }

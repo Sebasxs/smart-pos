@@ -1,5 +1,6 @@
 import { Virtuoso } from 'react-virtuoso';
-import { HiOutlineTrash, HiOutlineArchiveBoxXMark } from 'react-icons/hi2';
+import { HiOutlineTrash, HiOutlineArchiveBoxXMark, HiChevronUp, HiChevronDown } from 'react-icons/hi2';
+import { useInventoryStore, type SortKey } from '../../store/inventoryStore';
 
 // Types
 import { type Product } from '../../types/inventory';
@@ -14,6 +15,8 @@ type InventoryListProps = {
 const GRID_LAYOUT = 'grid grid-cols-[1fr_7rem_8rem_6rem_5rem_3.5rem] gap-4 items-center px-6';
 
 export const InventoryList = ({ products, isLoading, onEdit, onDelete }: InventoryListProps) => {
+   const { sortConfig, setSort } = useInventoryStore();
+
    const formatCurrency = (val: number) => `$${val.toLocaleString('es-CO')}`;
 
    const calculateStats = (price: number, cost: number, discountPercent: number) => {
@@ -28,6 +31,26 @@ export const InventoryList = ({ products, isLoading, onEdit, onDelete }: Invento
       if (margin <= 35) return 'text-zinc-400 bg-zinc-400/10';
       if (margin >= 70) return 'text-emerald-500 bg-emerald-500/10';
       return 'text-blue-400 bg-blue-500/10';
+   };
+
+   const SortableHeader = ({ label, sortKey, align = 'left' }: { label: string, sortKey?: SortKey, align?: 'left' | 'right' | 'center' }) => {
+      if (!sortKey) return <div className={`text-${align}`}>{label}</div>;
+
+      const isActive = sortConfig.key === sortKey;
+
+      return (
+         <div
+            className={`flex items-center gap-1 cursor-pointer hover:text-zinc-300 transition-colors select-none ${align === 'right' ? 'justify-end' : align === 'center' ? 'justify-center' : 'justify-start'
+               }`}
+            onClick={() => setSort(sortKey)}
+         >
+            {label}
+            <div className="flex flex-col">
+               <HiChevronUp size={10} className={`${isActive && sortConfig.direction === 'asc' ? 'text-blue-400' : 'text-zinc-700'}`} />
+               <HiChevronDown size={10} className={`${isActive && sortConfig.direction === 'desc' ? 'text-blue-400' : 'text-zinc-700'}`} style={{ marginTop: -4 }} />
+            </div>
+         </div>
+      );
    };
 
    const Row = (_index: number, product: Product) => {
@@ -180,11 +203,11 @@ export const InventoryList = ({ products, isLoading, onEdit, onDelete }: Invento
                   <div
                      className={`${GRID_LAYOUT} py-4 text-xs font-bold text-zinc-500 uppercase tracking-wider`}
                   >
-                     <div>Producto / Proveedor</div>
-                     <div className="text-right pr-2">Costo</div>
-                     <div className="text-right pr-2">Precio Venta</div>
-                     <div className="text-center pr-4">Ganancia</div>
-                     <div className="text-center pr-5">Stock</div>
+                     <SortableHeader label="Producto / Proveedor" sortKey="name" />
+                     <SortableHeader label="Costo" sortKey="cost" align="right" />
+                     <SortableHeader label="Precio Venta" sortKey="price" align="right" />
+                     <SortableHeader label="Ganancia" sortKey="margin" align="center" />
+                     <SortableHeader label="Stock" sortKey="stock" align="center" />
                      <div></div>
                   </div>
                </div>
