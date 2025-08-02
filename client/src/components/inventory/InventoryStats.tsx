@@ -8,6 +8,7 @@ import {
 // Types
 import { type InventoryStatsData } from '../../types/inventory';
 import { type InventoryFilter } from '../../hooks/useInventory';
+import { formatCurrency } from '../../utils/format';
 
 type ExtendedStatsData = InventoryStatsData & { discounted: number };
 
@@ -141,7 +142,7 @@ export const InventoryStats = ({ stats, activeFilter, onToggleFilter }: Inventor
          {/* 4. VALOR INVENTARIO */}
          <StatCard
             label="Valor Inventario"
-            value={`$${stats.totalValue.toLocaleString('es-CO')}`}
+            value={formatCurrency(stats.totalValue)}
             icon={HiOutlineCurrencyDollar}
             colorInfo={{
                text: 'text-zinc-400',

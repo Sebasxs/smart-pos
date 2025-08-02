@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 
 // Types
 import { type InvoiceItem } from '../../types/billing';
+import { formatCurrency, parseFormattedNumber } from '../../utils/format';
 
 type InvoiceItemRowProps = {
    item: InvoiceItem;
@@ -14,14 +15,10 @@ type InvoiceItemRowProps = {
 const GRID_LAYOUT = 'grid grid-cols-[1fr_7rem_8rem_6.5rem_2rem] gap-4 items-center';
 
 const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
-   const [localPrice, setLocalPrice] = useState(item.price.toLocaleString('es-CO'));
-
-   const parseCurrency = (val: string) => parseInt(val.replace(/[^0-9]/g, '') || '0', 10);
-   const formatCurrency = (val: number) => val.toLocaleString('es-CO');
+   const [localPrice, setLocalPrice] = useState(formatCurrency(item.price));
 
    useEffect(() => {
-      const currentNumeric = parseInt(localPrice.replace(/\./g, '') || '0', 10);
-      if (currentNumeric !== item.price) {
+      if (parseFormattedNumber(localPrice) !== item.price) {
          setLocalPrice(formatCurrency(item.price));
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -30,11 +27,11 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
    const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const rawValue = e.target.value;
       setLocalPrice(rawValue);
-      onUpdate(item.id, { price: parseCurrency(rawValue) });
+      onUpdate(item.id, { price: parseFormattedNumber(rawValue) });
    };
 
    const handleBlur = () => {
-      setLocalPrice(formatCurrency(parseCurrency(localPrice)));
+      setLocalPrice(formatCurrency(parseFormattedNumber(localPrice)));
    };
 
    const hasInventoryDiscount = item.discountPercentage > 0;
@@ -103,10 +100,9 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
                   onKeyDown={e => e.key === 'Enter' && e.currentTarget.blur()}
                   className={`
                      w-full bg-transparent text-right py-0 border-b border-transparent focus:border-indigo-500 outline-none font-mono font-medium tracking-tight transition-colors duration-200
-                     ${
-                        hasInventoryDiscount
-                           ? 'text-emerald-400 font-bold'
-                           : 'text-zinc-300 text-[15px]'
+                     ${hasInventoryDiscount
+                        ? 'text-emerald-400 font-bold'
+                        : 'text-zinc-300 text-[15px]'
                      }
                   `}
                />

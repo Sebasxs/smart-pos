@@ -1,38 +1,18 @@
-import { useState, useEffect, type ComponentProps } from 'react';
+import { useState, useEffect } from 'react';
 import { Modal } from '../ui/Modal';
-
 import { CustomSelect } from '../ui/CustomSelect';
+import { Input } from '../ui/Input';
 import { useInventoryStore } from '../../store/inventoryStore';
-import { type Product } from '../../types/inventory';
+import { formatCurrency, parseFormattedNumber } from '../../utils/format';
 import { HiOutlineCube, HiOutlineTag } from 'react-icons/hi2';
+
+// Types
+import { type Product } from '../../types/inventory';
 
 type ProductModalProps = {
    isOpen: boolean;
    onClose: () => void;
    productToEdit?: Product | null;
-};
-
-type InputProps = { label: string } & ComponentProps<'input'>;
-
-const Input = ({ label, className = '', ...props }: InputProps) => {
-   return (
-      <div className="w-full">
-         <label className="block text-sm font-medium text-zinc-400 mb-1.5">
-            {label}
-         </label>
-         <input
-            className={`
-               w-full bg-zinc-900/50 border border-zinc-700 text-zinc-200 
-               rounded-xl px-3 h-[42px] outline-none
-               hover:border-zinc-600
-               focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500
-               transition-all text-sm
-               ${className}
-            `}
-            {...props}
-         />
-      </div>
-   );
 };
 
 const initialForm = {
@@ -43,21 +23,6 @@ const initialForm = {
    stock: 0,
    discountPercentage: 0,
    supplierId: '',
-};
-
-// Formatea un número para mostrarlo con separadores de miles (sin decimales)
-const formatCurrencyDisplay = (value: number): string => {
-   return value.toLocaleString('es-CO', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-   });
-};
-
-// Convierte una cadena formateada de vuelta a número
-const parseFormattedNumber = (value: string): number => {
-   // Remueve todos los separadores de miles y caracteres no numéricos
-   const cleanValue = value.replace(/[^\d]/g, '');
-   return cleanValue ? parseInt(cleanValue, 10) : 0;
 };
 
 export const ProductModal = ({ isOpen, onClose, productToEdit }: ProductModalProps) => {
@@ -159,7 +124,7 @@ export const ProductModal = ({ isOpen, onClose, productToEdit }: ProductModalPro
                            <input
                               name="cost"
                               type="text"
-                              value={form.cost === 0 ? '' : formatCurrencyDisplay(form.cost)}
+                              value={form.cost === 0 ? '' : formatCurrency(form.cost)}
                               onChange={(e) => {
                                  const numericValue = parseFormattedNumber(e.target.value);
                                  handleChange({ target: { name: 'cost', value: String(numericValue) } } as any);
@@ -176,7 +141,7 @@ export const ProductModal = ({ isOpen, onClose, productToEdit }: ProductModalPro
                            <input
                               name="price"
                               type="text"
-                              value={form.price === 0 ? '' : formatCurrencyDisplay(form.price)}
+                              value={form.price === 0 ? '' : formatCurrency(form.price)}
                               onChange={(e) => {
                                  const numericValue = parseFormattedNumber(e.target.value);
                                  handleChange({ target: { name: 'price', value: String(numericValue) } } as any);

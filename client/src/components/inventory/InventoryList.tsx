@@ -1,6 +1,7 @@
 import { Virtuoso } from 'react-virtuoso';
 import { HiOutlineTrash, HiOutlineArchiveBoxXMark, HiChevronUp, HiChevronDown } from 'react-icons/hi2';
 import { useInventoryStore, type SortKey } from '../../store/inventoryStore';
+import { formatCurrency } from '../../utils/format';
 
 // Types
 import { type Product } from '../../types/inventory';
@@ -16,8 +17,6 @@ const GRID_LAYOUT = 'grid grid-cols-[1fr_7rem_8rem_6rem_5rem_3.5rem] gap-4 items
 
 export const InventoryList = ({ products, isLoading, onEdit, onDelete }: InventoryListProps) => {
    const { sortConfig, setSort } = useInventoryStore();
-
-   const formatCurrency = (val: number) => `$${val.toLocaleString('es-CO')}`;
 
    const calculateStats = (price: number, cost: number, discountPercent: number) => {
       const finalPrice = discountPercent > 0 ? price * (1 - discountPercent / 100) : price;
@@ -100,19 +99,19 @@ export const InventoryList = ({ products, isLoading, onEdit, onDelete }: Invento
 
                {/* 2. COSTO */}
                <div className="text-right">
-                  <span className="font-mono text-zinc-400 text-sm font-medium">
-                     {formatCurrency(product.cost || 0)}
+                  <span className="font-mono text-zinc-400 text-sm font-medium pr-1">
+                     {formatCurrency(product.cost || 0, true)}
                   </span>
                </div>
 
                {/* 3. PRECIO */}
                <div className="text-right">
-                  <div className="flex flex-col items-end justify-center">
+                  <div className="flex flex-col items-end justify-center pr-1">
                      <span
                         className={`font-mono font-bold text-base ${hasDiscount ? 'text-emerald-400' : 'text-zinc-200'
                            }`}
                      >
-                        {formatCurrency(finalPrice)}
+                        {formatCurrency(finalPrice, true)}
                      </span>
 
                      {hasDiscount && (
@@ -129,7 +128,7 @@ export const InventoryList = ({ products, isLoading, onEdit, onDelete }: Invento
                </div>
 
                {/* 4. GANANCIA */}
-               <div className="text-center">
+               <div className="text-center pl-2">
                   <span
                      className={`
                      inline-flex items-center justify-center w-12 py-0.5 rounded-md font-mono font-bold text-sm
@@ -141,7 +140,7 @@ export const InventoryList = ({ products, isLoading, onEdit, onDelete }: Invento
                </div>
 
                {/* 5. STOCK */}
-               <div className="text-center">
+               <div className="text-center pl-2">
                   <span
                      className={`
                      inline-flex items-center justify-center w-12 py-0.5 rounded-md font-mono font-bold text-sm
