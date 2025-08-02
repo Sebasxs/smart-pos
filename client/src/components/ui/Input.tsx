@@ -16,7 +16,7 @@ export const Input = ({ label, id, name, className = '', ...props }: InputProps)
             className={`
                w-full bg-zinc-900/50 border border-zinc-700 text-zinc-200 
                rounded-xl px-3 h-[42px] outline-none
-               focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500
+               focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500
                hover:border-zinc-600
                transition-all text-sm
                ${className}

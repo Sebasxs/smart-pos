@@ -99,7 +99,7 @@ export const CustomSelect = ({
    options,
    placeholder = '-- Seleccionar --',
    className = '',
-   color = 'purple',
+   color = 'blue',
 }: CustomSelectProps) => {
    const [isOpen, setIsOpen] = useState(false);
    const [highlightedIndex, setHighlightedIndex] = useState(0);

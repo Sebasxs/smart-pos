@@ -100,7 +100,7 @@ export const ProductModal = ({ isOpen, onClose, productToEdit }: ProductModalPro
                      required
                      autoFocus
                      placeholder="Ej: Diadema gamer"
-                     className="focus:border-purple-500"
+                     className="focus:border-blue-500"
                   />
                </div>
 
@@ -111,7 +111,7 @@ export const ProductModal = ({ isOpen, onClose, productToEdit }: ProductModalPro
                   onChange={(value) => handleChange({ target: { name: 'supplierId', value } } as any)}
                   options={suppliers.map(s => ({ value: s.id, label: s.name }))}
                   placeholder="-- Seleccionar --"
-                  color="purple"
+                  color="blue"
                />
 
                {/* 3. Costo y precio */}
@@ -130,7 +130,7 @@ export const ProductModal = ({ isOpen, onClose, productToEdit }: ProductModalPro
                                  handleChange({ target: { name: 'cost', value: String(numericValue) } } as any);
                               }}
                               placeholder="0"
-                              className="w-full h-[42px] bg-zinc-900/50 border border-zinc-700 text-zinc-200 rounded-xl pl-6 pr-3 outline-none hover:border-zinc-600 focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-sm"
+                              className="w-full h-[42px] bg-zinc-900/50 border border-zinc-700 text-zinc-200 rounded-xl pl-6 pr-3 outline-none hover:border-zinc-600 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all text-sm"
                            />
                         </div>
                      </div>
@@ -147,7 +147,7 @@ export const ProductModal = ({ isOpen, onClose, productToEdit }: ProductModalPro
                                  handleChange({ target: { name: 'price', value: String(numericValue) } } as any);
                               }}
                               placeholder="0"
-                              className="w-full h-[42px] bg-zinc-900/50 border border-zinc-700 text-zinc-200 rounded-xl pl-6 pr-3 outline-none hover:border-zinc-600 focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-sm"
+                              className="w-full h-[42px] bg-zinc-900/50 border border-zinc-700 text-zinc-200 rounded-xl pl-6 pr-3 outline-none hover:border-zinc-600 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all text-sm"
                            />
                         </div>
                      </div>
@@ -163,7 +163,7 @@ export const ProductModal = ({ isOpen, onClose, productToEdit }: ProductModalPro
                         onChange={handleChange}
                         min="0"
                         placeholder="0"
-                        className="no-spinners focus:border-purple-500 text-center"
+                        className="no-spinners focus:border-blue-500 text-center"
                      />
                      <Input
                         label="Descuento (%)"
@@ -174,7 +174,7 @@ export const ProductModal = ({ isOpen, onClose, productToEdit }: ProductModalPro
                         min="0"
                         max="100"
                         placeholder="0"
-                        className="no-spinners focus:border-purple-500 text-center"
+                        className="no-spinners focus:border-blue-500 text-center"
                      />
                   </div>
                </div>
@@ -187,7 +187,7 @@ export const ProductModal = ({ isOpen, onClose, productToEdit }: ProductModalPro
                      value={form.description}
                      onChange={handleChange}
                      placeholder="Detalles adicionales..."
-                     className="focus:border-purple-500"
+                     className="focus:border-blue-500"
                   />
                </div>
 
@@ -203,7 +203,7 @@ export const ProductModal = ({ isOpen, onClose, productToEdit }: ProductModalPro
                   <button
                      type="submit"
                      disabled={isSubmitting}
-                     className="px-6 py-2 rounded-lg bg-purple-600 text-white hover:bg-purple-500 transition-all font-bold shadow-lg shadow-purple-500/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98] text-sm"
+                     className="px-6 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-500 transition-all font-bold shadow-lg shadow-blue-500/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98] text-sm"
                   >
                      {isSubmitting ? 'Guardando...' : 'Guardar'}
                   </button>

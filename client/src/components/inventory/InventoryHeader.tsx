@@ -59,7 +59,7 @@ export const InventoryHeader = ({
 
             <button
                onClick={onAddClick}
-               className="flex items-center gap-2 bg-purple-600 hover:bg-purple-500 text-white px-4 py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-purple-900/20 active:scale-95 cursor-pointer"
+               className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-blue-900/20 active:scale-95 cursor-pointer"
             >
                <HiOutlinePlus size={18} />
                <span className="hidden sm:inline">Nuevo Producto</span>
