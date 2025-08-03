@@ -1,4 +1,7 @@
 import { HiOutlineTrash, HiOutlineCheckCircle, HiOutlineTag } from 'react-icons/hi2';
+import { Button } from '../ui/Button';
+
+// Types
 import { type Discount } from '../../types/billing';
 
 type BillingTotalsProps = {
@@ -25,14 +28,6 @@ export const BillingTotals = ({
    onProcessPayment,
 }: BillingTotalsProps) => {
    const formatCurrency = (amount: number) => `$${amount.toLocaleString('es-CO')}`;
-
-   const buttonBaseClass =
-      'w-full font-bold py-4 rounded-xl text-lg tracking-wide transition-all duration-200 shadow-lg flex justify-center items-center gap-1.5 group relative overflow-hidden';
-
-   const buttonStateClass =
-      isPaymentValid && !isProcessing
-         ? 'bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white shadow-blue-900/20 translate-y-0 hover:-translate-y-0.5 cursor-pointer'
-         : 'bg-zinc-800 text-zinc-600 cursor-not-allowed border border-zinc-700 shadow-none';
 
    return (
       <div className="w-full md:flex-1 bg-zinc-900 rounded-xl border border-zinc-800 shadow-sm shrink-0 flex flex-col overflow-hidden">
@@ -75,9 +70,8 @@ export const BillingTotals = ({
                         </span>
                      )}
                      <span
-                        className={`font-mono font-medium ${
-                           discountAmount > 0 ? 'text-red-400' : 'text-zinc-500'
-                        }`}
+                        className={`font-mono font-medium ${discountAmount > 0 ? 'text-red-400' : 'text-zinc-500'
+                           }`}
                      >
                         -{formatCurrency(discountAmount)}
                      </span>
@@ -93,27 +87,23 @@ export const BillingTotals = ({
                   </span>
                </div>
 
-               <button
+               <Button
                   onClick={onProcessPayment}
                   disabled={!isPaymentValid || isProcessing}
-                  className={`${buttonBaseClass} ${buttonStateClass}`}
+                  isLoading={isProcessing}
+                  className="w-full py-4 text-lg shadow-blue-900/20"
                >
-                  <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-                  {isProcessing ? (
-                     <span className="flex items-center gap-2">Procesando...</span>
-                  ) : (
+                  {!isProcessing && (
                      <>
                         <span>Confirmar Venta</span>
                         <HiOutlineCheckCircle
-                           className={`group-hover:text-white transition-colors ${
-                              isPaymentValid ? 'text-blue-200' : 'text-zinc-600'
-                           }`}
+                           className={`transition-colors ${isPaymentValid ? 'text-blue-200' : 'text-zinc-600'
+                              }`}
                            size={24}
                         />
                      </>
                   )}
-               </button>
+               </Button>
             </div>
          </div>
       </div>

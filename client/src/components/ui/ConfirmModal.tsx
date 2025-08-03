@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Modal } from './Modal';
+import { Button } from './Button';
 import { HiOutlineExclamationTriangle } from 'react-icons/hi2';
 
 type ConfirmModalProps = {
@@ -36,21 +37,21 @@ export const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message }: Con
             <p className="w-80 text-zinc-400 mb-6">{message}</p>
 
             <div className="flex gap-3 justify-center">
-               <button
+               <Button
+                  variant="secondary"
                   onClick={onClose}
-                  className="px-6 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition-colors font-medium cursor-pointer"
                >
                   Cancelar
-               </button>
-               <button
+               </Button>
+               <Button
+                  variant="danger"
                   onClick={() => {
                      onConfirm();
                      onClose();
                   }}
-                  className="px-6 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white transition-colors font-bold cursor-pointer"
                >
                   Confirmar
-               </button>
+               </Button>
             </div>
          </div>
       </Modal>

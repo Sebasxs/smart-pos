@@ -1,6 +1,5 @@
 import {
    HiOutlineCube,
-   HiOutlineCurrencyDollar,
    HiOutlineExclamationTriangle,
    HiOutlineTag,
 } from 'react-icons/hi2';
@@ -10,7 +9,11 @@ import { type InventoryStatsData } from '../../types/inventory';
 import { type InventoryFilter } from '../../hooks/useInventory';
 import { formatCurrency } from '../../utils/format';
 
-type ExtendedStatsData = InventoryStatsData & { discounted: number };
+type ExtendedStatsData = InventoryStatsData & {
+   discounted: number;
+   averageDiscount: number;
+   outOfStock: number;
+};
 
 type StatCardProps = {
    label: string;
@@ -26,6 +29,7 @@ type StatCardProps = {
    isActive?: boolean;
    onClick?: () => void;
    className?: string;
+   children?: React.ReactNode;
 };
 
 const StatCard = ({
@@ -36,13 +40,22 @@ const StatCard = ({
    isActive = false,
    onClick,
    className = '',
+   children,
 }: StatCardProps) => {
    const baseStyle =
-      'relative overflow-hidden border-2 rounded-xl p-3 flex items-center gap-4 transition-all duration-200 text-left';
+      'relative overflow-hidden border-2 rounded-xl p-2 flex items-center gap-3 transition-all duration-200 text-left';
+
+   const effectiveColors = isActive ? colorInfo : {
+      text: 'text-zinc-500',
+      bg: 'bg-zinc-500',
+      border: 'border-zinc-800',
+      iconBg: 'bg-zinc-800',
+      shadow: 'shadow-none',
+   };
 
    const activeStyle = isActive
-      ? `bg-zinc-800 ${colorInfo.border} ${colorInfo.shadow}`
-      : `bg-zinc-900 hover:bg-zinc-800 border-zinc-800 hover:${colorInfo.border}`;
+      ? `bg-zinc-800 ${effectiveColors.border} ${effectiveColors.shadow}`
+      : `bg-zinc-900 hover:bg-zinc-800 ${effectiveColors.border}`;
 
    const cursorClass = onClick ? 'cursor-pointer active:scale-[0.98]' : 'cursor-default';
 
@@ -51,26 +64,27 @@ const StatCard = ({
          onClick={onClick}
          className={`${baseStyle} ${cursorClass} ${activeStyle} ${className}`}
       >
-         <div className={`absolute inset-0 opacity-[0.03] pointer-events-none ${colorInfo.bg}`} />
+         <div className={`absolute inset-0 opacity-[0.03] pointer-events-none ${effectiveColors.bg}`} />
 
          <div
-            className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border border-white/5 ${colorInfo.iconBg} ${colorInfo.text}`}
+            className={`m-1 w-22 self-stretch rounded-lg hidden sm:flex items-center justify-center border border-white/5 ${effectiveColors.iconBg} ${effectiveColors.text}`}
          >
-            <Icon size={24} />
+            <Icon size={48} />
          </div>
 
          <div className="min-w-0 flex-1 relative z-10">
             <p
-               className={`text-[11px] font-bold uppercase tracking-wider mb-0.5 ${colorInfo.text}`}
+               className={`text-[11px] font-bold uppercase tracking-wider mb-0.5 ${effectiveColors.text}`}
             >
                {label}
             </p>
             <p
-               className={`text-2xl font-mono font-bold tracking-tight text-white`}
+               className={`text-xl font-mono font-bold tracking-tight text-white`}
                title={String(value)}
             >
                {value}
             </p>
+            {children}
          </div>
       </button>
    );
@@ -83,12 +97,9 @@ type InventoryStatsProps = {
 };
 
 export const InventoryStats = ({ stats, activeFilter, onToggleFilter }: InventoryStatsProps) => {
-   const commonCardClass = 'flex-1 min-w-[200px]';
-   const valueCardClass = 'flex-1 lg:flex-[1.5] min-w-[200px] lg:min-w-[260px]';
-
    return (
-      <div className="flex flex-wrap gap-3 lg:gap-4 mb-2 shrink-0">
-         {/* 1. TOTAL ITEMS */}
+      <div className="flex items-stretch gap-3 shrink-0 w-full lg:w-auto overflow-x-auto md:flex-wrap">
+         {/* 1. TOTAL ITEMS & VALUE */}
          <StatCard
             label="Productos"
             value={stats.totalProducts}
@@ -102,8 +113,13 @@ export const InventoryStats = ({ stats, activeFilter, onToggleFilter }: Inventor
             }}
             isActive={activeFilter === 'all'}
             onClick={() => onToggleFilter('all')}
-            className={commonCardClass}
-         />
+            className="flex-1 min-w-0 md:min-w-[140px]"
+         >
+            <div className="mt-1 pt-1 border-t border-white/10">
+               <p className="text-[10px] text-zinc-400 font-medium tracking-wide uppercase">Valor Total</p>
+               <p className="text-xs font-mono text-purple-300">{formatCurrency(stats.totalValue)}</p>
+            </div>
+         </StatCard>
 
          {/* 2. OFERTAS */}
          <StatCard
@@ -119,8 +135,13 @@ export const InventoryStats = ({ stats, activeFilter, onToggleFilter }: Inventor
             }}
             isActive={activeFilter === 'discounted'}
             onClick={() => onToggleFilter('discounted')}
-            className={commonCardClass}
-         />
+            className="flex-1 min-w-0 md:min-w-[140px]"
+         >
+            <div className="mt-1 pt-1 border-t border-white/10">
+               <p className="text-[10px] text-zinc-400 font-medium tracking-wide uppercase">Promedio Descuento</p>
+               <p className="text-xs font-mono text-emerald-300">{stats.averageDiscount}%</p>
+            </div>
+         </StatCard>
 
          {/* 3. STOCK BAJO */}
          <StatCard
@@ -136,23 +157,13 @@ export const InventoryStats = ({ stats, activeFilter, onToggleFilter }: Inventor
             }}
             isActive={activeFilter === 'lowStock'}
             onClick={() => onToggleFilter('lowStock')}
-            className={commonCardClass}
-         />
-
-         {/* 4. VALOR INVENTARIO */}
-         <StatCard
-            label="Valor Inventario"
-            value={formatCurrency(stats.totalValue)}
-            icon={HiOutlineCurrencyDollar}
-            colorInfo={{
-               text: 'text-zinc-400',
-               bg: 'bg-zinc-500',
-               iconBg: 'bg-zinc-800',
-               border: 'border-zinc-700',
-               shadow: 'shadow-none',
-            }}
-            className={valueCardClass}
-         />
+            className="flex-1 min-w-0 md:min-w-[140px]"
+         >
+            <div className="mt-1 pt-1 border-t border-white/10">
+               <p className="text-[10px] text-zinc-400 font-medium tracking-wide uppercase">Agotados</p>
+               <p className="text-xs font-mono text-amber-300">{stats.outOfStock}</p>
+            </div>
+         </StatCard>
       </div>
    );
 };

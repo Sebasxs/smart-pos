@@ -7,7 +7,7 @@ export const MobileNavbar = () => {
    const { toggleMobileMenu } = useUIStore();
 
    return (
-      <header className="md:hidden h-16 bg-zinc-900 border-b border-zinc-800 flex items-center px-4 justify-between shrink-0 z-30 relative">
+      <header className="md:hidden h-12 bg-zinc-900 border-b border-zinc-800 flex items-center px-4 justify-between shrink-0 z-30 relative">
          <div className="flex items-center gap-3">
             <button
                onClick={toggleMobileMenu}

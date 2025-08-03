@@ -29,9 +29,8 @@ const PaymentMethodButton = ({
          className={`${baseClass} ${isActive ? activeClass : inactiveClass}`}
       >
          <div
-            className={`rounded-lg transition-colors duration-200 ${
-               isActive ? textClass : 'text-zinc-700'
-            }`}
+            className={`rounded-lg transition-colors duration-200 ${isActive ? textClass : 'text-zinc-700'
+               }`}
          >
             <Icon size={20} />
          </div>
@@ -90,13 +89,12 @@ export const PaymentWidget = ({ total }: PaymentWidgetProps) => {
             {paymentMethod === 'cash' ? (
                <div className="space-y-4">
                   <div className="relative group">
-                     <label className="absolute -top-2.5 left-2 bg-zinc-900 px-2 text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
+                     <label className="absolute -top-2.5 left-2 bg-zinc-900 px-2 text-[10px] font-bold text-zinc-500 uppercase tracking-wider rounded-full">
                         Recibido
                      </label>
                      <div className="flex items-center border border-zinc-700 rounded-xl px-4 py-3 bg-zinc-800/30 focus-within:bg-zinc-800/50 focus-within:border-emerald-500/50 transition-all">
                         <span className="text-zinc-500 text-xl font-medium mr-2">$</span>
                         <input
-                           type="text"
                            value={cashReceivedStr}
                            onChange={handleCashChange}
                            className="w-full bg-transparent text-right text-3xl font-mono font-bold text-white outline-none placeholder:text-zinc-700"
@@ -110,9 +108,8 @@ export const PaymentWidget = ({ total }: PaymentWidgetProps) => {
                         Cambio
                      </span>
                      <span
-                        className={`text-2xl font-mono font-bold ${
-                           change > 0 ? 'text-emerald-400' : 'text-zinc-600'
-                        }`}
+                        className={`text-2xl font-mono font-bold ${change > 0 ? 'text-emerald-400' : 'text-zinc-600'
+                           }`}
                      >
                         ${change.toLocaleString('es-CO')}
                      </span>

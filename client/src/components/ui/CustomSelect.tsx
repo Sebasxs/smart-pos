@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { HiCheck, HiChevronDown } from 'react-icons/hi2';
+import { cn } from '../../utils/cn';
 
 type Option = {
    value: string;
@@ -15,6 +16,7 @@ type CustomSelectProps = {
    options: Option[];
    placeholder?: string;
    className?: string;
+   containerClassName?: string;
    color?: ColorVariant;
 };
 
@@ -99,6 +101,7 @@ export const CustomSelect = ({
    options,
    placeholder = '-- Seleccionar --',
    className = '',
+   containerClassName = '',
    color = 'blue',
 }: CustomSelectProps) => {
    const [isOpen, setIsOpen] = useState(false);
@@ -109,7 +112,6 @@ export const CustomSelect = ({
    const selectedOption = options.find(opt => opt.value === value);
    const styles = colorStyles[color];
 
-   // Cerrar al hacer click fuera
    useEffect(() => {
       const handleClickOutside = (e: MouseEvent) => {
          if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
@@ -123,7 +125,6 @@ export const CustomSelect = ({
       }
    }, [isOpen]);
 
-   // Navegación con teclado
    useEffect(() => {
       if (!isOpen) return;
 
@@ -157,7 +158,6 @@ export const CustomSelect = ({
       return () => document.removeEventListener('keydown', handleKeyDown);
    }, [isOpen, highlightedIndex, options, onChange]);
 
-   // Scroll automático al elemento resaltado
    useEffect(() => {
       if (isOpen && dropdownRef.current) {
          const highlightedElement = dropdownRef.current.children[highlightedIndex] as HTMLElement;
@@ -170,7 +170,6 @@ export const CustomSelect = ({
    const handleToggle = () => {
       setIsOpen(!isOpen);
       if (!isOpen) {
-         // Resaltar la opción seleccionada al abrir
          const selectedIndex = options.findIndex(opt => opt.value === value);
          setHighlightedIndex(selectedIndex >= 0 ? selectedIndex : 0);
       }
@@ -182,7 +181,7 @@ export const CustomSelect = ({
    };
 
    return (
-      <div className={className}>
+      <div className={cn("w-full", containerClassName)}>
          {label && (
             <div className="block text-sm font-medium text-zinc-400 mb-1.5 cursor-default">
                {label}
@@ -194,22 +193,25 @@ export const CustomSelect = ({
             <button
                type="button"
                onClick={handleToggle}
-               className={`
-                  w-full h-[42px] bg-zinc-900/50 border text-zinc-200 cursor-pointer
-                  rounded-xl px-3 pr-10 outline-none transition-all text-sm text-left
-                  flex items-center relative
-                  ${isOpen
+               className={cn(
+                  "w-full h-[42px] bg-zinc-900/50 border text-zinc-200 cursor-pointer",
+                  "rounded-xl px-3 pr-10 outline-none transition-all text-sm text-left",
+                  "flex items-center relative",
+                  isOpen
                      ? `ring-2 ${styles.ring} ${styles.border}`
-                     : 'border-zinc-700 hover:border-zinc-600'
-                  }
-               `}
+                     : "border-zinc-700 hover:border-zinc-600",
+                  className
+               )}
             >
-               <span className={selectedOption ? 'text-zinc-200' : 'text-zinc-500 italic'}>
+               <span className={selectedOption && value !== '' ? 'text-zinc-200' : 'text-zinc-400'}>
                   {selectedOption ? selectedOption.label : placeholder}
                </span>
                <HiChevronDown
-                  className={`absolute right-3 transition-transform duration-200 ${styles.text} ${isOpen ? 'rotate-180' : ''
-                     }`}
+                  className={cn(
+                     "absolute right-3 transition-transform duration-200",
+                     styles.text,
+                     isOpen && "rotate-180"
+                  )}
                   size={20}
                />
             </button>
@@ -230,19 +232,18 @@ export const CustomSelect = ({
                               key={option.value}
                               onClick={() => handleSelect(option.value)}
                               onMouseEnter={() => setHighlightedIndex(index)}
-                              className={`
-                                 px-4 py-3 cursor-pointer transition-all duration-150 flex items-center justify-between
-                                 ${isHighlighted
+                              className={cn(
+                                 "px-4 py-3 cursor-pointer transition-all duration-150 flex items-center justify-between",
+                                 isHighlighted
                                     ? `bg-gradient-to-r ${styles.gradient} text-white font-medium shadow-lg ${styles.shadow}`
-                                    : 'text-zinc-300 hover:bg-zinc-800/50'
-                                 }
-                                 ${isSelected && !isHighlighted ? `bg-zinc-800/70 ${styles.optionSelected} font-medium` : ''}
-                              `}
+                                    : "text-zinc-300 hover:bg-zinc-800/50",
+                                 isSelected && !isHighlighted && `bg-zinc-800/70 ${styles.optionSelected} font-medium`
+                              )}
                            >
                               <span className="text-sm">{option.label}</span>
                               {isSelected && (
                                  <HiCheck
-                                    className={`${isHighlighted ? 'text-white' : styles.check}`}
+                                    className={isHighlighted ? 'text-white' : styles.check}
                                     size={18}
                                  />
                               )}

@@ -54,7 +54,7 @@ export const Modal = ({
       >
          <div
             className={`
-               bg-zinc-900 border border-zinc-800 shadow-2xl shadow-black/80 
+               bg-zinc-950 border border-zinc-800 shadow-2xl shadow-black/80 
                max-h-[85vh] overflow-hidden
                ${widthClass}
                ${contentAnimation}

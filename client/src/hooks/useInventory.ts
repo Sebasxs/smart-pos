@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useInventoryStore } from '../store/inventoryStore';
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -17,13 +17,18 @@ export const useInventory = () => {
       setFilter,
       error,
       isInitialized,
+      suppliers,
+      fetchSuppliers,
    } = useInventoryStore();
+
+   const [selectedSupplier, setSelectedSupplier] = useState<string>('');
 
    useEffect(() => {
       if (!isInitialized) {
          fetchProducts();
+         fetchSuppliers();
       }
-   }, [isInitialized, fetchProducts]);
+   }, [isInitialized, fetchProducts, fetchSuppliers]);
 
    const deleteProduct = async (id: string) => {
       try {
@@ -38,24 +43,43 @@ export const useInventory = () => {
       }
    };
 
-   const stats = useMemo(() => {
-      return {
-         totalProducts: products.length,
-         totalValue: products.reduce((acc, curr) => acc + curr.price * curr.stock, 0),
-         lowStock: products.filter(p => p.stock <= 5).length,
-         discounted: products.filter(p => p.discountPercentage > 0).length,
-      };
-   }, [products]);
-
-   const filteredProducts = useMemo(() => {
-      if (activeFilter === 'lowStock') {
-         return products.filter(p => p.stock <= 5);
-      }
-      if (activeFilter === 'discounted') {
-         return products.filter(p => p.discountPercentage > 0);
+   const productsBySupplier = useMemo(() => {
+      if (selectedSupplier) {
+         return products.filter(p => p.supplierId === selectedSupplier);
       }
       return products;
-   }, [products, activeFilter]);
+   }, [products, selectedSupplier]);
+
+   const stats = useMemo(() => {
+      return {
+         totalProducts: productsBySupplier.length,
+         totalValue: productsBySupplier.reduce((acc, curr) => acc + curr.cost * curr.stock, 0),
+         lowStock: productsBySupplier.filter(p => p.stock <= 3).length,
+         outOfStock: productsBySupplier.filter(p => p.stock === 0).length,
+         discounted: productsBySupplier.filter(p => p.discountPercentage > 0).length,
+         averageDiscount:
+            productsBySupplier.filter(p => p.discountPercentage > 0).length > 0
+               ? Math.round(
+                  productsBySupplier
+                     .filter(p => p.discountPercentage > 0)
+                     .reduce((acc, curr) => acc + curr.discountPercentage, 0) /
+                  productsBySupplier.filter(p => p.discountPercentage > 0).length
+               )
+               : 0,
+      };
+   }, [productsBySupplier]);
+
+   const filteredProducts = useMemo(() => {
+      let result = productsBySupplier;
+
+      if (activeFilter === 'lowStock') {
+         result = result.filter(p => p.stock <= 3);
+      } else if (activeFilter === 'discounted') {
+         result = result.filter(p => p.discountPercentage > 0);
+      }
+
+      return result;
+   }, [productsBySupplier, activeFilter]);
 
    return {
       products: filteredProducts,
@@ -68,5 +92,8 @@ export const useInventory = () => {
       stats,
       activeFilter,
       toggleFilter: setFilter,
+      suppliers,
+      selectedSupplier,
+      setSelectedSupplier,
    };
 };

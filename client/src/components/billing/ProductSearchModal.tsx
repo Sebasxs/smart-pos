@@ -181,10 +181,9 @@ export const ProductSearchModal = ({
                         onMouseEnter={() => setSelectedIndex(index)}
                         className={`
                            group flex justify-between items-center px-4 py-3 rounded-xl mb-1 cursor-pointer transition-all border
-                           ${
-                              isSelected
-                                 ? 'bg-purple-600/10 border-purple-500/30'
-                                 : 'bg-transparent border-transparent hover:bg-zinc-900'
+                           ${isSelected
+                              ? 'bg-purple-600/10 border-purple-500/30'
+                              : 'bg-transparent border-transparent hover:bg-zinc-900'
                            }
                         `}
                      >
@@ -192,11 +191,10 @@ export const ProductSearchModal = ({
                            <div
                               className={`
                               p-2.5 rounded-xl shrink-0 transition-colors
-                              ${
-                                 isSelected
+                              ${isSelected
                                     ? 'bg-purple-500 text-white'
                                     : 'bg-zinc-800 text-zinc-500'
-                              }
+                                 }
                            `}
                            >
                               <HiOutlineCube size={20} />
@@ -204,9 +202,8 @@ export const ProductSearchModal = ({
                            <div className="flex flex-col truncate pr-4">
                               <div className="flex items-center gap-2">
                                  <span
-                                    className={`text-base font-medium truncate ${
-                                       isSelected ? 'text-white' : 'text-zinc-200'
-                                    }`}
+                                    className={`text-base font-medium truncate ${isSelected ? 'text-white' : 'text-zinc-200'
+                                       }`}
                                  >
                                     {product.name}
                                  </span>
@@ -235,17 +232,15 @@ export const ProductSearchModal = ({
                                  </span>
                               )}
                               <span
-                                 className={`font-mono font-bold text-lg ${
-                                    isSelected ? 'text-purple-200' : 'text-zinc-200'
-                                 }`}
+                                 className={`font-mono font-bold text-lg ${isSelected ? 'text-purple-200' : 'text-zinc-200'
+                                    }`}
                               >
                                  ${finalPrice.toLocaleString('es-CO')}
                               </span>
                            </div>
                            <span
-                              className={`text-xs font-medium ${
-                                 isSelected ? 'text-purple-300/80' : 'text-zinc-500'
-                              }`}
+                              className={`text-xs font-medium ${isSelected ? 'text-purple-300/80' : 'text-zinc-500'
+                                 }`}
                            >
                               {product.stock} en stock
                            </span>
@@ -264,7 +259,7 @@ export const ProductSearchModal = ({
                            No encontramos "{searchTerm}"
                         </h3>
                         <p className="text-zinc-500 text-sm mb-6 max-w-[250px]">
-                           El producto no está en el inventario, pero puedes agregarlo ahora.
+                           El producto no está en inventario, pero puedes usarlo a la factura.
                         </p>
 
                         <button

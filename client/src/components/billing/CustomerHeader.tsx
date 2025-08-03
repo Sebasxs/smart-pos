@@ -1,4 +1,3 @@
-import { type ReactNode, type ElementType } from 'react';
 import {
    HiOutlineUser,
    HiOutlineIdentification,
@@ -8,6 +7,9 @@ import {
 } from 'react-icons/hi2';
 import { HiOutlineMail } from 'react-icons/hi';
 import { useBillingStore } from '../../store/billingStore';
+
+// Types
+import { type ReactNode, type ElementType } from 'react';
 
 const HeaderInput = ({
    value,
@@ -31,8 +33,8 @@ const HeaderInput = ({
          onChange={e => onChange(e.target.value)}
          placeholder={placeholder}
          className={`
-            w-full bg-zinc-800/50 hover:bg-zinc-800 focus:bg-zinc-800 
-            border border-zinc-800 focus:border-blue-500/50 
+            w-full bg-zinc-800/50 hover:bg-zinc-800 focus:bg-zinc-800
+            border border-zinc-800 focus:border-blue-500/70
             rounded-lg py-2.5 text-sm text-zinc-200 placeholder:text-zinc-500
             outline-none transition-all duration-200
             pl-10 ${rightElement ? 'pr-10' : 'pr-3'} 

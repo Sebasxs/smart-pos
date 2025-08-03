@@ -27,8 +27,8 @@ export const InventoryList = ({ products, isLoading, onEdit, onDelete }: Invento
    };
 
    const getMarginStyle = (margin: number) => {
-      if (margin <= 35) return 'text-zinc-400 bg-zinc-400/10';
-      if (margin >= 70) return 'text-emerald-500 bg-emerald-500/10';
+      if (margin <= 39) return 'text-zinc-400 bg-zinc-400/10';
+      if (margin >= 60) return 'text-emerald-500 bg-emerald-500/10';
       return 'text-blue-400 bg-blue-500/10';
    };
 
@@ -58,7 +58,7 @@ export const InventoryList = ({ products, isLoading, onEdit, onDelete }: Invento
          product.cost || 0,
          product.discountPercentage,
       );
-      const isLowStock = product.stock <= 5;
+      const isLowStock = product.stock <= 3;
       const hasDiscount = product.discountPercentage > 0;
 
       const rowClass = hasDiscount
@@ -195,7 +195,7 @@ export const InventoryList = ({ products, isLoading, onEdit, onDelete }: Invento
 
    return (
       <div className="flex flex-col h-full w-full bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden shadow-sm">
-         <div className="flex-1 overflow-hidden">
+         <div className="flex-1 overflow-x-auto overflow-y-hidden custom-scrollbar">
             <div className="min-w-[800px] flex flex-col h-full">
                {/* 1. HEADER */}
                <div className="border-b border-zinc-800 bg-zinc-950/50 shrink-0">

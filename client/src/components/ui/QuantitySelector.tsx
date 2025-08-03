@@ -56,7 +56,7 @@ export const QuantitySelector = ({
       onQuantityChange(Math.min(numericValue, stock));
    };
 
-   const btnBaseClass = 'p-2 rounded-full transition-colors focus:outline-none text-zinc-900';
+   const btnBaseClass = 'p-2 rounded-full transition-colors focus:outline-none text-zinc-300 hover:text-zinc-900';
 
    return (
       <div className="flex items-center justify-center gap-x-1 bg-zinc-800 rounded-full hover:bg-zinc-900 p-1 border border-zinc-700/50">
@@ -66,7 +66,7 @@ export const QuantitySelector = ({
             onMouseLeave={stopAction}
             tabIndex={-1}
             disabled={value <= 1}
-            className={`${btnBaseClass} ${value <= 1 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-red-400'
+            className={`${btnBaseClass} ${value <= 1 ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer hover:bg-red-400'
                }`}
             onDragStart={e => e.preventDefault()}
          >
@@ -89,7 +89,7 @@ export const QuantitySelector = ({
             tabIndex={-1}
             disabled={value >= stock}
             className={`${btnBaseClass} ${value >= stock
-               ? 'opacity-50 cursor-not-allowed'
+               ? 'opacity-30 cursor-not-allowed'
                : 'cursor-pointer hover:bg-emerald-400'
                }`}
             onDragStart={e => e.preventDefault()}
