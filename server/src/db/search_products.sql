@@ -1,3 +1,7 @@
+CREATE INDEX idx_products_name_trgm 
+ON products 
+USING gin (immutable_unaccent(name) gin_trgm_ops);
+
 CREATE OR REPLACE FUNCTION search_products(search_term TEXT)
 RETURNS TABLE (
   id UUID,
@@ -11,6 +15,8 @@ RETURNS TABLE (
   supplier_id UUID,
   created_at TIMESTAMPTZ
 ) AS $$
+DECLARE
+  clean_term TEXT := immutable_unaccent(search_term);
 BEGIN
   RETURN QUERY
   SELECT 
@@ -27,11 +33,11 @@ BEGIN
   FROM products p
   LEFT JOIN suppliers s ON p.supplier_id = s.id
   WHERE 
-    unaccent(p.name) ILIKE '%' || unaccent(search_term) || '%'
+    immutable_unaccent(p.name) ILIKE '%' || clean_term || '%'
     OR
-    similarity(unaccent(p.name), unaccent(search_term)) > 0.1
+    similarity(immutable_unaccent(p.name), clean_term) > 0.1
   ORDER BY 
-    similarity(unaccent(p.name), unaccent(search_term)) DESC,
+    similarity(immutable_unaccent(p.name), clean_term) DESC,
     p.name ASC
   LIMIT 20;
 END;

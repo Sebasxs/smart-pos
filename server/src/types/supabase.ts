@@ -235,6 +235,7 @@ export type Database = {
         }
         Returns: Json
       }
+      immutable_unaccent: { Args: { "": string }; Returns: string }
       search_customers: {
         Args: { search_term: string }
         Returns: {
