@@ -4,7 +4,7 @@ import { CustomSelect } from '../ui/CustomSelect';
 import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
 import { useInventoryStore } from '../../store/inventoryStore';
-import { formatCurrency, parseFormattedNumber } from '../../utils/format';
+import { formatCurrency } from '../../utils/format';
 import { HiOutlineCube, HiOutlineTag } from 'react-icons/hi2';
 
 // Types
@@ -31,6 +31,11 @@ export const ProductModal = ({ isOpen, onClose, productToEdit }: ProductModalPro
    const [form, setForm] = useState(initialForm);
    const [isSubmitting, setIsSubmitting] = useState(false);
 
+   const [rawCost, setRawCost] = useState('');
+   const [rawPrice, setRawPrice] = useState('');
+   const [isCostFocused, setIsCostFocused] = useState(false);
+   const [isPriceFocused, setIsPriceFocused] = useState(false);
+
    useEffect(() => {
       if (!isOpen) return;
 
@@ -45,8 +50,12 @@ export const ProductModal = ({ isOpen, onClose, productToEdit }: ProductModalPro
             discountPercentage: productToEdit.discountPercentage,
             supplierId: productToEdit.supplierId || '',
          });
+         setRawCost(productToEdit.cost === 0 ? '' : String(productToEdit.cost));
+         setRawPrice(productToEdit.price === 0 ? '' : String(productToEdit.price));
       } else {
          setForm(initialForm);
+         setRawCost('');
+         setRawPrice('');
       }
    }, [isOpen, productToEdit, fetchSuppliers]);
 
@@ -58,6 +67,34 @@ export const ProductModal = ({ isOpen, onClose, productToEdit }: ProductModalPro
             ? parseFloat(value) || 0
             : value,
       }));
+   };
+
+   const handleCostChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      // Only allow numbers
+      if (value === '' || /^[0-9]*$/.test(value)) {
+         setRawCost(value);
+         const numericValue = value === '' ? 0 : parseInt(value, 10);
+         setForm(prev => ({ ...prev, cost: numericValue }));
+      }
+   };
+
+   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      // Only allow numbers
+      if (value === '' || /^[0-9]*$/.test(value)) {
+         setRawPrice(value);
+         const numericValue = value === '' ? 0 : parseInt(value, 10);
+         setForm(prev => ({ ...prev, price: numericValue }));
+      }
+   };
+
+   const handleCostBlur = () => {
+      setIsCostFocused(false);
+   };
+
+   const handlePriceBlur = () => {
+      setIsPriceFocused(false);
    };
 
    const handleSubmit = async (e: React.FormEvent) => {
@@ -119,22 +156,26 @@ export const ProductModal = ({ isOpen, onClose, productToEdit }: ProductModalPro
                      <Input
                         label="Costo"
                         name="cost"
-                        value={form.cost === 0 ? '' : formatCurrency(form.cost)}
-                        onChange={(e) => {
-                           const numericValue = parseFormattedNumber(e.target.value);
-                           handleChange({ target: { name: 'cost', value: String(numericValue) } } as any);
+                        value={isCostFocused ? rawCost : (form.cost === 0 ? '' : formatCurrency(form.cost))}
+                        onChange={handleCostChange}
+                        onFocus={() => {
+                           setIsCostFocused(true);
+                           setRawCost(form.cost === 0 ? '' : String(form.cost));
                         }}
+                        onBlur={handleCostBlur}
                         placeholder="0"
                         prefix="$"
                      />
                      <Input
                         label="Precio de Venta"
                         name="price"
-                        value={form.price === 0 ? '' : formatCurrency(form.price)}
-                        onChange={(e) => {
-                           const numericValue = parseFormattedNumber(e.target.value);
-                           handleChange({ target: { name: 'price', value: String(numericValue) } } as any);
+                        value={isPriceFocused ? rawPrice : (form.price === 0 ? '' : formatCurrency(form.price))}
+                        onChange={handlePriceChange}
+                        onFocus={() => {
+                           setIsPriceFocused(true);
+                           setRawPrice(form.price === 0 ? '' : String(form.price));
                         }}
+                        onBlur={handlePriceBlur}
                         placeholder="0"
                         prefix="$"
                      />

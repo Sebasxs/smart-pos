@@ -26,8 +26,10 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
 
    const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const rawValue = e.target.value;
-      setLocalPrice(rawValue);
-      onUpdate(item.id, { price: parseFormattedNumber(rawValue) });
+      if (rawValue === '' || /^[0-9.]*$/.test(rawValue)) {
+         setLocalPrice(rawValue);
+         onUpdate(item.id, { price: parseFormattedNumber(rawValue) });
+      }
    };
 
    const handleBlur = () => {
