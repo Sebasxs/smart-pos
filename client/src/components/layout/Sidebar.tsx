@@ -42,11 +42,10 @@ const SidebarItem = ({
    <NavLink
       to={path}
       className={({ isActive }) => `
-         group flex items-center h-11 mx-2 rounded-xl transition-all duration-200 overflow-hidden px-0 shrink-0
-         ${
-            isActive
-               ? 'bg-zinc-800 text-white shadow-sm ring-1 ring-zinc-700/50'
-               : 'text-zinc-500 hover:bg-zinc-900 hover:text-zinc-200'
+         group flex items-center h-11 mx-2 rounded-xl transition-all duration-200 overflow-hidden shrink-0
+         ${isActive
+            ? 'bg-zinc-800 text-white shadow-sm ring-1 ring-zinc-700/50'
+            : 'text-zinc-500 hover:bg-zinc-900 hover:text-zinc-200'
          }
       `}
       title={name}
@@ -56,11 +55,10 @@ const SidebarItem = ({
          <span
             className={`
             text-sm font-medium tracking-wide pr-4 block transition-opacity duration-300
-            ${
-               variant === 'desktop'
+            ${variant === 'desktop'
                   ? 'opacity-0 w-0 xl:w-auto xl:opacity-100'
                   : 'opacity-100 w-auto'
-            }
+               }
          `}
          >
             {name}
@@ -70,11 +68,10 @@ const SidebarItem = ({
 );
 
 const SectionHeader = ({ label, variant }: { label: string; variant: 'mobile' | 'desktop' }) => (
-   <div className="px-0 mt-6 mb-2 flex items-center h-5 overflow-hidden shrink-0 transition-all duration-300">
+   <div className="mt-6 mb-2 flex items-center h-5 overflow-hidden shrink-0 transition-all duration-300">
       <div
-         className={`w-[72px] justify-center items-center shrink-0 ${
-            variant === 'desktop' ? 'flex xl:hidden' : 'hidden'
-         }`}
+         className={`w-[72px] justify-center items-center shrink-0 ${variant === 'desktop' ? 'flex xl:hidden' : 'hidden'
+            }`}
       >
          <div className="w-8 h-px bg-zinc-800" />
       </div>
@@ -106,14 +103,13 @@ const SidebarContent = ({
             <span
                className={`
                font-bold text-lg text-zinc-400 tracking-tight whitespace-nowrap overflow-hidden transition-all duration-300
-               ${
-                  variant === 'desktop'
+               ${variant === 'desktop'
                      ? 'w-0 opacity-0 xl:w-auto xl:opacity-100'
                      : 'w-auto opacity-100'
-               }
+                  }
             `}
             >
-               AudioVideoFP
+               AudioVideo
             </span>
          </a>
          {variant === 'mobile' && onCloseMobile && (
@@ -127,14 +123,14 @@ const SidebarContent = ({
       </div>
 
       {/* NAV */}
-      <div className="flex flex-col flex-grow overflow-y-auto overflow-x-hidden py-2 custom-scrollbar">
-         <nav className="flex flex-col gap-y-1">
+      <div className="flex flex-col flex-grow overflow-y-auto overflow-x-hidden custom-scrollbar">
+         <nav className="flex flex-col">
             <SectionHeader label="Principal" variant={variant} />
             {menuItemsGroups.primary.map(item => (
                <SidebarItem key={item.name} {...item} variant={variant} />
             ))}
          </nav>
-         <nav className="flex flex-col gap-y-1">
+         <nav className="flex flex-col">
             <SectionHeader label="Gestión" variant={variant} />
             {menuItemsGroups.management.map(item => (
                <SidebarItem key={item.name} {...item} variant={variant} />
@@ -153,11 +149,10 @@ const SidebarContent = ({
             <div
                className={`
                flex flex-col overflow-hidden whitespace-nowrap transition-all duration-300
-               ${
-                  variant === 'desktop'
+               ${variant === 'desktop'
                      ? 'w-0 opacity-0 xl:w-auto xl:opacity-100'
                      : 'w-auto opacity-100'
-               }
+                  }
             `}
             >
                <span className="text-sm font-bold text-zinc-300">Vendedor</span>
@@ -182,10 +177,9 @@ export const Sidebar = () => {
             <div
                className={`
                   fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity duration-300
-                  ${
-                     isMobileMenuOpen
-                        ? 'opacity-100 pointer-events-auto'
-                        : 'opacity-0 pointer-events-none'
+                  ${isMobileMenuOpen
+                     ? 'opacity-100 pointer-events-auto'
+                     : 'opacity-0 pointer-events-none'
                   }
                `}
                onClick={closeMobileMenu}
