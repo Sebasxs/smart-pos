@@ -16,31 +16,43 @@ export type Database = {
     Tables: {
       customers: {
         Row: {
+          address: string | null
           city: string | null
           created_at: string | null
           current_balance: number
           email: string | null
           id: string
+          last_purchase_date: string | null
           name: string
+          phone: string | null
           tax_id: string | null
+          total_spent: number | null
         }
         Insert: {
+          address?: string | null
           city?: string | null
           created_at?: string | null
           current_balance?: number
           email?: string | null
           id?: string
+          last_purchase_date?: string | null
           name: string
+          phone?: string | null
           tax_id?: string | null
+          total_spent?: number | null
         }
         Update: {
+          address?: string | null
           city?: string | null
           created_at?: string | null
           current_balance?: number
           email?: string | null
           id?: string
+          last_purchase_date?: string | null
           name?: string
+          phone?: string | null
           tax_id?: string | null
+          total_spent?: number | null
         }
         Relationships: []
       }
@@ -239,13 +251,17 @@ export type Database = {
       search_customers: {
         Args: { search_term: string }
         Returns: {
+          address: string
           city: string
           created_at: string
           current_balance: number
           email: string
           id: string
+          last_purchase_date: string
           name: string
+          phone: string
           tax_id: string
+          total_spent: number
         }[]
       }
       search_products: {
