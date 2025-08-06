@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useCustomers } from '../hooks/useCustomers';
 import { CustomerHeader } from '../components/customers/CustomerHeader';
 import { CustomerList } from '../components/customers/CustomerList';
+import { CustomerStats } from '../components/customers/CustomerStats';
 import { CustomerModal } from '../components/customers/CustomerModal';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { HiOutlineArrowPath } from 'react-icons/hi2';
@@ -10,8 +11,17 @@ import { HiOutlineArrowPath } from 'react-icons/hi2';
 import { type Customer } from '../types/customer';
 
 export const Customers = () => {
-   const { customers, isLoading, search, setSearch, deleteCustomer, stats, refresh } =
-      useCustomers();
+   const {
+      customers,
+      isLoading,
+      search,
+      setSearch,
+      deleteCustomer,
+      stats,
+      refresh,
+      filterStatus,
+      setFilterStatus,
+   } = useCustomers();
 
    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
    const [customerToDelete, setCustomerToDelete] = useState<Customer | null>(null);
@@ -139,14 +149,25 @@ export const Customers = () => {
          )}
 
          <div className="shrink-0 bg-zinc-900 border border-zinc-800 rounded-xl shadow-sm p-3">
-            <CustomerHeader
-               search={search}
-               onSearchChange={setSearch}
-               onAddClick={handleAddClick}
-               onRefresh={refresh}
-               isLoading={isLoading}
-               totalCustomers={stats.totalCustomers}
-            />
+            <div className="flex flex-col lg:flex-col items-start lg:items-stretch gap-4 justify-between">
+               <div className="w-full lg:w-auto shrink-0">
+                  <CustomerHeader
+                     search={search}
+                     onSearchChange={setSearch}
+                     onAddClick={handleAddClick}
+                     onRefresh={refresh}
+                     isLoading={isLoading}
+                  />
+               </div>
+
+               <div className="w-full lg:w-auto flex-1">
+                  <CustomerStats
+                     stats={stats}
+                     activeFilter={filterStatus}
+                     onToggleFilter={setFilterStatus}
+                  />
+               </div>
+            </div>
          </div>
 
          <div className="flex-1 min-h-0">

@@ -1,4 +1,9 @@
-import { HiOutlineMagnifyingGlass, HiOutlinePlus, HiArrowPath } from 'react-icons/hi2';
+import {
+   HiOutlineMagnifyingGlass,
+   HiOutlinePlus,
+   HiOutlineArrowPath,
+   HiOutlineXMark,
+} from 'react-icons/hi2';
 import { Button } from '../ui/Button';
 
 type CustomerHeaderProps = {
@@ -7,7 +12,6 @@ type CustomerHeaderProps = {
    onAddClick: () => void;
    onRefresh: () => void;
    isLoading: boolean;
-   totalCustomers: number;
 };
 
 export const CustomerHeader = ({
@@ -16,52 +20,53 @@ export const CustomerHeader = ({
    onAddClick,
    onRefresh,
    isLoading,
-   totalCustomers,
 }: CustomerHeaderProps) => {
    return (
-      <div className="flex flex-col md:flex-row gap-4 justify-between items-center w-full">
-         {/* Search */}
-         <div className="relative w-full md:w-96 group">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-               <HiOutlineMagnifyingGlass
-                  className="text-zinc-500 group-focus-within:text-blue-500 transition-colors"
-                  size={20}
-               />
+      <div className="flex flex-col md:flex-row gap-3 w-full h-full">
+         {/* Search input */}
+         <div className="relative group w-full md:flex-[2] lg:flex-[3] h-full">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 z-10 text-zinc-400 pointer-events-none transition-colors group-focus-within:text-blue-500">
+               <HiOutlineMagnifyingGlass size={20} />
             </div>
             <input
-               type="text"
                value={search}
-               onChange={(e) => onSearchChange(e.target.value)}
-               className="block w-full pl-10 pr-3 py-2.5 border border-zinc-800 rounded-xl leading-5 bg-zinc-950 text-zinc-300 placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-blue-500/50 focus:border-blue-500/50 sm:text-sm transition-all shadow-sm"
+               onChange={e => onSearchChange(e.target.value)}
                placeholder="Buscar por nombre, NIT, email..."
+               className="w-full h-full lg:h-auto min-h-[42px] bg-zinc-900 hover:bg-zinc-800 focus:bg-zinc-800 border border-zinc-700 focus:border-blue-500/70 rounded-xl py-2 text-sm text-zinc-200 placeholder:text-zinc-400 outline-none transition-all duration-200 pl-10 pr-8"
             />
+            {search && (
+               <button
+                  onClick={() => onSearchChange('')}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition-colors cursor-pointer"
+               >
+                  <HiOutlineXMark size={16} />
+               </button>
+            )}
          </div>
 
-         {/* Stats & Actions */}
-         <div className="flex items-center gap-3 w-full md:w-auto justify-end">
-            <div className="hidden md:flex flex-col items-end mr-2">
-               <span className="text-xs text-zinc-500 font-medium uppercase tracking-wider">Total Clientes</span>
-               <span className="text-lg font-bold text-zinc-200 leading-none">{totalCustomers}</span>
-            </div>
+         {/* Actions */}
+         <div className="flex gap-2 w-full md:w-auto h-full shrink-0">
+            <Button
+               onClick={onAddClick}
+               variant="primary"
+               className="h-full lg:h-auto min-h-[42px] rounded-xl shadow-blue-900/20 px-6 w-full md:w-auto whitespace-nowrap"
+               title="Nuevo Cliente"
+            >
+               <HiOutlinePlus size={20} />
+               <span>Nuevo Cliente</span>
+            </Button>
 
-            <div className="h-8 w-px bg-zinc-800 hidden md:block mx-1"></div>
-
+            {/* Refresh button */}
             <button
                onClick={onRefresh}
-               disabled={isLoading}
-               className="p-2.5 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
-               title="Recargar lista"
+               className={`
+               hidden lg:flex h-full lg:h-auto min-h-[42px] aspect-square rounded-xl border border-zinc-700 bg-zinc-900 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all cursor-pointer items-center justify-center shrink-0
+               ${isLoading ? 'animate-spin text-blue-500' : ''}
+               `}
+               title="Actualizar lista"
             >
-               <HiArrowPath
-                  size={20}
-                  className={isLoading ? 'animate-spin' : ''}
-               />
+               <HiOutlineArrowPath size={20} />
             </button>
-
-            <Button onClick={onAddClick} className="pl-3 pr-4 shadow-lg shadow-blue-500/10">
-               <HiOutlinePlus size={20} className="mr-1" />
-               Nuevo Cliente
-            </Button>
          </div>
       </div>
    );

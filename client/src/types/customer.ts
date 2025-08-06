@@ -11,10 +11,4 @@ export interface Customer {
    created_at?: string;
 }
 
-export type CustomerSortKey = 'name' | 'email' | 'total_spent' | 'city';
-
-export interface CustomerStats {
-   totalCustomers: number;
-   totalValued: number;
-   activeCustomers: number;
-}
+export type CustomerSortKey = 'name' | 'email' | 'total_spent' | 'city' | 'last_purchase_date';
