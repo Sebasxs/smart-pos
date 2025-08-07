@@ -1,4 +1,9 @@
-import { HiOutlineMagnifyingGlass, HiOutlinePlus, HiOutlineArrowPath, HiOutlineXMark } from 'react-icons/hi2';
+import {
+   HiOutlineMagnifyingGlass,
+   HiOutlinePlus,
+   HiOutlineArrowPath,
+   HiOutlineXMark,
+} from 'react-icons/hi2';
 import { CustomSelect } from '../ui/CustomSelect';
 import { Button } from '../ui/Button';
 
@@ -51,7 +56,10 @@ export const InventoryHeader = ({
             <CustomSelect
                value={selectedSupplier}
                onChange={onSupplierChange}
-               options={[{ value: '', label: 'Todos los proveedores' }, ...suppliers.map(s => ({ value: s.id, label: s.name }))]}
+               options={[
+                  { value: '', label: 'Todos los proveedores' },
+                  ...suppliers.map(s => ({ value: s.id, label: s.name })),
+               ]}
                placeholder="Filtrar por proveedor"
                className="w-full h-full lg:h-auto min-h-[42px] rounded-xl bg-zinc-900 border-zinc-700"
                containerClassName="h-full lg:h-auto"
@@ -73,13 +81,13 @@ export const InventoryHeader = ({
             {/* Refresh button */}
             <button
                onClick={onRefresh}
-               className={`
-               hidden lg:flex h-full lg:h-auto min-h-[42px] aspect-square rounded-xl border border-zinc-700 bg-zinc-900 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all cursor-pointer items-center justify-center shrink-0
-               ${isLoading ? 'animate-spin text-blue-500' : ''}
-               `}
+               className="hidden lg:flex h-full lg:h-auto min-h-[42px] aspect-square rounded-xl border border-zinc-700 bg-zinc-900 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all cursor-pointer items-center justify-center shrink-0"
                title="Actualizar lista"
             >
-               <HiOutlineArrowPath size={20} />
+               <HiOutlineArrowPath
+                  size={20}
+                  className={` ${isLoading ? 'animate-spin text-blue-400' : ''}`}
+               />
             </button>
          </div>
       </div>

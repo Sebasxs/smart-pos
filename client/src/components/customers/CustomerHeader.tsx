@@ -59,13 +59,13 @@ export const CustomerHeader = ({
             {/* Refresh button */}
             <button
                onClick={onRefresh}
-               className={`
-               hidden lg:flex h-full lg:h-auto min-h-[42px] aspect-square rounded-xl border border-zinc-700 bg-zinc-900 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all cursor-pointer items-center justify-center shrink-0
-               ${isLoading ? 'animate-spin text-blue-500' : ''}
-               `}
+               className="hidden lg:flex h-full lg:h-auto min-h-[42px] aspect-square rounded-xl border border-zinc-700 bg-zinc-900 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all cursor-pointer items-center justify-center shrink-0"
                title="Actualizar lista"
             >
-               <HiOutlineArrowPath size={20} />
+               <HiOutlineArrowPath
+                  size={20}
+                  className={` ${isLoading ? 'animate-spin text-blue-400' : ''}`}
+               />
             </button>
          </div>
       </div>
