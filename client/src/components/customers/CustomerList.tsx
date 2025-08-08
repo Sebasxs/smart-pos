@@ -177,7 +177,7 @@ export const CustomerList = ({ customers, isLoading, onEdit, onDelete }: Custome
                            navigate(`/sales?customer=${customer.id}`);
                         }}
                         className="p-1.5 text-zinc-500 hover:text-purple-400 hover:bg-purple-400/10 rounded-lg transition-colors cursor-pointer"
-                        title="Ver historial de ventas"
+                        title="Ver historial de compras"
                      >
                         <HiOutlineDocumentText size={18} />
                      </button>

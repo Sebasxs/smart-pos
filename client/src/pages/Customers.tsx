@@ -5,6 +5,7 @@ import { CustomerList } from '../components/customers/CustomerList';
 import { CustomerStats } from '../components/customers/CustomerStats';
 import { CustomerModal } from '../components/customers/CustomerModal';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
+import { ErrorModal } from '../components/ui/ErrorModal';
 import { HiOutlineArrowPath } from 'react-icons/hi2';
 
 // Types
@@ -28,6 +29,9 @@ export const Customers = () => {
 
    const [customerModalOpen, setCustomerModalOpen] = useState(false);
    const [customerToEdit, setCustomerToEdit] = useState<Customer | null>(null);
+
+   const [errorModalOpen, setErrorModalOpen] = useState(false);
+   const [errorMessage, setErrorMessage] = useState('');
 
    const [pullDistance, setPullDistance] = useState(0);
    const [isPulling, setIsPulling] = useState(false);
@@ -96,8 +100,16 @@ export const Customers = () => {
 
    const handleConfirmDelete = async () => {
       if (customerToDelete) {
-         await deleteCustomer(customerToDelete.id);
-         setCustomerToDelete(null);
+         try {
+            await deleteCustomer(customerToDelete.id);
+            setCustomerToDelete(null);
+            setDeleteModalOpen(false);
+         } catch (error) {
+            const message = error instanceof Error ? error.message : 'Error al eliminar cliente';
+            setErrorMessage(message);
+            setErrorModalOpen(true);
+            setDeleteModalOpen(false);
+         }
       }
    };
 
@@ -191,6 +203,12 @@ export const Customers = () => {
             onConfirm={handleConfirmDelete}
             title="¿Eliminar cliente?"
             message={`Estás a punto de eliminar a "${customerToDelete?.name}".`}
+         />
+
+         <ErrorModal
+            isOpen={errorModalOpen}
+            onClose={() => setErrorModalOpen(false)}
+            message={errorMessage}
          />
       </div>
    );

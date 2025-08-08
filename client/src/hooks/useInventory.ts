@@ -55,16 +55,16 @@ export const useInventory = () => {
          totalProducts: productsBySupplier.length,
          totalValue: productsBySupplier.reduce((acc, curr) => acc + curr.cost * curr.stock, 0),
          lowStock: productsBySupplier.filter(p => p.stock <= 3).length,
-         outOfStock: productsBySupplier.filter(p => p.stock === 0).length,
+         outOfStock: productsBySupplier.filter(p => p.stock <= 0).length,
          discounted: productsBySupplier.filter(p => p.discountPercentage > 0).length,
          averageDiscount:
             productsBySupplier.filter(p => p.discountPercentage > 0).length > 0
                ? Math.round(
-                  productsBySupplier
-                     .filter(p => p.discountPercentage > 0)
-                     .reduce((acc, curr) => acc + curr.discountPercentage, 0) /
-                  productsBySupplier.filter(p => p.discountPercentage > 0).length
-               )
+                    productsBySupplier
+                       .filter(p => p.discountPercentage > 0)
+                       .reduce((acc, curr) => acc + curr.discountPercentage, 0) /
+                       productsBySupplier.filter(p => p.discountPercentage > 0).length,
+                 )
                : 0,
       };
    }, [productsBySupplier]);

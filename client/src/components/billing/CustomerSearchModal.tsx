@@ -40,7 +40,6 @@ export const CustomerSearchModal = ({
    const listRef = useRef<HTMLDivElement>(null);
    const inputRef = useRef<HTMLInputElement>(null);
 
-   // Reset state on close / Focus on open
    useEffect(() => {
       if (!isOpen) {
          setSearchTerm('');
@@ -52,7 +51,6 @@ export const CustomerSearchModal = ({
       }
    }, [isOpen]);
 
-   // Search effect
    useEffect(() => {
       if (!isOpen || searchTerm.trim() === '') {
          setResults([]);
@@ -84,6 +82,7 @@ export const CustomerSearchModal = ({
    const handleSelect = useCallback(
       (c: CustomerResult) => {
          onSelectCustomer({
+            id: c.id,
             name: c.name,
             email: c.email || '',
             taxId: c.tax_id || '',
@@ -94,7 +93,6 @@ export const CustomerSearchModal = ({
       [onSelectCustomer, onClose],
    );
 
-   // Keyboard navigation
    useEffect(() => {
       if (!isOpen) return;
 

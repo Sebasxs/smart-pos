@@ -6,7 +6,9 @@ const API_URL = import.meta.env.VITE_API_URL;
 type InventoryFilter = 'all' | 'lowStock' | 'discounted';
 export type SortKey = 'name' | 'cost' | 'price' | 'margin' | 'stock';
 
-export type ProductPayload = Omit<Product, 'id' | 'supplier' | 'created_at'> & { supplierId?: string };
+export type ProductPayload = Omit<Product, 'id' | 'supplier' | 'created_at'> & {
+   supplierId?: string;
+};
 
 interface InventoryState {
    products: Product[];
@@ -65,14 +67,18 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
       let filtered = [...allProducts];
 
       const normalize = (str: string) =>
-         str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+         str
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase();
 
       // 1. Filter by Search
       if (search.trim()) {
          const term = normalize(search);
-         filtered = filtered.filter(p =>
-            normalize(p.name).includes(term) ||
-            (p.supplier && normalize(p.supplier).includes(term))
+         filtered = filtered.filter(
+            p =>
+               normalize(p.name).includes(term) ||
+               (p.supplier && normalize(p.supplier).includes(term)),
          );
       }
 
@@ -93,10 +99,8 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
             if (key === 'stock') return p.stock;
             if (key === 'cost') return p.cost || 0;
 
-            // Computed values
-            const finalPrice = p.discountPercentage > 0
-               ? p.price * (1 - p.discountPercentage / 100)
-               : p.price;
+            const finalPrice =
+               p.discountPercentage > 0 ? p.price * (1 - p.discountPercentage / 100) : p.price;
 
             if (key === 'price') return finalPrice;
 
@@ -129,7 +133,7 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
       }
    },
 
-   createProduct: async (data) => {
+   createProduct: async data => {
       try {
          const res = await fetch(`${API_URL}/products`, {
             method: 'POST',

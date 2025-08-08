@@ -12,6 +12,7 @@ import { ErrorModal } from '../components/ui/ErrorModal';
 import { PaymentWidget } from '../components/billing/PaymentWidget';
 import { BillingTotals } from '../components/billing/BillingTotals';
 import { useInventoryStore } from '../store/inventoryStore';
+import { useCustomerStore } from '../store/customerStore';
 
 // Types
 import { useBillingStore, type CheckoutState } from '../store/billingStore';
@@ -32,6 +33,7 @@ export const Billing = () => {
       resetInvoice,
    } = useBillingStore();
    const { decreaseStockBatch } = useInventoryStore();
+   const { updateCustomerAfterPurchase } = useCustomerStore();
 
    const [modals, setModals] = useState({
       productSearch: false,
@@ -70,7 +72,6 @@ export const Billing = () => {
       (checkoutData.paymentMethod === 'transfer' ||
          (checkoutData.paymentMethod === 'cash' && cashReceived >= total));
 
-   // Handlers
    const toggleModal = useCallback((key: keyof typeof modals, value: boolean) => {
       setModals(prev => ({ ...prev, [key]: value }));
    }, []);
@@ -130,6 +131,11 @@ export const Billing = () => {
          decreaseStockBatch(
             items.filter(i => i.isDatabaseItem).map(i => ({ id: i.id, quantity: i.quantity })),
          );
+
+         if (checkoutData.customer.id) {
+            updateCustomerAfterPurchase(checkoutData.customer.id, total, new Date().toISOString());
+         }
+
          setFinalizedData({ ...checkoutData });
          setGeneratedInvoiceId(responseData.invoiceId);
          toggleModal('success', true);
@@ -150,6 +156,7 @@ export const Billing = () => {
       total,
       toggleModal,
       decreaseStockBatch,
+      updateCustomerAfterPurchase,
    ]);
 
    const handleFinalizeSuccess = () => {
@@ -159,7 +166,6 @@ export const Billing = () => {
       setGeneratedInvoiceId(undefined);
    };
 
-   // Keyboard Shortcuts
    useEffect(() => {
       const handleKeyDown = (event: KeyboardEvent) => {
          const target = event.target as HTMLElement;

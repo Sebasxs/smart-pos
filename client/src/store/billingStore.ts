@@ -5,6 +5,7 @@ import { type InvoiceItem, type Discount } from '../types/billing';
 
 export type CheckoutState = {
    customer: {
+      id: string;
       name: string;
       email: string;
       taxId: string;
@@ -14,7 +15,7 @@ export type CheckoutState = {
    cashReceivedStr: string;
 };
 
-const initialCustomer = { name: '', email: '', taxId: '', city: '' };
+const initialCustomer = { id: '', name: '', email: '', taxId: '', city: '' };
 
 const initialCheckoutState: CheckoutState = {
    customer: initialCustomer,

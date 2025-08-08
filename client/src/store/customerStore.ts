@@ -28,6 +28,11 @@ interface CustomerState {
    createCustomer: (customer: Omit<Customer, 'id'>) => Promise<boolean>;
    updateCustomer: (id: string, customer: Partial<Customer>) => Promise<boolean>;
    deleteCustomer: (id: string) => Promise<boolean>;
+   updateCustomerAfterPurchase: (
+      customerId: string,
+      purchaseAmount: number,
+      purchaseDate: string,
+   ) => void;
    refresh: () => Promise<void>;
 
    applyFilters: () => void;
@@ -204,14 +209,52 @@ export const useCustomerStore = create<CustomerState>((set, get) => ({
             method: 'DELETE',
          });
 
-         if (!res.ok) throw new Error('Error deleting customer');
+         if (!res.ok) {
+            const errorData = await res.json().catch(() => ({ error: 'Error desconocido' }));
+            throw new Error(errorData.error || 'Error al eliminar cliente');
+         }
 
          await get().fetchCustomers(true);
          return true;
       } catch (error) {
          console.error(error);
-         return false;
+         throw error;
       }
+   },
+
+   updateCustomerAfterPurchase: (customerId, purchaseAmount, purchaseDate) => {
+      set(state => {
+         const updatedCustomers = state.customers.map(c => {
+            if (c.id === customerId) {
+               return {
+                  ...c,
+                  total_spent: (c.total_spent || 0) + purchaseAmount,
+                  last_purchase_date: purchaseDate,
+               };
+            }
+            return c;
+         });
+
+         const now = new Date();
+         const activeCustomers = updatedCustomers.filter(
+            c => c.last_purchase_date && differenceInDays(now, parseISO(c.last_purchase_date)) < 30,
+         ).length;
+
+         const newCustomers = updatedCustomers.filter(
+            c => c.created_at && differenceInDays(now, parseISO(c.created_at)) < 30,
+         ).length;
+
+         return {
+            customers: updatedCustomers,
+            stats: {
+               totalCustomers: updatedCustomers.length,
+               activeCustomers,
+               newCustomers,
+            },
+         };
+      });
+
+      get().applyFilters();
    },
 
    refresh: async () => {

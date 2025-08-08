@@ -25,10 +25,7 @@ export const getCustomers = async (req: Request, res: Response) => {
    try {
       const search = String(req.query.search || '').trim();
 
-      let query = supabase
-         .from('customers')
-         .select('*')
-         .order('name', { ascending: true });
+      let query = supabase.from('customers').select('*').order('name', { ascending: true });
 
       if (search) {
          const { data, error } = await supabase.rpc('search_customers', {
@@ -98,10 +95,21 @@ export const deleteCustomer = async (req: Request, res: Response) => {
    try {
       const { id } = req.params;
 
-      const { error } = await supabase
-         .from('customers')
-         .delete()
-         .eq('id', id);
+      const { data: invoices, error: invoiceError } = await supabase
+         .from('invoices')
+         .select('id')
+         .eq('customer_id', id)
+         .limit(1);
+
+      if (invoiceError) throw invoiceError;
+
+      if (invoices && invoices.length > 0) {
+         return res.status(409).json({
+            error: 'No se puede eliminar el cliente porque tiene facturas asociadas',
+         });
+      }
+
+      const { error } = await supabase.from('customers').delete().eq('id', id);
 
       if (error) throw error;
 

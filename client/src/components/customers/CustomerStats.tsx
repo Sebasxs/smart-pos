@@ -134,7 +134,7 @@ export const CustomerStats = ({ stats, activeFilter, onToggleFilter }: CustomerS
          >
             <div className="mt-1 pt-1 border-t border-white/10">
                <p className="text-[10px] text-zinc-400 font-medium tracking-wide uppercase">
-                  Compras recientes
+                  Compraron algo en el último mes
                </p>
                <p className="text-xs font-mono text-emerald-300">
                   {stats.totalCustomers > 0
