@@ -37,7 +37,7 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
    };
 
    const hasInventoryDiscount = item.discountPercentage > 0;
-   const isModified = item.isManualPrice || item.isManualName;
+   const isModified = item.isPriceEdited || item.isNameEdited;
 
    let rowStyle = 'bg-transparent hover:bg-zinc-800/30';
    let indicatorColor = 'bg-transparent';
@@ -102,15 +102,16 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
                   onKeyDown={e => e.key === 'Enter' && e.currentTarget.blur()}
                   className={`
                      w-full bg-transparent text-right py-0 border-b border-transparent focus:border-indigo-500 outline-none font-mono font-medium tracking-tight transition-colors duration-200
-                     ${hasInventoryDiscount
-                        ? 'text-emerald-400 font-bold'
-                        : 'text-zinc-300 text-[15px]'
+                     ${
+                        hasInventoryDiscount
+                           ? 'text-emerald-400 font-bold'
+                           : 'text-zinc-300 text-[15px]'
                      }
                   `}
                />
             </div>
 
-            {hasInventoryDiscount && !item.isManualPrice && (
+            {hasInventoryDiscount && !item.isPriceEdited && (
                <div className="flex items-center gap-1.5 mt-0.5 justify-end w-full">
                   <span className="text-xs text-zinc-500 line-through decoration-zinc-600 font-mono">
                      ${formatCurrency(item.originalPrice)}

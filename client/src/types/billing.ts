@@ -11,8 +11,8 @@ export type InvoiceItem = {
    stock: number;
    supplier: string;
 
-   isManualPrice: boolean;
-   isManualName: boolean;
+   isPriceEdited: boolean;
+   isNameEdited: boolean;
 
    isDatabaseItem: boolean;
 };

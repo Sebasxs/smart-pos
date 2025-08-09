@@ -78,8 +78,8 @@ export const useBillingStore = create<BillingState>(set => ({
             quantity: 1,
             stock: product.stock || 9999,
             supplier: product.supplier || 'No especificado',
-            isManualName: product.isManualName ?? !hasValidDbId,
-            isManualPrice: product.isManualPrice ?? !hasValidDbId,
+            isNameEdited: product.isNameEdited ?? !hasValidDbId,
+            isPriceEdited: product.isPriceEdited ?? !hasValidDbId,
             isDatabaseItem: hasValidDbId,
          };
 
@@ -95,12 +95,12 @@ export const useBillingStore = create<BillingState>(set => ({
             const updatedItem = { ...item, ...newValues };
 
             if (newValues.name !== undefined) {
-               updatedItem.isManualName = newValues.name.trim() !== item.originalName.trim();
+               updatedItem.isNameEdited = newValues.name.trim() !== item.originalName.trim();
             }
 
             if (newValues.price !== undefined) {
                const idealPrice = calculateIdealPrice(item.originalPrice, item.discountPercentage);
-               updatedItem.isManualPrice = newValues.price !== idealPrice;
+               updatedItem.isPriceEdited = newValues.price !== idealPrice;
             }
 
             return updatedItem;

@@ -61,8 +61,8 @@ export type Database = {
           discount_percentage: number | null
           id: string
           invoice_id: number | null
-          is_manual_name: boolean | null
-          is_manual_price: boolean | null
+          is_name_edited: boolean | null
+          is_price_edited: boolean | null
           original_price: number | null
           product_id: string | null
           product_name: string
@@ -75,8 +75,8 @@ export type Database = {
           discount_percentage?: number | null
           id?: string
           invoice_id?: number | null
-          is_manual_name?: boolean | null
-          is_manual_price?: boolean | null
+          is_name_edited?: boolean | null
+          is_price_edited?: boolean | null
           original_price?: number | null
           product_id?: string | null
           product_name: string
@@ -89,8 +89,8 @@ export type Database = {
           discount_percentage?: number | null
           id?: string
           invoice_id?: number | null
-          is_manual_name?: boolean | null
-          is_manual_price?: boolean | null
+          is_name_edited?: boolean | null
+          is_price_edited?: boolean | null
           original_price?: number | null
           product_id?: string | null
           product_name?: string

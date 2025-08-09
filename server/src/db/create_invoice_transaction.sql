@@ -55,7 +55,7 @@ BEGIN
     INSERT INTO invoice_items (
       invoice_id, product_id, product_name, quantity, 
       unit_price, total_price, 
-      original_price, is_manual_price, is_manual_name,
+      original_price, is_price_edited, is_name_edited,
       recorded_cost,
       discount_percentage
     ) VALUES (
@@ -66,8 +66,8 @@ BEGIN
       (v_item->>'price')::BIGINT,
       ((v_item->>'price')::BIGINT * (v_item->>'quantity')::INT),
       COALESCE((v_item->>'originalPrice')::BIGINT, (v_item->>'price')::BIGINT),
-      COALESCE((v_item->>'isManualPrice')::BOOLEAN, false),
-      COALESCE((v_item->>'isManualName')::BOOLEAN, false),
+      COALESCE((v_item->>'isPriceEdited')::BOOLEAN, false),
+      COALESCE((v_item->>'isNameEdited')::BOOLEAN, false),
       v_product_cost,
       COALESCE((v_item->>'discountPercentage')::SMALLINT, 0)
     );
