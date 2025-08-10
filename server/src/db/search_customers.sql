@@ -4,12 +4,6 @@ CREATE EXTENSION IF NOT EXISTS unaccent WITH SCHEMA public;
 CREATE OR REPLACE FUNCTION public.immutable_unaccent(text)
 RETURNS text AS $$
   SELECT public.unaccent('unaccent', $1)
-CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA public;
-CREATE EXTENSION IF NOT EXISTS unaccent WITH SCHEMA public;
-
-CREATE OR REPLACE FUNCTION public.immutable_unaccent(text)
-RETURNS text AS $$
-  SELECT public.unaccent('unaccent', $1)
 $$ LANGUAGE sql IMMUTABLE PARALLEL SAFE STRICT SET search_path = public, extensions;
 
 CREATE INDEX IF NOT EXISTS idx_customers_search_trgm 
@@ -25,6 +19,7 @@ RETURNS TABLE (
   id uuid,
   name text,
   tax_id text,
+  document_type document_type_enum,
   phone text,
   address text,
   total_spent int8,
@@ -42,6 +37,7 @@ BEGIN
     c.id, 
     c.name, 
     c.tax_id,
+    c.document_type,
     c.phone,
     c.address,
     c.total_spent,

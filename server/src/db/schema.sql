@@ -1,8 +1,18 @@
+-- Document type codes reference (DIAN Colombia):
+-- '31' = NIT (default)
+-- '13' = Cédula de Ciudadanía (CC)
+-- '22' = Cédula de Extranjería (CE)
+-- '41' = Pasaporte
+-- '12' = Tarjeta de Identidad (TI)
+-- '91' = Número de Identificación del Extranjero sin Pasaporte
+-- '42' = Documento de Identificación Extranjero
+CREATE TYPE document_type_enum AS ENUM ('31', '13', '22', '41', '12', '91', '42');
 CREATE TABLE public.customers (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
   name text NOT NULL,
   email text,
   tax_id text,
+  document_type document_type_enum NOT NULL DEFAULT '31',
   city text,
   created_at timestamp with time zone DEFAULT now(),
   current_balance bigint NOT NULL DEFAULT 0,

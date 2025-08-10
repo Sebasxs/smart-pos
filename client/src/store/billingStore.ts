@@ -9,13 +9,25 @@ export type CheckoutState = {
       name: string;
       email: string;
       taxId: string;
+      documentType: string;
+      phone: string;
       city: string;
+      address: string;
    };
    paymentMethod: 'cash' | 'transfer';
    cashReceivedStr: string;
 };
 
-const initialCustomer = { id: '', name: '', email: '', taxId: '', city: '' };
+const initialCustomer = {
+   id: '',
+   name: '',
+   email: '',
+   taxId: '',
+   documentType: '31',
+   phone: '',
+   city: '',
+   address: '',
+};
 
 const initialCheckoutState: CheckoutState = {
    customer: initialCustomer,

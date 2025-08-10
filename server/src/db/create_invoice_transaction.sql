@@ -19,9 +19,27 @@ BEGIN
   IF (p_customer->>'taxId') IS NOT NULL AND (p_customer->>'taxId') != '' THEN
     SELECT id INTO v_customer_id FROM customers WHERE tax_id = (p_customer->>'taxId');
     IF v_customer_id IS NOT NULL THEN
-      UPDATE customers SET name = (p_customer->>'name'), email = (p_customer->>'email'), city = (p_customer->>'city') WHERE id = v_customer_id;
+      UPDATE customers SET 
+        name = (p_customer->>'name'), 
+        email = (p_customer->>'email'), 
+        city = (p_customer->>'city'),
+        phone = (p_customer->>'phone'),
+        address = (p_customer->>'address'),
+        document_type = COALESCE((p_customer->>'documentType')::document_type_enum, '31')
+      WHERE id = v_customer_id;
     ELSE
-      INSERT INTO customers (name, tax_id, email, city, current_balance) VALUES ((p_customer->>'name'), (p_customer->>'taxId'), (p_customer->>'email'), (p_customer->>'city'), 0) RETURNING id INTO v_customer_id;
+      INSERT INTO customers (name, tax_id, email, city, phone, address, document_type, current_balance) 
+      VALUES (
+        (p_customer->>'name'), 
+        (p_customer->>'taxId'), 
+        (p_customer->>'email'), 
+        (p_customer->>'city'),
+        (p_customer->>'phone'),
+        (p_customer->>'address'),
+        COALESCE((p_customer->>'documentType')::document_type_enum, '31'),
+        0
+      ) 
+      RETURNING id INTO v_customer_id;
     END IF;
   ELSE
     v_customer_id := NULL;

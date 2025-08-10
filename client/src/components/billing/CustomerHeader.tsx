@@ -4,9 +4,12 @@ import {
    HiOutlineMapPin,
    HiOutlineMagnifyingGlass,
    HiOutlineTrash,
+   HiOutlinePhone,
+   HiOutlineHome,
 } from 'react-icons/hi2';
 import { HiOutlineMail } from 'react-icons/hi';
 import { useBillingStore } from '../../store/billingStore';
+import { DOCUMENT_TYPES } from '../../utils/documentTypes';
 
 // Types
 import { type ReactNode, type ElementType } from 'react';
@@ -46,6 +49,37 @@ const HeaderInput = ({
    </div>
 );
 
+const DocumentTypeSelect = ({
+   value,
+   onChange,
+}: {
+   value: string;
+   onChange: (val: string) => void;
+}) => (
+   <div className="relative group flex-1 min-w-[120px] max-w-[160px]">
+      <div className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none transition-colors group-focus-within:text-blue-500/80 z-10">
+         <HiOutlineIdentification size={18} />
+      </div>
+      <select
+         value={value}
+         onChange={e => onChange(e.target.value)}
+         className="
+            w-full bg-zinc-800/50 hover:bg-zinc-800 focus:bg-zinc-800
+            border border-zinc-800 focus:border-blue-500/70
+            rounded-lg py-2.5 text-sm text-zinc-200
+            outline-none transition-all duration-200
+            pl-10 pr-3 appearance-none cursor-pointer
+         "
+      >
+         {DOCUMENT_TYPES.map(doc => (
+            <option key={doc.code} value={doc.code}>
+               {doc.label}
+            </option>
+         ))}
+      </select>
+   </div>
+);
+
 export const CustomerHeader = ({ onSearchRequest }: { onSearchRequest: () => void }) => {
    const { checkoutData, setCheckoutData, resetCustomer } = useBillingStore();
    const { customer } = checkoutData;
@@ -75,40 +109,63 @@ export const CustomerHeader = ({ onSearchRequest }: { onSearchRequest: () => voi
             )}
          </div>
 
-         <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            <HeaderInput
-               placeholder="Cliente / Razón Social"
-               value={customer.name}
-               onChange={v => updateField('name', v)}
-               icon={HiOutlineUser}
-               rightElement={
-                  <button
-                     onClick={onSearchRequest}
-                     className="p-1.5 text-zinc-500 hover:text-white hover:bg-zinc-700 rounded-md transition-colors cursor-pointer"
-                     title="Buscar Cliente (C)"
-                  >
-                     <HiOutlineMagnifyingGlass size={16} />
-                  </button>
-               }
-            />
-            <HeaderInput
-               placeholder="Identificación / NIT"
-               value={customer.taxId}
-               onChange={v => updateField('taxId', v)}
-               icon={HiOutlineIdentification}
-            />
-            <HeaderInput
-               placeholder="Correo Electrónico"
-               value={customer.email}
-               onChange={v => updateField('email', v)}
-               icon={HiOutlineMail}
-            />
-            <HeaderInput
-               placeholder="Ciudad / Ubicación"
-               value={customer.city}
-               onChange={v => updateField('city', v)}
-               icon={HiOutlineMapPin}
-            />
+         <div className="p-4 flex flex-col gap-3">
+            {/* Fila 1: Campos Requeridos */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[2fr_auto_1.5fr_2fr] gap-3">
+               <HeaderInput
+                  placeholder="Cliente / Razón Social"
+                  value={customer.name}
+                  onChange={v => updateField('name', v)}
+                  icon={HiOutlineUser}
+                  rightElement={
+                     <button
+                        onClick={onSearchRequest}
+                        className="p-1.5 text-zinc-500 hover:text-white hover:bg-zinc-700 rounded-md transition-colors cursor-pointer"
+                        title="Buscar Cliente (C)"
+                     >
+                        <HiOutlineMagnifyingGlass size={16} />
+                     </button>
+                  }
+               />
+               <DocumentTypeSelect
+                  value={customer.documentType}
+                  onChange={v => updateField('documentType', v)}
+               />
+               <HeaderInput
+                  placeholder="Identificación / NIT"
+                  value={customer.taxId}
+                  onChange={v => updateField('taxId', v)}
+                  icon={HiOutlineIdentification}
+               />
+               <HeaderInput
+                  placeholder="Correo Electrónico"
+                  value={customer.email}
+                  onChange={v => updateField('email', v)}
+                  icon={HiOutlineMail}
+               />
+            </div>
+
+            {/* Fila 2: Campos Opcionales */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_2fr] gap-3">
+               <HeaderInput
+                  placeholder="Teléfono"
+                  value={customer.phone}
+                  onChange={v => updateField('phone', v)}
+                  icon={HiOutlinePhone}
+               />
+               <HeaderInput
+                  placeholder="Ciudad / Ubicación"
+                  value={customer.city}
+                  onChange={v => updateField('city', v)}
+                  icon={HiOutlineMapPin}
+               />
+               <HeaderInput
+                  placeholder="Dirección"
+                  value={customer.address}
+                  onChange={v => updateField('address', v)}
+                  icon={HiOutlineHome}
+               />
+            </div>
          </div>
       </div>
    );

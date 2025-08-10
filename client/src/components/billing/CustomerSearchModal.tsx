@@ -9,6 +9,8 @@ import {
 } from 'react-icons/hi';
 import { CgSpinner } from 'react-icons/cg';
 import { Modal } from '../ui/Modal';
+
+// Types
 import { type CheckoutState } from '../../store/billingStore';
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -17,8 +19,11 @@ type CustomerResult = {
    id: string;
    name: string;
    tax_id: string;
+   document_type: string;
    email: string;
+   phone: string;
    city: string;
+   address: string;
 };
 
 type CustomerSearchModalProps = {
@@ -86,7 +91,10 @@ export const CustomerSearchModal = ({
             name: c.name,
             email: c.email || '',
             taxId: c.tax_id || '',
+            documentType: c.document_type || '31',
+            phone: c.phone || '',
             city: c.city || '',
+            address: c.address || '',
          });
          onClose();
       },
@@ -229,7 +237,7 @@ export const CustomerSearchModal = ({
                            <HiOutlineUser size={40} className="text-blue-500/80" />
                         </div>
                         <h3 className="text-zinc-400 font-medium text-lg">Base de Clientes</h3>
-                        <p className="text-zinc-600 text-sm mt-1">Busca por nombre, NIT o email</p>
+                        <p className="text-zinc-600 text-sm mt-1">Busca por nombre, ID o email</p>
                      </div>
                   )}
                </div>

@@ -12,6 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCustomerStore } from '../../store/customerStore';
 import { formatCurrency } from '../../utils/format';
 import { formatRelativeDate, differenceInDays, parseISO } from '../../utils/date';
+import { getDocumentTypeLabel } from '../../utils/documentTypes';
 import { CustomerStatusBadge } from './CustomerStatusBadge';
 
 // Types
@@ -132,10 +133,13 @@ export const CustomerList = ({ customers, isLoading, onEdit, onDelete }: Custome
                   </div>
                </div>
 
-               {/* 2. IDENTIFICACIÓN */}
-               <div className="flex flex-col min-w-0">
+               {/* 2. IDENTIFICACIÓN / TIPO DOC */}
+               <div className="flex flex-col min-w-0 gap-1">
                   <span className="text-zinc-300 text-sm font-medium truncate">
                      {customer.tax_id || '---'}
+                  </span>
+                  <span className="text-sm text-zinc-500 font-medium truncate">
+                     {getDocumentTypeLabel(customer.document_type)}
                   </span>
                </div>
 
@@ -227,7 +231,7 @@ export const CustomerList = ({ customers, isLoading, onEdit, onDelete }: Custome
                      className={`${GRID_LAYOUT} py-4 text-xs font-bold text-zinc-500 uppercase tracking-wider`}
                   >
                      <SortableHeader label="Cliente" sortKey="name" offset={0} />
-                     <SortableHeader label="NIT / CC" align="left" offset={-5} />
+                     <SortableHeader label="ID" align="left" offset={-5} />
                      <SortableHeader label="Ciudad" sortKey="city" offset={-7} />
                      <SortableHeader
                         label="Última Actividad"

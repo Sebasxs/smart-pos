@@ -2,6 +2,7 @@ export interface Customer {
    id: string;
    name: string;
    tax_id?: string;
+   document_type?: string;
    email?: string;
    phone?: string;
    city?: string;

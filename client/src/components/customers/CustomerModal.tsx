@@ -4,6 +4,7 @@ import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
 import { useCustomerStore } from '../../store/customerStore';
 import { HiOutlineUser, HiOutlineUserPlus } from 'react-icons/hi2';
+import { DOCUMENT_TYPES } from '../../utils/documentTypes';
 
 // Types
 import { type Customer } from '../../types/customer';
@@ -17,6 +18,7 @@ type CustomerModalProps = {
 const initialForm = {
    name: '',
    tax_id: '',
+   document_type: '31',
    email: '',
    phone: '',
    city: '',
@@ -35,6 +37,7 @@ export const CustomerModal = ({ isOpen, onClose, customerToEdit }: CustomerModal
          setForm({
             name: customerToEdit.name,
             tax_id: customerToEdit.tax_id || '',
+            document_type: customerToEdit.document_type || '31',
             email: customerToEdit.email || '',
             phone: customerToEdit.phone || '',
             city: customerToEdit.city || '',
@@ -100,15 +103,40 @@ export const CustomerModal = ({ isOpen, onClose, customerToEdit }: CustomerModal
                   />
                </div>
 
-               {/* 2. Identificación y Email */}
-               <div className="grid grid-cols-2 gap-3">
+               {/* 2. Tipo de Documento e Identificación */}
+               <div className="grid grid-cols-[auto_1fr] gap-3">
+                  <div>
+                     <label className="block text-sm font-medium text-zinc-400 mb-1.5">
+                        Tipo de documento
+                     </label>
+                     <select
+                        name="document_type"
+                        value={form.document_type}
+                        onChange={handleChange as any}
+                        className="
+                           w-full bg-zinc-900 border border-zinc-800 focus:border-blue-500/70
+                           rounded-lg py-2.5 px-3 text-sm text-zinc-200
+                           outline-none transition-all duration-200 cursor-pointer
+                        "
+                     >
+                        {DOCUMENT_TYPES.map(doc => (
+                           <option key={doc.code} value={doc.code}>
+                              {doc.label}
+                           </option>
+                        ))}
+                     </select>
+                  </div>
                   <Input
-                     label="Identificación (NIT/CC)"
+                     label="Identificación"
                      name="tax_id"
                      value={form.tax_id}
                      onChange={handleChange}
                      placeholder="123456789"
                   />
+               </div>
+
+               {/* 3. Email */}
+               <div>
                   <Input
                      label="Email"
                      name="email"
@@ -119,7 +147,7 @@ export const CustomerModal = ({ isOpen, onClose, customerToEdit }: CustomerModal
                   />
                </div>
 
-               {/* 3. Teléfono y Ciudad */}
+               {/* 4. Teléfono y Ciudad */}
                <div className="grid grid-cols-2 gap-3">
                   <Input
                      label="Teléfono"
