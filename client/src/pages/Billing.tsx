@@ -3,7 +3,7 @@ import { useState, useMemo, useCallback, useEffect } from 'react';
 // Components
 import { InvoiceTable } from '../components/billing/InvoiceTable';
 import { ProductSearchModal } from '../components/billing/ProductSearchModal';
-import { CustomerSearchModal } from '../components/billing/CustomerSearchModal';
+
 import { CustomerHeader } from '../components/billing/CustomerHeader';
 import { DiscountModal } from '../components/billing/DiscountModal';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
@@ -29,7 +29,6 @@ export const Billing = () => {
       updateItem,
       removeItem,
       setDiscount,
-      setCheckoutData,
       resetInvoice,
    } = useBillingStore();
    const { decreaseStockBatch } = useInventoryStore();
@@ -37,7 +36,7 @@ export const Billing = () => {
 
    const [modals, setModals] = useState({
       productSearch: false,
-      customerSearch: false,
+
       discount: false,
       discardConfirm: false,
       success: false,
@@ -79,11 +78,6 @@ export const Billing = () => {
    const handleProductSelect = (product: Partial<InvoiceItem>) => {
       addItem(product);
       toggleModal('productSearch', false);
-   };
-
-   const handleCustomerSelect = (customer: Partial<CheckoutState['customer']>) => {
-      setCheckoutData({ customer: { ...checkoutData.customer, ...customer } });
-      toggleModal('customerSearch', false);
    };
 
    const triggerDiscard = useCallback(() => {
@@ -182,7 +176,7 @@ export const Billing = () => {
                   break;
                case 'KeyC':
                   event.preventDefault();
-                  toggleModal('customerSearch', true);
+                  document.getElementById('customer-name-input')?.focus();
                   break;
                case 'KeyD':
                   event.preventDefault();
@@ -213,7 +207,7 @@ export const Billing = () => {
    return (
       <div className="relative w-full flex flex-col gap-4 lg:h-full lg:max-h-screen">
          {/* 1. HEADER CLIENTE */}
-         <CustomerHeader onSearchRequest={() => toggleModal('customerSearch', true)} />
+         <CustomerHeader />
 
          <div className="flex flex-col lg:flex-row gap-4 lg:flex-1 lg:min-h-0 lg:overflow-hidden pb-2">
             {/* 2. TABLA DE PRODUCTOS */}
@@ -264,11 +258,7 @@ export const Billing = () => {
             onClose={() => toggleModal('productSearch', false)}
             onSelectProduct={handleProductSelect}
          />
-         <CustomerSearchModal
-            isOpen={modals.customerSearch}
-            onClose={() => toggleModal('customerSearch', false)}
-            onSelectCustomer={handleCustomerSelect}
-         />
+
          <DiscountModal
             isOpen={modals.discount}
             onClose={() => toggleModal('discount', false)}

@@ -1,8 +1,6 @@
 import {
-   HiOutlineUser,
    HiOutlineIdentification,
    HiOutlineMapPin,
-   HiOutlineMagnifyingGlass,
    HiOutlineTrash,
    HiOutlinePhone,
    HiOutlineHome,
@@ -10,6 +8,7 @@ import {
 import { HiOutlineMail } from 'react-icons/hi';
 import { useBillingStore } from '../../store/billingStore';
 import { DOCUMENT_TYPES } from '../../utils/documentTypes';
+import { CustomerAutocomplete } from './CustomerAutocomplete';
 
 // Types
 import { type ReactNode, type ElementType } from 'react';
@@ -80,7 +79,7 @@ const DocumentTypeSelect = ({
    </div>
 );
 
-export const CustomerHeader = ({ onSearchRequest }: { onSearchRequest: () => void }) => {
+export const CustomerHeader = () => {
    const { checkoutData, setCheckoutData, resetCustomer } = useBillingStore();
    const { customer } = checkoutData;
 
@@ -93,8 +92,8 @@ export const CustomerHeader = ({ onSearchRequest }: { onSearchRequest: () => voi
    const hasCustomerData = Object.values(customer).some(val => val.trim() !== '');
 
    return (
-      <div className="flex flex-col bg-zinc-900 border border-zinc-800 rounded-xl shadow-sm overflow-hidden">
-         <div className="py-3 px-4 border-b border-zinc-800 bg-zinc-900/50 flex justify-between items-center">
+      <div className="flex flex-col bg-zinc-900 border border-zinc-800 rounded-xl shadow-sm">
+         <div className="py-3 px-4 border-b border-zinc-800 bg-zinc-900/50 flex justify-between items-center rounded-t-xl">
             <h2 className="text-zinc-500 text-[11px] font-bold uppercase tracking-wider">
                Cliente
             </h2>
@@ -112,20 +111,26 @@ export const CustomerHeader = ({ onSearchRequest }: { onSearchRequest: () => voi
          <div className="p-4 flex flex-col gap-3">
             {/* Fila 1: Campos Requeridos */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[2fr_auto_1.5fr_2fr] gap-3">
-               <HeaderInput
+               <CustomerAutocomplete
+                  id="customer-name-input"
                   placeholder="Cliente / Razón Social"
                   value={customer.name}
                   onChange={v => updateField('name', v)}
-                  icon={HiOutlineUser}
-                  rightElement={
-                     <button
-                        onClick={onSearchRequest}
-                        className="p-1.5 text-zinc-500 hover:text-white hover:bg-zinc-700 rounded-md transition-colors cursor-pointer"
-                        title="Buscar Cliente (C)"
-                     >
-                        <HiOutlineMagnifyingGlass size={16} />
-                     </button>
-                  }
+                  onSelectCustomer={c => {
+                     setCheckoutData({
+                        customer: {
+                           ...customer,
+                           id: c.id,
+                           name: c.name,
+                           email: c.email || '',
+                           taxId: c.tax_id || '',
+                           documentType: c.document_type || '31',
+                           phone: c.phone || '',
+                           city: c.city || '',
+                           address: c.address || '',
+                        },
+                     });
+                  }}
                />
                <DocumentTypeSelect
                   value={customer.documentType}
