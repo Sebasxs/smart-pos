@@ -128,6 +128,7 @@ export const CustomSelect = ({
    const [highlightedIndex, setHighlightedIndex] = useState(0);
    const containerRef = useRef<HTMLDivElement>(null);
    const dropdownRef = useRef<HTMLDivElement>(null);
+   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
    const selectedOption = options.find(opt => opt.value === value);
    const styles = colorStyles[color];
@@ -186,8 +187,10 @@ export const CustomSelect = ({
    }, [isOpen, highlightedIndex, options, onChange]);
 
    useEffect(() => {
-      if (isOpen && dropdownRef.current) {
-         const highlightedElement = dropdownRef.current.children[highlightedIndex] as HTMLElement;
+      if (isOpen && scrollContainerRef.current) {
+         const highlightedElement = scrollContainerRef.current.children[
+            highlightedIndex
+         ] as HTMLElement;
          if (highlightedElement) {
             highlightedElement.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
          }
@@ -252,7 +255,10 @@ export const CustomSelect = ({
                      `border-x border-b rounded-b-xl ${styles.border} border-t-zinc-800`,
                   )}
                >
-                  <div className="max-h-[280px] overflow-y-auto py-1 custom-scrollbar">
+                  <div
+                     ref={scrollContainerRef}
+                     className="max-h-[280px] overflow-y-auto py-1 custom-scrollbar"
+                  >
                      {options.map((option, index) => {
                         const isSelected = option.value === value;
                         const isHighlighted = index === highlightedIndex;
