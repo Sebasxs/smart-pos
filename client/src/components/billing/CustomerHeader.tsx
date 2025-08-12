@@ -27,7 +27,7 @@ const HeaderInput = ({
    placeholder: string;
    rightElement?: ReactNode;
 }) => (
-   <div className="relative group flex-1 min-w-[150px]">
+   <div className="relative group w-full">
       <div className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none transition-colors group-focus-within:text-blue-500/80">
          <Icon size={18} />
       </div>
@@ -56,7 +56,7 @@ const DocumentTypeSelect = ({
    value: string;
    onChange: (val: string) => void;
 }) => (
-   <div className="relative group flex-1 min-w-[120px] max-w-[160px]">
+   <div className="relative group w-full">
       <div className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none transition-colors group-focus-within:text-blue-500/80 z-10">
          <HiOutlineIdentification size={18} />
       </div>
@@ -64,7 +64,7 @@ const DocumentTypeSelect = ({
          value={value}
          onChange={onChange}
          options={DOCUMENT_TYPES.map(({ code, label }) => ({ value: code, label }))}
-         className="pl-10 border-zinc-800 bg-zinc-800/50 hover:bg-zinc-800"
+         className="pl-10 border-zinc-800 bg-zinc-800/50 hover:bg-zinc-800 w-full"
          color="flat"
       />
    </div>
@@ -99,9 +99,10 @@ export const CustomerHeader = () => {
             )}
          </div>
 
-         <div className="p-4 flex flex-col gap-3">
-            {/* Fila 1: Campos Requeridos */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[2fr_auto_1.5fr_2fr] gap-3">
+         {/* GRID CONTROLADOR DE ESPACIOS */}
+         <div className="p-4 grid grid-cols-2 md:grid-cols-6 lg:grid-cols-12 gap-3">
+            {/* Nombre */}
+            <div className="col-span-2 md:col-span-3 lg:col-span-4">
                <CustomerAutocomplete
                   id="customer-name-input"
                   placeholder="Cliente / Razón Social"
@@ -123,16 +124,28 @@ export const CustomerHeader = () => {
                      });
                   }}
                />
+            </div>
+
+            {/* Doc Type */}
+            <div className="col-span-1 md:col-span-1 lg:col-span-2">
                <DocumentTypeSelect
                   value={customer.documentType}
                   onChange={v => updateField('documentType', v)}
                />
+            </div>
+
+            {/* ID */}
+            <div className="col-span-1 md:col-span-2 lg:col-span-2">
                <HeaderInput
-                  placeholder="Identificación / NIT"
+                  placeholder="Identificación"
                   value={customer.taxId}
                   onChange={v => updateField('taxId', v)}
                   icon={HiOutlineIdentification}
                />
+            </div>
+
+            {/* Email */}
+            <div className="col-span-2 md:col-span-3 lg:col-span-4">
                <HeaderInput
                   placeholder="Correo Electrónico"
                   value={customer.email}
@@ -141,20 +154,28 @@ export const CustomerHeader = () => {
                />
             </div>
 
-            {/* Fila 2: Campos Opcionales */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_2fr] gap-3">
+            {/* Teléfono */}
+            <div className="col-span-2 md:col-span-3 lg:col-span-3">
                <HeaderInput
                   placeholder="Teléfono"
                   value={customer.phone}
                   onChange={v => updateField('phone', v)}
                   icon={HiOutlinePhone}
                />
+            </div>
+
+            {/* Ciudad */}
+            <div className="col-span-2 md:col-span-2 lg:col-span-3">
                <HeaderInput
                   placeholder="Ciudad / Ubicación"
                   value={customer.city}
                   onChange={v => updateField('city', v)}
                   icon={HiOutlineMapPin}
                />
+            </div>
+
+            {/* Dirección */}
+            <div className="col-span-2 md:col-span-4 lg:col-span-6">
                <HeaderInput
                   placeholder="Dirección"
                   value={customer.address}
