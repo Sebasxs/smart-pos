@@ -110,7 +110,11 @@ export const ProductModal = ({ isOpen, onClose, productToEdit }: ProductModalPro
    };
 
    return (
-      <Modal isOpen={isOpen} onClose={onClose} className="w-fit max-w-md bg-zinc-950 border border-zinc-800/50 shadow-2xl shadow-purple-500/10">
+      <Modal
+         isOpen={isOpen}
+         onClose={onClose}
+         className="w-fit max-w-md bg-zinc-950 border border-zinc-800/50 shadow-2xl shadow-purple-500/10"
+      >
          <div className="p-6">
             {/* Header */}
             <div className="flex items-center gap-4 mb-2 pb-4 border-b border-zinc-800/50">
@@ -122,7 +126,9 @@ export const ProductModal = ({ isOpen, onClose, productToEdit }: ProductModalPro
                      {productToEdit ? 'Editar Producto' : 'Nuevo Producto'}
                   </h2>
                   <p className="text-zinc-400 text-xs mt-0.5">
-                     {productToEdit ? 'Modifica los detalles del item' : 'Registra un nuevo item en el inventario'}
+                     {productToEdit
+                        ? 'Modifica los detalles del item'
+                        : 'Registra un nuevo item en el inventario'}
                   </p>
                </div>
             </div>
@@ -145,9 +151,10 @@ export const ProductModal = ({ isOpen, onClose, productToEdit }: ProductModalPro
                <CustomSelect
                   label="Proveedor"
                   value={form.supplierId}
-                  onChange={(value) => handleChange({ target: { name: 'supplierId', value } } as any)}
+                  onChange={value => handleChange({ target: { name: 'supplierId', value } } as any)}
                   options={suppliers.map(s => ({ value: s.id, label: s.name }))}
                   placeholder="-- Seleccionar --"
+                  color="gray"
                />
 
                {/* 3. Costo y precio */}
@@ -156,7 +163,13 @@ export const ProductModal = ({ isOpen, onClose, productToEdit }: ProductModalPro
                      <Input
                         label="Costo"
                         name="cost"
-                        value={isCostFocused ? rawCost : (form.cost === 0 ? '' : formatCurrency(form.cost))}
+                        value={
+                           isCostFocused
+                              ? rawCost
+                              : form.cost === 0
+                              ? ''
+                              : formatCurrency(form.cost)
+                        }
                         onChange={handleCostChange}
                         onFocus={() => {
                            setIsCostFocused(true);
@@ -169,7 +182,13 @@ export const ProductModal = ({ isOpen, onClose, productToEdit }: ProductModalPro
                      <Input
                         label="Precio de Venta"
                         name="price"
-                        value={isPriceFocused ? rawPrice : (form.price === 0 ? '' : formatCurrency(form.price))}
+                        value={
+                           isPriceFocused
+                              ? rawPrice
+                              : form.price === 0
+                              ? ''
+                              : formatCurrency(form.price)
+                        }
                         onChange={handlePriceChange}
                         onFocus={() => {
                            setIsPriceFocused(true);
@@ -220,17 +239,10 @@ export const ProductModal = ({ isOpen, onClose, productToEdit }: ProductModalPro
 
                {/* Footer Actions */}
                <div className="flex gap-3 justify-end border-t border-zinc-800/50 mt-3 pt-3">
-                  <Button
-                     type="button"
-                     variant="secondary"
-                     onClick={onClose}
-                  >
+                  <Button type="button" variant="secondary" onClick={onClose}>
                      Cancelar
                   </Button>
-                  <Button
-                     type="submit"
-                     isLoading={isSubmitting}
-                  >
+                  <Button type="submit" isLoading={isSubmitting}>
                      Guardar
                   </Button>
                </div>

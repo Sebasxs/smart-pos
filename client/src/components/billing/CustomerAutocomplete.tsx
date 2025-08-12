@@ -42,7 +42,6 @@ export const CustomerAutocomplete = ({
    const containerRef = useRef<HTMLDivElement>(null);
    const dropdownRef = useRef<HTMLDivElement>(null);
 
-   // Debounced search
    useEffect(() => {
       if (!isOpen || value.trim() === '') {
          setResults([]);
@@ -70,7 +69,6 @@ export const CustomerAutocomplete = ({
       return () => clearTimeout(timeoutId);
    }, [value, isOpen]);
 
-   // Handle click outside
    useEffect(() => {
       const handleClickOutside = (e: MouseEvent) => {
          if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
@@ -82,7 +80,6 @@ export const CustomerAutocomplete = ({
       return () => document.removeEventListener('click', handleClickOutside);
    }, []);
 
-   // Handle keyboard navigation
    const handleKeyDown = (e: React.KeyboardEvent) => {
       if (!isOpen || results.length === 0) return;
 
@@ -107,7 +104,6 @@ export const CustomerAutocomplete = ({
       }
    };
 
-   // Scroll highlighted item into view
    useEffect(() => {
       if (isOpen && dropdownRef.current) {
          const highlightedElement = dropdownRef.current.children[highlightedIndex] as HTMLElement;
@@ -148,7 +144,7 @@ export const CustomerAutocomplete = ({
             autoComplete="off"
             className={cn(
                'w-full bg-zinc-800/50 hover:bg-zinc-800 focus:bg-zinc-800',
-               'border border-zinc-800 focus:border-blue-500/70',
+               'border border-zinc-800 focus:border-zinc-500/70',
                'rounded-lg py-2.5 text-sm text-zinc-200 placeholder:text-zinc-500',
                'outline-none transition-all duration-200',
                'pl-10 pr-3',
@@ -158,7 +154,7 @@ export const CustomerAutocomplete = ({
          />
 
          {showDropdown && (
-            <div className="absolute left-0 right-0 z-50 -mt-[1px] bg-zinc-800 border border-zinc-800 group-focus-within:border-blue-500/70 border-t-0 rounded-b-xl shadow-2xl shadow-black/50 overflow-hidden animate-in fade-in duration-200">
+            <div className="absolute left-0 right-0 z-50 -mt-[1px] bg-zinc-800 border border-zinc-800 group-focus-within:border-zinc-500/70 border-t-0 rounded-b-xl shadow-2xl shadow-black/50 overflow-hidden animate-in fade-in duration-200">
                <div
                   ref={dropdownRef}
                   className="max-h-[280px] overflow-y-auto py-1 custom-scrollbar"

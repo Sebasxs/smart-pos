@@ -61,8 +61,9 @@ export const InventoryHeader = ({
                   ...suppliers.map(s => ({ value: s.id, label: s.name })),
                ]}
                placeholder="Filtrar por proveedor"
-               className="w-full h-full lg:h-auto min-h-[42px] rounded-xl bg-zinc-900 border-zinc-700"
+               className="w-full h-full lg:h-auto min-h-[42px] hover:bg-zinc-800"
                containerClassName="h-full lg:h-auto"
+               color="flat"
             />
          </div>
 

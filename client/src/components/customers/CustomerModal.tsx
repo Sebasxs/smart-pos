@@ -8,6 +8,7 @@ import { DOCUMENT_TYPES } from '../../utils/documentTypes';
 
 // Types
 import { type Customer } from '../../types/customer';
+import { CustomSelect } from '../ui/CustomSelect';
 
 type CustomerModalProps = {
    isOpen: boolean;
@@ -107,24 +108,16 @@ export const CustomerModal = ({ isOpen, onClose, customerToEdit }: CustomerModal
                <div className="grid grid-cols-[auto_1fr] gap-3">
                   <div>
                      <label className="block text-sm font-medium text-zinc-400 mb-1.5">
-                        Tipo de documento
+                        Tipo de Documento
                      </label>
-                     <select
-                        name="document_type"
+                     <CustomSelect
                         value={form.document_type}
-                        onChange={handleChange as any}
-                        className="
-                           w-full bg-zinc-900 border border-zinc-800 focus:border-blue-500/70
-                           rounded-lg py-2.5 px-3 text-sm text-zinc-200
-                           outline-none transition-all duration-200 cursor-pointer
-                        "
-                     >
-                        {DOCUMENT_TYPES.map(doc => (
-                           <option key={doc.code} value={doc.code}>
-                              {doc.label}
-                           </option>
-                        ))}
-                     </select>
+                        onChange={value =>
+                           handleChange({ target: { name: 'document_type', value } } as any)
+                        }
+                        options={DOCUMENT_TYPES.map(({ code, label }) => ({ value: code, label }))}
+                        color="flat"
+                     />
                   </div>
                   <Input
                      label="Identificación"

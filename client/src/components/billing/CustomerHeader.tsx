@@ -12,6 +12,7 @@ import { CustomerAutocomplete } from './CustomerAutocomplete';
 
 // Types
 import { type ReactNode, type ElementType } from 'react';
+import { CustomSelect } from '../ui/CustomSelect';
 
 const HeaderInput = ({
    value,
@@ -36,7 +37,7 @@ const HeaderInput = ({
          placeholder={placeholder}
          className={`
             w-full bg-zinc-800/50 hover:bg-zinc-800 focus:bg-zinc-800
-            border border-zinc-800 focus:border-blue-500/70
+            border border-zinc-800 focus:border-zinc-500/70
             rounded-lg py-2.5 text-sm text-zinc-200 placeholder:text-zinc-500
             outline-none transition-all duration-200
             pl-10 ${rightElement ? 'pr-10' : 'pr-3'} 
@@ -59,23 +60,13 @@ const DocumentTypeSelect = ({
       <div className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none transition-colors group-focus-within:text-blue-500/80 z-10">
          <HiOutlineIdentification size={18} />
       </div>
-      <select
+      <CustomSelect
          value={value}
-         onChange={e => onChange(e.target.value)}
-         className="
-            w-full bg-zinc-800/50 hover:bg-zinc-800 focus:bg-zinc-800
-            border border-zinc-800 focus:border-blue-500/70
-            rounded-lg py-2.5 text-sm text-zinc-200
-            outline-none transition-all duration-200
-            pl-10 pr-3 appearance-none cursor-pointer
-         "
-      >
-         {DOCUMENT_TYPES.map(doc => (
-            <option key={doc.code} value={doc.code}>
-               {doc.label}
-            </option>
-         ))}
-      </select>
+         onChange={onChange}
+         options={DOCUMENT_TYPES.map(({ code, label }) => ({ value: code, label }))}
+         className="pl-10 border-zinc-800 bg-zinc-800/50 hover:bg-zinc-800"
+         color="flat"
+      />
    </div>
 );
 
