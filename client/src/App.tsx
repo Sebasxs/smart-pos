@@ -13,7 +13,12 @@ import { Sales } from './pages/Sales';
 import { Balances } from './pages/Balances';
 import { Warranties } from './pages/Warranties';
 
+// Hooks
+import { useGlobalEscapeKey } from './hooks/useGlobalEscapeKey';
+
 function App() {
+   useGlobalEscapeKey();
+
    return (
       <div className="h-screen w-screen bg-zinc-950 flex flex-col md:flex-row text-zinc-200 font-sans antialiased selection:bg-blue-500/30 overflow-hidden">
          <MobileNavbar />

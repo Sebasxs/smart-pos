@@ -80,6 +80,19 @@ export const CustomerAutocomplete = ({
       return () => document.removeEventListener('click', handleClickOutside);
    }, []);
 
+   useEffect(() => {
+      const handleEscapeKey = (e: KeyboardEvent) => {
+         if (e.key === 'Escape' && isOpen) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            setIsOpen(false);
+         }
+      };
+
+      document.addEventListener('keydown', handleEscapeKey, true);
+      return () => document.removeEventListener('keydown', handleEscapeKey, true);
+   }, [isOpen]);
+
    const handleKeyDown = (e: React.KeyboardEvent) => {
       if (!isOpen || results.length === 0) return;
 
@@ -97,9 +110,6 @@ export const CustomerAutocomplete = ({
             if (results[highlightedIndex]) {
                handleSelect(results[highlightedIndex]);
             }
-            break;
-         case 'Escape':
-            setIsOpen(false);
             break;
       }
    };
@@ -141,7 +151,7 @@ export const CustomerAutocomplete = ({
             onFocus={() => value.trim() !== '' && setIsOpen(true)}
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
-            autoComplete="off"
+            autoComplete="new-password"
             className={cn(
                'w-full bg-zinc-800/50 hover:bg-zinc-800 focus:bg-zinc-800',
                'border border-zinc-800 focus:border-zinc-500/70',

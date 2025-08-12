@@ -158,6 +158,11 @@ export const CustomSelect = ({
 
       const handleKeyDown = (e: KeyboardEvent) => {
          switch (e.key) {
+            case 'Escape':
+               e.preventDefault();
+               e.stopImmediatePropagation();
+               setIsOpen(false);
+               break;
             case 'ArrowDown':
                e.preventDefault();
                setHighlightedIndex(prev => (prev < options.length - 1 ? prev + 1 : prev));
@@ -173,15 +178,11 @@ export const CustomSelect = ({
                   setIsOpen(false);
                }
                break;
-            case 'Escape':
-               e.preventDefault();
-               setIsOpen(false);
-               break;
          }
       };
 
-      document.addEventListener('keydown', handleKeyDown);
-      return () => document.removeEventListener('keydown', handleKeyDown);
+      document.addEventListener('keydown', handleKeyDown, true);
+      return () => document.removeEventListener('keydown', handleKeyDown, true);
    }, [isOpen, highlightedIndex, options, onChange]);
 
    useEffect(() => {
