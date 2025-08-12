@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, startTransition } from 'react';
 import { HiOutlineUser, HiOutlineIdentification } from 'react-icons/hi2';
-import { HiOutlineMail } from 'react-icons/hi';
+import { HiOutlineMail, HiOutlineX } from 'react-icons/hi';
 import { CgSpinner } from 'react-icons/cg';
 import { cn } from '../../utils/cn';
 
@@ -162,6 +162,12 @@ export const CustomerAutocomplete = ({
                className,
             )}
          />
+         <button
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-500 transition-colors hover:text-zinc-200 z-10 cursor-pointer p-1"
+            onClick={() => onChange('')}
+         >
+            {value && <HiOutlineX size={18} />}
+         </button>
 
          {showDropdown && (
             <div className="absolute left-0 right-0 z-50 -mt-[1px] bg-zinc-800 border border-zinc-800 group-focus-within:border-zinc-500/70 border-t-0 rounded-b-xl shadow-2xl shadow-black/50 overflow-hidden animate-in fade-in duration-200">

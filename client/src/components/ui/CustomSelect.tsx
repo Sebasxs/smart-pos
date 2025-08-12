@@ -166,11 +166,11 @@ export const CustomSelect = ({
                break;
             case 'ArrowDown':
                e.preventDefault();
-               setHighlightedIndex(prev => (prev < options.length - 1 ? prev + 1 : prev));
+               setHighlightedIndex(prev => (prev + 1) % options.length);
                break;
             case 'ArrowUp':
                e.preventDefault();
-               setHighlightedIndex(prev => (prev > 0 ? prev - 1 : prev));
+               setHighlightedIndex(prev => (prev - 1 + options.length) % options.length);
                break;
             case 'Enter':
                e.preventDefault();
