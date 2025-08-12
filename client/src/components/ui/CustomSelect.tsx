@@ -105,7 +105,7 @@ const colorStyles: Record<
       check: 'text-zinc-400',
    },
    flat: {
-      border: 'border-zinc-500',
+      border: 'border-zinc-500/70',
       text: 'text-zinc-400',
       background: 'bg-zinc-700/50',
       shadow: '',
@@ -220,11 +220,11 @@ export const CustomSelect = ({
                type="button"
                onClick={handleToggle}
                className={cn(
-                  'w-full h-[42px] bg-zinc-900/50 border text-zinc-200 cursor-pointer',
+                  'w-full h-[42px] bg-zinc-800/50 border text-zinc-200 cursor-pointer',
                   'rounded-xl px-3 pr-10 outline-none transition-[color,background-color,border-color,box-shadow] duration-200 text-sm text-left',
                   'flex items-center relative',
                   isOpen
-                     ? `${styles.border}/70 focus:${styles.border}/70 rounded-b-none border-b-transparent`
+                     ? `${styles.border} focus:${styles.border} rounded-b-none border-b-transparent`
                      : 'border-zinc-700 hover:border-zinc-600',
                   className,
                )}
@@ -247,8 +247,8 @@ export const CustomSelect = ({
                <div
                   ref={dropdownRef}
                   className={cn(
-                     'absolute left-0 right-0 z-50 -mt-[1px] bg-zinc-800 shadow-lg shadow-black overflow-hidden animate-in fade-in duration-200',
-                     `border rounded-b-xl ${styles.border}/70 border-t-zinc-700/60`,
+                     'absolute left-0 right-0 z-50 -mt-[1px] bg-zinc-800 shadow-xl shadow-black/50 overflow-hidden animate-in fade-in duration-200',
+                     `border-x border-b rounded-b-xl ${styles.border} border-t-zinc-800`,
                   )}
                >
                   <div className="max-h-[280px] overflow-y-auto py-1 custom-scrollbar">
