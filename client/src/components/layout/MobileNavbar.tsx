@@ -16,7 +16,7 @@ export const MobileNavbar = () => {
                <HiOutlineBars3 size={26} />
             </button>
             <Link to="/" className="text-zinc-400 font-bold text-lg tracking-tight cursor-pointer">
-               AudioVideoFP
+               AudioVideo
             </Link>
          </div>
 

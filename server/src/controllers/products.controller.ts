@@ -18,7 +18,7 @@ export const getProducts = async (req: Request, res: Response) => {
             .from('products')
             .select('*, suppliers (name)')
             .order('name', { ascending: true })
-            .range(0, 10000);
+            .limit(100); // Limit for performance
          data = result.data || [];
          error = result.error;
       }
@@ -36,6 +36,10 @@ export const getProducts = async (req: Request, res: Response) => {
          supplier: product.supplier_name || product.suppliers?.name || 'Sin proveedor',
          supplierId: product.supplier_id,
          createdAt: product.created_at,
+         // New fields
+         sku: product.sku,
+         taxRate: product.tax_rate,
+         isActive: product.is_active,
       }));
 
       res.json(formattedData);
@@ -47,10 +51,7 @@ export const getProducts = async (req: Request, res: Response) => {
 
 export const getSuppliersList = async (_req: Request, res: Response) => {
    try {
-      const { data, error } = await supabase
-         .from('suppliers')
-         .select('id, name')
-         .order('name');
+      const { data, error } = await supabase.from('suppliers').select('id, name').order('name');
 
       if (error) throw error;
       res.json(data);
@@ -61,7 +62,17 @@ export const getSuppliersList = async (_req: Request, res: Response) => {
 
 export const createProduct = async (req: Request, res: Response) => {
    try {
-      const { name, description, price, cost, stock, discountPercentage, supplierId } = req.body;
+      const {
+         name,
+         description,
+         price,
+         cost,
+         stock,
+         discountPercentage,
+         supplierId,
+         sku,
+         taxRate,
+      } = req.body;
 
       const { data, error } = await supabase
          .from('products')
@@ -72,7 +83,9 @@ export const createProduct = async (req: Request, res: Response) => {
             cost,
             stock,
             discount_percentage: discountPercentage,
-            supplier_id: supplierId || null
+            supplier_id: supplierId || null,
+            sku,
+            tax_rate: taxRate,
          })
          .select()
          .single();
@@ -89,7 +102,17 @@ export const createProduct = async (req: Request, res: Response) => {
 export const updateProduct = async (req: Request, res: Response) => {
    try {
       const { id } = req.params;
-      const { name, description, price, cost, stock, discountPercentage, supplierId } = req.body;
+      const {
+         name,
+         description,
+         price,
+         cost,
+         stock,
+         discountPercentage,
+         supplierId,
+         sku,
+         taxRate,
+      } = req.body;
 
       const { data, error } = await supabase
          .from('products')
@@ -100,7 +123,9 @@ export const updateProduct = async (req: Request, res: Response) => {
             cost,
             stock,
             discount_percentage: discountPercentage,
-            supplier_id: supplierId || null
+            supplier_id: supplierId || null,
+            sku,
+            tax_rate: taxRate,
          })
          .eq('id', id)
          .select()

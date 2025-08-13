@@ -25,8 +25,6 @@ export const getCustomers = async (req: Request, res: Response) => {
    try {
       const search = String(req.query.search || '').trim();
 
-      let query = supabase.from('customers').select('*').order('name', { ascending: true });
-
       if (search) {
          const { data, error } = await supabase.rpc('search_customers', {
             search_term: search,
@@ -36,7 +34,12 @@ export const getCustomers = async (req: Request, res: Response) => {
          return res.json(data);
       }
 
-      const { data, error } = await query;
+      // Default query if no search term
+      const { data, error } = await supabase
+         .from('customers')
+         .select('*')
+         .order('name', { ascending: true })
+         .limit(50); // Add limit for performance
 
       if (error) throw error;
 
@@ -47,7 +50,7 @@ export const getCustomers = async (req: Request, res: Response) => {
    }
 };
 
-const validDocumentTypes = ['31', '13', '22', '41', '12', '91', '42'];
+const validDocumentTypes = ['11', '12', '13', '21', '22', '31', '41', '42', '91'];
 
 export const createCustomer = async (req: Request, res: Response) => {
    try {
@@ -64,7 +67,15 @@ export const createCustomer = async (req: Request, res: Response) => {
       const { data, error } = await supabase
          .from('customers')
          .insert([
-            { name, tax_id, email, phone, city, address, document_type: document_type || '31' },
+            {
+               name,
+               tax_id,
+               email,
+               phone,
+               city,
+               address,
+               document_type: document_type || '31',
+            },
          ])
          .select()
          .single();
@@ -107,13 +118,14 @@ export const deleteCustomer = async (req: Request, res: Response) => {
    try {
       const { id } = req.params;
 
+      // Check for associated invoices first (optional, as FK might handle it or we want explicit error)
       const { data: invoices, error: invoiceError } = await supabase
-         .from('invoices')
+         .from('sales_invoices') // Changed from 'invoices' to 'sales_invoices'
          .select('id')
          .eq('customer_id', id)
          .limit(1);
 
-      if (invoiceError) throw invoiceError;
+      if (invoiceError && invoiceError.code !== 'PGRST116') throw invoiceError;
 
       if (invoices && invoices.length > 0) {
          return res.status(409).json({
