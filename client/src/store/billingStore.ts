@@ -72,7 +72,7 @@ export const useBillingStore = create<BillingState>(set => ({
 
          const originalPrice = product.originalPrice || product.price || 0;
          const discountPercentage = product.discountPercentage || 0;
-         const baseName = product.name || 'Producto genérico';
+         const baseDescription = product.description || 'Producto genérico';
 
          const idealPrice = calculateIdealPrice(originalPrice, discountPercentage);
          const finalPrice =
@@ -82,15 +82,15 @@ export const useBillingStore = create<BillingState>(set => ({
 
          const newItem: InvoiceItem = {
             id: hasValidDbId ? product.id! : crypto.randomUUID(),
-            name: baseName,
-            originalName: baseName,
+            description: baseDescription,
+            originalDescription: baseDescription,
             price: finalPrice,
             originalPrice: originalPrice,
             discountPercentage: discountPercentage,
             quantity: 1,
             stock: product.stock || 9999,
             supplier: product.supplier || 'No especificado',
-            isNameEdited: product.isNameEdited ?? !hasValidDbId,
+            isDescriptionEdited: product.isDescriptionEdited ?? !hasValidDbId,
             isPriceEdited: product.isPriceEdited ?? !hasValidDbId,
             isDatabaseItem: hasValidDbId,
          };
@@ -106,8 +106,9 @@ export const useBillingStore = create<BillingState>(set => ({
 
             const updatedItem = { ...item, ...newValues };
 
-            if (newValues.name !== undefined) {
-               updatedItem.isNameEdited = newValues.name.trim() !== item.originalName.trim();
+            if (newValues.description !== undefined) {
+               updatedItem.isDescriptionEdited =
+                  newValues.description.trim() !== item.originalDescription.trim();
             }
 
             if (newValues.price !== undefined) {

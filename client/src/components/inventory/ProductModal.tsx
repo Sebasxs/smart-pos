@@ -17,7 +17,6 @@ type ProductModalProps = {
 };
 
 const initialForm = {
-   name: '',
    description: '',
    price: 0,
    cost: 0,
@@ -42,8 +41,7 @@ export const ProductModal = ({ isOpen, onClose, productToEdit }: ProductModalPro
       fetchSuppliers();
       if (productToEdit) {
          setForm({
-            name: productToEdit.name,
-            description: productToEdit.description || '',
+            description: productToEdit.description,
             price: productToEdit.price,
             cost: productToEdit.cost,
             stock: productToEdit.stock,
@@ -134,12 +132,12 @@ export const ProductModal = ({ isOpen, onClose, productToEdit }: ProductModalPro
             </div>
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-               {/* 1. Nombre */}
+               {/* 1. Descripción */}
                <div>
                   <Input
-                     label="Nombre del Producto"
-                     name="name"
-                     value={form.name}
+                     label="Descripción"
+                     name="description"
+                     value={form.description}
                      onChange={handleChange}
                      required
                      autoFocus
@@ -224,17 +222,6 @@ export const ProductModal = ({ isOpen, onClose, productToEdit }: ProductModalPro
                         className="no-spinners text-center"
                      />
                   </div>
-               </div>
-
-               {/* 4. Descripción */}
-               <div>
-                  <Input
-                     label="Descripción (Opcional)"
-                     name="description"
-                     value={form.description}
-                     onChange={handleChange}
-                     placeholder="Detalles adicionales..."
-                  />
                </div>
 
                {/* Footer Actions */}

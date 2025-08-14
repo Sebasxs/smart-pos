@@ -29,8 +29,9 @@ const PaymentMethodButton = ({
          className={`${baseClass} ${isActive ? activeClass : inactiveClass}`}
       >
          <div
-            className={`rounded-lg transition-colors duration-200 ${isActive ? textClass : 'text-zinc-700'
-               }`}
+            className={`rounded-lg transition-colors duration-200 ${
+               isActive ? textClass : 'text-zinc-700'
+            }`}
          >
             <Icon size={20} />
          </div>
@@ -108,8 +109,9 @@ export const PaymentWidget = ({ total }: PaymentWidgetProps) => {
                         Cambio
                      </span>
                      <span
-                        className={`text-2xl font-mono font-bold ${change > 0 ? 'text-emerald-400' : 'text-zinc-600'
-                           }`}
+                        className={`text-2xl font-mono font-bold ${
+                           change > 0 ? 'text-emerald-400' : 'text-zinc-600'
+                        }`}
                      >
                         ${change.toLocaleString('es-CO')}
                      </span>

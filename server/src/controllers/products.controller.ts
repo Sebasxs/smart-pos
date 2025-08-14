@@ -17,7 +17,7 @@ export const getProducts = async (req: Request, res: Response) => {
          const result = await supabase
             .from('products')
             .select('*, suppliers (name)')
-            .order('name', { ascending: true })
+            .order('description', { ascending: true })
             .limit(100); // Limit for performance
          data = result.data || [];
          error = result.error;
@@ -27,18 +27,15 @@ export const getProducts = async (req: Request, res: Response) => {
 
       const formattedData = data.map((product: any) => ({
          id: product.id,
-         name: product.name,
          description: product.description,
          price: product.price,
          cost: product.cost,
          stock: product.stock,
          discountPercentage: product.discount_percentage || 0,
-         supplier: product.supplier_name || product.suppliers?.name || 'Sin proveedor',
+         supplier: product.suppliers?.name || 'Sin proveedor',
          supplierId: product.supplier_id,
          createdAt: product.created_at,
-         // New fields
          sku: product.sku,
-         taxRate: product.tax_rate,
          isActive: product.is_active,
       }));
 
@@ -62,22 +59,11 @@ export const getSuppliersList = async (_req: Request, res: Response) => {
 
 export const createProduct = async (req: Request, res: Response) => {
    try {
-      const {
-         name,
-         description,
-         price,
-         cost,
-         stock,
-         discountPercentage,
-         supplierId,
-         sku,
-         taxRate,
-      } = req.body;
+      const { description, price, cost, stock, discountPercentage, supplierId, sku } = req.body;
 
       const { data, error } = await supabase
          .from('products')
          .insert({
-            name,
             description,
             price,
             cost,
@@ -85,7 +71,6 @@ export const createProduct = async (req: Request, res: Response) => {
             discount_percentage: discountPercentage,
             supplier_id: supplierId || null,
             sku,
-            tax_rate: taxRate,
          })
          .select()
          .single();
@@ -102,22 +87,11 @@ export const createProduct = async (req: Request, res: Response) => {
 export const updateProduct = async (req: Request, res: Response) => {
    try {
       const { id } = req.params;
-      const {
-         name,
-         description,
-         price,
-         cost,
-         stock,
-         discountPercentage,
-         supplierId,
-         sku,
-         taxRate,
-      } = req.body;
+      const { description, price, cost, stock, discountPercentage, supplierId, sku } = req.body;
 
       const { data, error } = await supabase
          .from('products')
          .update({
-            name,
             description,
             price,
             cost,
@@ -125,7 +99,6 @@ export const updateProduct = async (req: Request, res: Response) => {
             discount_percentage: discountPercentage,
             supplier_id: supplierId || null,
             sku,
-            tax_rate: taxRate,
          })
          .eq('id', id)
          .select()

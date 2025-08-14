@@ -1,5 +1,10 @@
 import { Virtuoso } from 'react-virtuoso';
-import { HiOutlineTrash, HiOutlineArchiveBoxXMark, HiChevronUp, HiChevronDown } from 'react-icons/hi2';
+import {
+   HiOutlineTrash,
+   HiOutlineArchiveBoxXMark,
+   HiChevronUp,
+   HiChevronDown,
+} from 'react-icons/hi2';
 import { useInventoryStore, type SortKey } from '../../store/inventoryStore';
 import { formatCurrency } from '../../utils/format';
 
@@ -32,21 +37,45 @@ export const InventoryList = ({ products, isLoading, onEdit, onDelete }: Invento
       return 'text-blue-400 bg-blue-500/10';
    };
 
-   const SortableHeader = ({ label, sortKey, align = 'left' }: { label: string, sortKey?: SortKey, align?: 'left' | 'right' | 'center' }) => {
+   const SortableHeader = ({
+      label,
+      sortKey,
+      align = 'left',
+   }: {
+      label: string;
+      sortKey?: SortKey;
+      align?: 'left' | 'right' | 'center';
+   }) => {
       if (!sortKey) return <div className={`text-${align}`}>{label}</div>;
 
       const isActive = sortConfig.key === sortKey;
 
       return (
          <div
-            className={`flex items-center gap-1 cursor-pointer hover:text-zinc-300 transition-colors select-none ${align === 'right' ? 'justify-end' : align === 'center' ? 'justify-center' : 'justify-start'
-               }`}
+            className={`flex items-center gap-1 cursor-pointer hover:text-zinc-300 transition-colors select-none ${
+               align === 'right'
+                  ? 'justify-end'
+                  : align === 'center'
+                  ? 'justify-center'
+                  : 'justify-start'
+            }`}
             onClick={() => setSort(sortKey)}
          >
             {label}
             <div className="flex flex-col">
-               <HiChevronUp size={10} className={`${isActive && sortConfig.direction === 'asc' ? 'text-blue-400' : 'text-zinc-700'}`} />
-               <HiChevronDown size={10} className={`${isActive && sortConfig.direction === 'desc' ? 'text-blue-400' : 'text-zinc-700'}`} style={{ marginTop: -4 }} />
+               <HiChevronUp
+                  size={10}
+                  className={`${
+                     isActive && sortConfig.direction === 'asc' ? 'text-blue-400' : 'text-zinc-700'
+                  }`}
+               />
+               <HiChevronDown
+                  size={10}
+                  className={`${
+                     isActive && sortConfig.direction === 'desc' ? 'text-blue-400' : 'text-zinc-700'
+                  }`}
+                  style={{ marginTop: -4 }}
+               />
             </div>
          </div>
       );
@@ -64,14 +93,14 @@ export const InventoryList = ({ products, isLoading, onEdit, onDelete }: Invento
       const rowClass = hasDiscount
          ? 'bg-emerald-500/[0.04] hover:bg-emerald-500/[0.08]'
          : isLowStock
-            ? 'bg-amber-500/[0.04] hover:bg-amber-500/[0.08]'
-            : 'hover:bg-zinc-800/30';
+         ? 'bg-amber-500/[0.04] hover:bg-amber-500/[0.08]'
+         : 'hover:bg-zinc-800/30';
 
       const indicatorClass = hasDiscount
          ? 'bg-emerald-500'
          : isLowStock
-            ? 'bg-amber-500'
-            : 'bg-transparent';
+         ? 'bg-amber-500'
+         : 'bg-transparent';
 
       return (
          <div
@@ -80,17 +109,13 @@ export const InventoryList = ({ products, isLoading, onEdit, onDelete }: Invento
             title="Click para editar"
          >
             {/* Indicador lateral */}
-            <div
-               className={`absolute left-0 top-0 bottom-0 w-[2px] ${indicatorClass}`}
-            />
+            <div className={`absolute left-0 top-0 bottom-0 w-[2px] ${indicatorClass}`} />
 
             <div className={`${GRID_LAYOUT} py-3`}>
                {/* 1. PRODUCTO */}
                <div className="flex flex-col justify-center min-w-0 pr-2">
-                  <span
-                     className="font-bold text-zinc-200 text-[15px] truncate w-full"
-                  >
-                     {product.name}
+                  <span className="font-bold text-zinc-200 text-[15px] truncate w-full">
+                     {product.description}
                   </span>
                   <span className="text-sm text-zinc-500 truncate w-full mt-0.5 font-medium">
                      {product.supplier}
@@ -108,8 +133,9 @@ export const InventoryList = ({ products, isLoading, onEdit, onDelete }: Invento
                <div className="text-right">
                   <div className="flex flex-col items-end justify-center pr-1">
                      <span
-                        className={`font-mono font-bold text-base ${hasDiscount ? 'text-emerald-400' : 'text-zinc-200'
-                           }`}
+                        className={`font-mono font-bold text-base ${
+                           hasDiscount ? 'text-emerald-400' : 'text-zinc-200'
+                        }`}
                      >
                         {formatCurrency(finalPrice, true)}
                      </span>
@@ -144,10 +170,11 @@ export const InventoryList = ({ products, isLoading, onEdit, onDelete }: Invento
                   <span
                      className={`
                      inline-flex items-center justify-center w-12 py-0.5 rounded-md font-mono font-bold text-sm
-                     ${isLowStock
+                     ${
+                        isLowStock
                            ? 'text-amber-500 bg-amber-500/5'
                            : 'text-zinc-400 bg-zinc-400/10'
-                        }
+                     }
                      `}
                   >
                      {product.stock}
@@ -158,7 +185,7 @@ export const InventoryList = ({ products, isLoading, onEdit, onDelete }: Invento
                <div className="text-right">
                   <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                      <button
-                        onClick={(e) => {
+                        onClick={e => {
                            e.stopPropagation();
                            onDelete(product);
                         }}
@@ -202,7 +229,7 @@ export const InventoryList = ({ products, isLoading, onEdit, onDelete }: Invento
                   <div
                      className={`${GRID_LAYOUT} py-4 text-xs font-bold text-zinc-500 uppercase tracking-wider`}
                   >
-                     <SortableHeader label="Producto / Proveedor" sortKey="name" />
+                     <SortableHeader label="Producto / Proveedor" sortKey="description" />
                      <SortableHeader label="Costo" sortKey="cost" align="right" />
                      <SortableHeader label="Precio Venta" sortKey="price" align="right" />
                      <SortableHeader label="Ganancia" sortKey="margin" align="center" />

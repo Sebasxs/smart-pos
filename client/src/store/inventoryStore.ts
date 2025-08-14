@@ -4,7 +4,7 @@ import { type Product } from '../types/inventory';
 const API_URL = import.meta.env.VITE_API_URL;
 
 type InventoryFilter = 'all' | 'lowStock' | 'discounted';
-export type SortKey = 'name' | 'cost' | 'price' | 'margin' | 'stock';
+export type SortKey = 'description' | 'cost' | 'price' | 'margin' | 'stock';
 
 export type ProductPayload = Omit<Product, 'id' | 'supplier' | 'created_at'> & {
    supplierId?: string;
@@ -41,7 +41,7 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
    isInitialized: false,
    search: '',
    activeFilter: 'all',
-   sortConfig: { key: 'name', direction: 'asc' },
+   sortConfig: { key: 'description', direction: 'asc' },
    error: '',
 
    fetchProducts: async () => {
@@ -77,7 +77,7 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
          const term = normalize(search);
          filtered = filtered.filter(
             p =>
-               normalize(p.name).includes(term) ||
+               normalize(p.description).includes(term) ||
                (p.supplier && normalize(p.supplier).includes(term)),
          );
       }
@@ -95,7 +95,7 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
          const modifier = direction === 'asc' ? 1 : -1;
 
          const getVal = (p: Product) => {
-            if (key === 'name') return p.name.toLowerCase();
+            if (key === 'description') return p.description.toLowerCase();
             if (key === 'stock') return p.stock;
             if (key === 'cost') return p.cost || 0;
 

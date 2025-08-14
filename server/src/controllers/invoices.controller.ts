@@ -3,13 +3,13 @@ import { supabase } from '../config/supabase';
 
 type InvoiceItemPayload = {
    id: string | null;
-   name: string;
+   description: string;
    price: number;
    quantity: number;
    originalPrice: number;
    discountPercentage: number;
-   isManualPrice: boolean;
-   isManualName: boolean;
+   isPriceEdited: boolean;
+   isDescriptionEdited: boolean;
 };
 
 type CreateInvoiceBody = {
@@ -33,10 +33,10 @@ export const createInvoice = async (req: Request<{}, {}, CreateInvoiceBody>, res
       // 1. Prepare Items for JSONB
       const cleanItems = items.map(item => ({
          id: item.id && item.id.length === 36 ? item.id : null, // If it's a UUID, it's an existing product
-         quantity: Math.floor(item.quantity),
-         price: Math.floor(item.price),
-         // Extra fields might be needed depending on how strict register_new_sale is with the JSON structure
-         // The RPC expects: id (product_id), quantity, price.
+         quantity: item.quantity,
+         price: item.price,
+         description: item.description,
+         applied_taxes: [], // Empty array - backend will calculate taxes from product_taxes table
       }));
 
       // 2. Prepare Payments JSONB
@@ -44,16 +44,16 @@ export const createInvoice = async (req: Request<{}, {}, CreateInvoiceBody>, res
       const payments = [
          {
             method: paymentMethod,
-            amount: Math.floor(total),
+            amount: total,
             reference_code: null, // Add reference code if available in frontend
          },
       ];
 
       // 3. Prepare Totals JSONB
       const totals = {
-         subtotal: Math.floor(subtotal),
-         total: Math.floor(total),
-         discount: Math.floor(discount),
+         subtotal: subtotal,
+         total: total,
+         discount: discount,
          tax: 0, // Frontend should send tax if applicable
       };
 

@@ -37,7 +37,7 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
    };
 
    const hasInventoryDiscount = item.discountPercentage > 0;
-   const isModified = item.isPriceEdited || item.isNameEdited;
+   const isModified = item.isPriceEdited || item.isDescriptionEdited;
 
    let rowStyle = 'bg-transparent hover:bg-zinc-800/30';
    let indicatorColor = 'bg-transparent';
@@ -68,8 +68,8 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
             <div className="flex items-center w-full">
                <input
                   type="text"
-                  value={item.name}
-                  onChange={e => onUpdate(item.id, { name: e.target.value })}
+                  value={item.description}
+                  onChange={e => onUpdate(item.id, { description: e.target.value })}
                   className="w-full bg-transparent border-b border-transparent focus:border-indigo-500 pb-0.5 outline-none truncate transition-colors duration-200 font-bold text-[15px] tracking-tight placeholder:text-zinc-600 text-zinc-100"
                />
             </div>

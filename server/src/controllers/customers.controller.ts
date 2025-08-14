@@ -54,7 +54,7 @@ const validDocumentTypes = ['11', '12', '13', '21', '22', '31', '41', '42', '91'
 
 export const createCustomer = async (req: Request, res: Response) => {
    try {
-      const { name, tax_id, email, phone, city, address, document_type } = req.body;
+      const { name, tax_id, email, phone, city, department, address, document_type } = req.body;
 
       if (!name) {
          return res.status(400).json({ error: 'El nombre es obligatorio' });
@@ -73,6 +73,7 @@ export const createCustomer = async (req: Request, res: Response) => {
                email,
                phone,
                city,
+               department,
                address,
                document_type: document_type || '31',
             },
@@ -92,7 +93,7 @@ export const createCustomer = async (req: Request, res: Response) => {
 export const updateCustomer = async (req: Request, res: Response) => {
    try {
       const { id } = req.params;
-      const { name, tax_id, email, phone, city, address, document_type } = req.body;
+      const { name, tax_id, email, phone, city, department, address, document_type } = req.body;
 
       if (document_type && !validDocumentTypes.includes(document_type)) {
          return res.status(400).json({ error: 'Tipo de documento inválido' });
@@ -100,7 +101,7 @@ export const updateCustomer = async (req: Request, res: Response) => {
 
       const { data, error } = await supabase
          .from('customers')
-         .update({ name, tax_id, email, phone, city, address, document_type })
+         .update({ name, tax_id, email, phone, city, department, address, document_type })
          .eq('id', id)
          .select()
          .single();

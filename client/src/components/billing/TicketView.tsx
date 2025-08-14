@@ -64,7 +64,7 @@ export const TicketView = ({
          <div className="flex flex-col gap-2 mb-2">
             {items.map((item, index) => (
                <div key={index} className="flex flex-col">
-                  <span className="font-bold">{item.name}</span>
+                  <span className="font-bold">{item.description}</span>
                   <div className="flex justify-between pl-2">
                      <span>
                         {item.quantity} x {formatCurrency(item.price)}

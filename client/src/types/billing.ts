@@ -1,7 +1,7 @@
 export type InvoiceItem = {
    id: string;
-   name: string;
-   originalName: string;
+   description: string;
+   originalDescription: string;
    quantity: number;
 
    price: number;
@@ -12,7 +12,7 @@ export type InvoiceItem = {
    supplier: string;
 
    isPriceEdited: boolean;
-   isNameEdited: boolean;
+   isDescriptionEdited: boolean;
 
    isDatabaseItem: boolean;
 };
