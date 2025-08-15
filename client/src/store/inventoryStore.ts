@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { type Product } from '../types/inventory';
+import { useAuthStore } from './authStore';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -47,7 +48,12 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
    fetchProducts: async () => {
       set({ isLoading: true, error: '' });
       try {
-         const res = await fetch(`${API_URL}/products`);
+         const token = useAuthStore.getState().token;
+         const res = await fetch(`${API_URL}/products`, {
+            headers: {
+               Authorization: `Bearer ${token}`,
+            },
+         });
          if (!res.ok) throw new Error('Error cargando inventario');
 
          const data = await res.json();
@@ -126,7 +132,12 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
    fetchSuppliers: async () => {
       if (get().suppliers.length > 0) return;
       try {
-         const res = await fetch(`${API_URL}/products/suppliers`);
+         const token = useAuthStore.getState().token;
+         const res = await fetch(`${API_URL}/products/suppliers`, {
+            headers: {
+               Authorization: `Bearer ${token}`,
+            },
+         });
          if (res.ok) set({ suppliers: await res.json() });
       } catch (e) {
          console.error(e);
@@ -134,10 +145,11 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
    },
 
    createProduct: async data => {
+      const token = useAuthStore.getState().token;
       try {
          const res = await fetch(`${API_URL}/products`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
             body: JSON.stringify(data),
          });
          if (!res.ok) throw new Error();
@@ -151,10 +163,11 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
    },
 
    updateProduct: async (id, data) => {
+      const token = useAuthStore.getState().token;
       try {
          const res = await fetch(`${API_URL}/products/${id}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
             body: JSON.stringify(data),
          });
          if (!res.ok) throw new Error();

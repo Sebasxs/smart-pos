@@ -69,7 +69,6 @@ export const ProductModal = ({ isOpen, onClose, productToEdit }: ProductModalPro
 
    const handleCostChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const value = e.target.value;
-      // Only allow numbers
       if (value === '' || /^[0-9]*$/.test(value)) {
          setRawCost(value);
          const numericValue = value === '' ? 0 : parseInt(value, 10);
@@ -79,7 +78,6 @@ export const ProductModal = ({ isOpen, onClose, productToEdit }: ProductModalPro
 
    const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const value = e.target.value;
-      // Only allow numbers
       if (value === '' || /^[0-9]*$/.test(value)) {
          setRawPrice(value);
          const numericValue = value === '' ? 0 : parseInt(value, 10);

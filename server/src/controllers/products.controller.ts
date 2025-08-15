@@ -4,13 +4,19 @@ import { supabase } from '../config/supabase';
 export const getProducts = async (req: Request, res: Response) => {
    try {
       const search = String(req.query.search || '').trim();
+      const authHeader = req.headers.authorization;
+      if (!authHeader) {
+         return res.status(401).json({ error: 'No token provided' });
+      }
       let data: any[] = [];
       let error: any = null;
 
       if (search) {
-         const result = await supabase.rpc('search_products', {
-            search_term: search,
-         });
+         const result = await supabase
+            .rpc('search_products', {
+               search_term: search,
+            })
+            .setHeader('Authorization', authHeader || '');
          data = result.data || [];
          error = result.error;
       } else {
@@ -18,7 +24,8 @@ export const getProducts = async (req: Request, res: Response) => {
             .from('products')
             .select('*, suppliers (name)')
             .order('description', { ascending: true })
-            .limit(100); // Limit for performance
+            .limit(100) // Limit for performance
+            .setHeader('Authorization', authHeader || '');
          data = result.data || [];
          error = result.error;
       }
@@ -46,9 +53,17 @@ export const getProducts = async (req: Request, res: Response) => {
    }
 };
 
-export const getSuppliersList = async (_req: Request, res: Response) => {
+export const getSuppliersList = async (req: Request, res: Response) => {
    try {
-      const { data, error } = await supabase.from('suppliers').select('id, name').order('name');
+      const authHeader = req.headers.authorization;
+      if (!authHeader) {
+         return res.status(401).json({ error: 'No token provided' });
+      }
+      const { data, error } = await supabase
+         .from('suppliers')
+         .select('id, name')
+         .order('name')
+         .setHeader('Authorization', authHeader || '');
 
       if (error) throw error;
       res.json(data);
@@ -61,6 +76,10 @@ export const createProduct = async (req: Request, res: Response) => {
    try {
       const { description, price, cost, stock, discountPercentage, supplierId, sku } = req.body;
 
+      const authHeader = req.headers.authorization;
+      if (!authHeader) {
+         return res.status(401).json({ error: 'No token provided' });
+      }
       const { data, error } = await supabase
          .from('products')
          .insert({
@@ -73,7 +92,8 @@ export const createProduct = async (req: Request, res: Response) => {
             sku,
          })
          .select()
-         .single();
+         .single()
+         .setHeader('Authorization', authHeader || '');
 
       if (error) throw error;
 
@@ -89,6 +109,11 @@ export const updateProduct = async (req: Request, res: Response) => {
       const { id } = req.params;
       const { description, price, cost, stock, discountPercentage, supplierId, sku } = req.body;
 
+      const authHeader = req.headers.authorization;
+      if (!authHeader) {
+         return res.status(401).json({ error: 'No token provided' });
+      }
+
       const { data, error } = await supabase
          .from('products')
          .update({
@@ -102,7 +127,8 @@ export const updateProduct = async (req: Request, res: Response) => {
          })
          .eq('id', id)
          .select()
-         .single();
+         .single()
+         .setHeader('Authorization', authHeader || '');
 
       if (error) throw error;
 
@@ -116,7 +142,17 @@ export const updateProduct = async (req: Request, res: Response) => {
 export const deleteProduct = async (req: Request, res: Response) => {
    try {
       const { id } = req.params;
-      const { error } = await supabase.from('products').delete().eq('id', id);
+
+      const authHeader = req.headers.authorization;
+      if (!authHeader) {
+         return res.status(401).json({ error: 'No token provided' });
+      }
+
+      const { error } = await supabase
+         .from('products')
+         .delete()
+         .eq('id', id)
+         .setHeader('Authorization', authHeader || '');
 
       if (error) throw error;
 

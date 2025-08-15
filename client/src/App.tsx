@@ -1,8 +1,10 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 
 // Layout
 import { Sidebar } from './components/layout/Sidebar';
 import { MobileNavbar } from './components/layout/MobileNavbar';
+import { FullPageLoader } from './components/ui/FullPageLoader';
 
 // Pages
 import { Billing } from './pages/Billing';
@@ -12,12 +14,19 @@ import { Inventory } from './pages/Inventory';
 import { Sales } from './pages/Sales';
 import { Balances } from './pages/Balances';
 import { Warranties } from './pages/Warranties';
+import { Login } from './pages/Login';
 
 // Hooks
 import { useGlobalEscapeKey } from './hooks/useGlobalEscapeKey';
+import { useAuthStore } from './store/authStore';
 
-function App() {
-   useGlobalEscapeKey();
+function ProtectedLayout({ children }: { children: React.ReactNode }) {
+   const { isAuthenticated } = useAuthStore();
+   const location = useLocation();
+
+   if (!isAuthenticated) {
+      return <Navigate to="/login" state={{ from: location }} replace />;
+   }
 
    return (
       <div className="h-screen w-screen bg-zinc-950 flex flex-col md:flex-row text-zinc-200 font-sans antialiased selection:bg-blue-500/30 overflow-hidden">
@@ -25,18 +34,61 @@ function App() {
          <Sidebar />
 
          <main className="flex-1 p-2 md:p-4 lg:p-6 overflow-y-auto overflow-x-hidden relative w-full">
-            <Routes>
-               <Route path="/" element={<Navigate to="/billing" replace />} />
-               <Route path="/billing" element={<Billing />} />
-               <Route path="/inventory" element={<Inventory />} />
-               <Route path="/customers" element={<Customers />} />
-               <Route path="/sales" element={<Sales />} />
-               <Route path="/balances" element={<Balances />} />
-               <Route path="/warranties" element={<Warranties />} />
-               <Route path="/chat" element={<Chat />} />
-            </Routes>
+            {children}
          </main>
       </div>
+   );
+}
+
+function App() {
+   useGlobalEscapeKey();
+   const { checkSession, initializeListener, isAuthenticated } = useAuthStore();
+   const [isChecking, setIsChecking] = useState(!isAuthenticated);
+
+   useEffect(() => {
+      const cleanup = initializeListener();
+
+      const timer = setTimeout(() => {
+         setIsChecking(false);
+      }, 5000);
+
+      checkSession().finally(() => {
+         clearTimeout(timer);
+         setIsChecking(false);
+      });
+
+      return () => {
+         clearTimeout(timer);
+         cleanup();
+      };
+   }, []);
+
+   if (isChecking && !isAuthenticated) {
+      return <FullPageLoader message="Iniciando sistema..." />;
+   }
+
+   return (
+      <Routes>
+         <Route path="/login" element={<Login />} />
+
+         <Route
+            path="/*"
+            element={
+               <ProtectedLayout>
+                  <Routes>
+                     <Route path="/" element={<Navigate to="/billing" replace />} />
+                     <Route path="/billing" element={<Billing />} />
+                     <Route path="/inventory" element={<Inventory />} />
+                     <Route path="/customers" element={<Customers />} />
+                     <Route path="/sales" element={<Sales />} />
+                     <Route path="/balances" element={<Balances />} />
+                     <Route path="/warranties" element={<Warranties />} />
+                     <Route path="/chat" element={<Chat />} />
+                  </Routes>
+               </ProtectedLayout>
+            }
+         />
+      </Routes>
    );
 }
 

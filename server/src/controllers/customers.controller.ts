@@ -7,9 +7,16 @@ export const searchCustomers = async (req: Request, res: Response) => {
 
       if (!term) return res.json([]);
 
-      const { data, error } = await supabase.rpc('search_customers', {
-         search_term: term,
-      });
+      const authHeader = req.headers.authorization;
+      if (!authHeader) {
+         return res.status(401).json({ error: 'No token provided' });
+      }
+
+      const { data, error } = await supabase
+         .rpc('search_customers', {
+            search_term: term,
+         })
+         .setHeader('Authorization', authHeader || '');
 
       if (error) throw error;
 
@@ -25,21 +32,28 @@ export const getCustomers = async (req: Request, res: Response) => {
    try {
       const search = String(req.query.search || '').trim();
 
+      const authHeader = req.headers.authorization;
+      if (!authHeader) {
+         return res.status(401).json({ error: 'No token provided' });
+      }
+
       if (search) {
-         const { data, error } = await supabase.rpc('search_customers', {
-            search_term: search,
-         });
+         const { data, error } = await supabase
+            .rpc('search_customers', {
+               search_term: search,
+            })
+            .setHeader('Authorization', authHeader || '');
 
          if (error) throw error;
          return res.json(data);
       }
 
-      // Default query if no search term
       const { data, error } = await supabase
          .from('customers')
          .select('*')
          .order('name', { ascending: true })
-         .limit(50); // Add limit for performance
+         .limit(50)
+         .setHeader('Authorization', authHeader || '');
 
       if (error) throw error;
 
@@ -64,6 +78,11 @@ export const createCustomer = async (req: Request, res: Response) => {
          return res.status(400).json({ error: 'Tipo de documento inválido' });
       }
 
+      const authHeader = req.headers.authorization;
+      if (!authHeader) {
+         return res.status(401).json({ error: 'No token provided' });
+      }
+
       const { data, error } = await supabase
          .from('customers')
          .insert([
@@ -79,7 +98,8 @@ export const createCustomer = async (req: Request, res: Response) => {
             },
          ])
          .select()
-         .single();
+         .single()
+         .setHeader('Authorization', authHeader || '');
 
       if (error) throw error;
 
@@ -99,12 +119,18 @@ export const updateCustomer = async (req: Request, res: Response) => {
          return res.status(400).json({ error: 'Tipo de documento inválido' });
       }
 
+      const authHeader = req.headers.authorization;
+      if (!authHeader) {
+         return res.status(401).json({ error: 'No token provided' });
+      }
+
       const { data, error } = await supabase
          .from('customers')
          .update({ name, tax_id, email, phone, city, department, address, document_type })
          .eq('id', id)
          .select()
-         .single();
+         .single()
+         .setHeader('Authorization', authHeader || '');
 
       if (error) throw error;
 
@@ -119,12 +145,17 @@ export const deleteCustomer = async (req: Request, res: Response) => {
    try {
       const { id } = req.params;
 
-      // Check for associated invoices first (optional, as FK might handle it or we want explicit error)
+      const authHeader = req.headers.authorization;
+      if (!authHeader) {
+         return res.status(401).json({ error: 'No token provided' });
+      }
+
       const { data: invoices, error: invoiceError } = await supabase
-         .from('sales_invoices') // Changed from 'invoices' to 'sales_invoices'
+         .from('sales_invoices')
          .select('id')
          .eq('customer_id', id)
-         .limit(1);
+         .limit(1)
+         .setHeader('Authorization', authHeader || '');
 
       if (invoiceError && invoiceError.code !== 'PGRST116') throw invoiceError;
 
@@ -134,7 +165,11 @@ export const deleteCustomer = async (req: Request, res: Response) => {
          });
       }
 
-      const { error } = await supabase.from('customers').delete().eq('id', id);
+      const { error } = await supabase
+         .from('customers')
+         .delete()
+         .eq('id', id)
+         .setHeader('Authorization', authHeader || '');
 
       if (error) throw error;
 

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { differenceInDays, parseISO } from '../utils/date';
 import { type Customer, type CustomerSortKey } from '../types/customer';
+import { useAuthStore } from './authStore';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -127,6 +128,7 @@ export const useCustomerStore = create<CustomerState>((set, get) => ({
 
    fetchCustomers: async (forceRefresh = false) => {
       const { customers } = get();
+      const token = useAuthStore.getState().token;
 
       if (!forceRefresh && customers.length > 0) {
          get().applyFilters();
@@ -136,7 +138,11 @@ export const useCustomerStore = create<CustomerState>((set, get) => ({
       set({ isLoading: true });
 
       try {
-         const res = await fetch(`${API_URL}/customers`);
+         const res = await fetch(`${API_URL}/customers`, {
+            headers: {
+               Authorization: `Bearer ${token}`,
+            },
+         });
          if (!res.ok) throw new Error('Error fetching customers');
 
          const data: Customer[] = await res.json();

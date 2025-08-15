@@ -9,10 +9,17 @@ export const openShift = async (req: Request, res: Response) => {
          return res.status(400).json({ error: 'Faltan datos requeridos (userId, openingAmount)' });
       }
 
-      const { data, error } = await supabase.rpc('open_cash_shift', {
-         p_user_id: userId,
-         p_opening_amount: openingAmount,
-      });
+      const authHeader = req.headers.authorization;
+      if (!authHeader) {
+         return res.status(401).json({ error: 'No token provided' });
+      }
+
+      const { data, error } = await supabase
+         .rpc('open_cash_shift', {
+            p_user_id: userId,
+            p_opening_amount: openingAmount,
+         })
+         .setHeader('Authorization', authHeader || '');
 
       if (error) throw error;
 
@@ -31,10 +38,17 @@ export const closeShift = async (req: Request, res: Response) => {
          return res.status(400).json({ error: 'Faltan datos requeridos (userId, actualCash)' });
       }
 
-      const { data, error } = await supabase.rpc('close_cash_shift', {
-         p_user_id: userId,
-         p_actual_cash: actualCash,
-      });
+      const authHeader = req.headers.authorization;
+      if (!authHeader) {
+         return res.status(401).json({ error: 'No token provided' });
+      }
+
+      const { data, error } = await supabase
+         .rpc('close_cash_shift', {
+            p_user_id: userId,
+            p_actual_cash: actualCash,
+         })
+         .setHeader('Authorization', authHeader || '');
 
       if (error) throw error;
 
@@ -49,12 +63,18 @@ export const getShiftStatus = async (req: Request, res: Response) => {
    try {
       const { userId } = req.params;
 
+      const authHeader = req.headers.authorization;
+      if (!authHeader) {
+         return res.status(401).json({ error: 'No token provided' });
+      }
+
       const { data, error } = await supabase
          .from('cash_shifts')
          .select('*')
          .eq('user_id', userId)
          .eq('status', 'open')
-         .single();
+         .single()
+         .setHeader('Authorization', authHeader || '');
 
       if (error && error.code !== 'PGRST116') throw error; // PGRST116 is "Row not found"
 

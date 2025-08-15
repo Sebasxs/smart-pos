@@ -188,7 +188,7 @@ export const InvoiceTable = ({ items, onUpdateItem, onRemoveItem }: InvoiceTable
                ))}
 
                {items.length === 0 && (
-                  <div className="h-full flex flex-col items-center justify-center text-zinc-600 animate-in fade-in duration-500">
+                  <div className="h-full flex flex-col py-6 items-center justify-center text-zinc-600 animate-in fade-in duration-500">
                      <div className="relative">
                         <div className="absolute inset-0 bg-indigo-500/20 blur-xl rounded-full opacity-20" />
                         <div className="relative bg-zinc-900 p-6 rounded-3xl border border-zinc-800 mb-4 shadow-xl">

@@ -14,6 +14,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      authorized_users: {
+        Row: {
+          assigned_permissions: Json | null
+          created_at: string | null
+          created_by: string | null
+          email: string
+          job_title: string | null
+          role: Database["public"]["Enums"]["user_role_enum"]
+        }
+        Insert: {
+          assigned_permissions?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          email: string
+          job_title?: string | null
+          role?: Database["public"]["Enums"]["user_role_enum"]
+        }
+        Update: {
+          assigned_permissions?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          email?: string
+          job_title?: string | null
+          role?: Database["public"]["Enums"]["user_role_enum"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "authorized_users_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       billing_resolutions: {
         Row: {
           created_at: string | null
@@ -945,6 +980,7 @@ export type Database = {
           full_name: string
           id: string
           is_active: boolean | null
+          job_title: string | null
           nickname: string | null
           permissions: Json | null
           pin_hash: string | null
@@ -960,6 +996,7 @@ export type Database = {
           full_name: string
           id?: string
           is_active?: boolean | null
+          job_title?: string | null
           nickname?: string | null
           permissions?: Json | null
           pin_hash?: string | null
@@ -975,6 +1012,7 @@ export type Database = {
           full_name?: string
           id?: string
           is_active?: boolean | null
+          job_title?: string | null
           nickname?: string | null
           permissions?: Json | null
           pin_hash?: string | null
@@ -1242,6 +1280,7 @@ export type Database = {
           quantity: number
           recorded_cost: number | null
           sales_invoice_id: string | null
+          tax_amount: number | null
           total_price: number
           unit_price: number
         }
@@ -1254,6 +1293,7 @@ export type Database = {
           quantity: number
           recorded_cost?: number | null
           sales_invoice_id?: string | null
+          tax_amount?: number | null
           total_price: number
           unit_price: number
         }
@@ -1266,6 +1306,7 @@ export type Database = {
           quantity?: number
           recorded_cost?: number | null
           sales_invoice_id?: string | null
+          tax_amount?: number | null
           total_price?: number
           unit_price?: number
         }

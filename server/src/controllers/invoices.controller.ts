@@ -32,7 +32,7 @@ export const createInvoice = async (req: Request<{}, {}, CreateInvoiceBody>, res
    try {
       // 1. Prepare Items for JSONB
       const cleanItems = items.map(item => ({
-         id: item.id && item.id.length === 36 ? item.id : null, // If it's a UUID, it's an existing product
+         id: item.id && item.id.length === 36 ? item.id : null,
          quantity: item.quantity,
          price: item.price,
          description: item.description,
@@ -70,25 +70,26 @@ export const createInvoice = async (req: Request<{}, {}, CreateInvoiceBody>, res
          document_type: (customer as any).documentType || '31',
       };
 
-      // 5. Get User ID (Assuming it's passed in headers or we use a default for now)
-      // In a real app, this comes from auth middleware.
-      // For this migration, we might need a temporary hardcoded user ID or fetch one.
-      // Let's check if we can get a user ID.
-      // The RPC REQUIRES a user_id to find the open shift.
-      // We'll try to get it from the request body if the frontend sends it, or use a fallback.
       const userId = (req.body as any).userId;
 
       if (!userId) {
          throw new Error('User ID is required to register a sale');
       }
 
-      const { data, error } = await supabase.rpc('register_new_sale', {
-         p_user_id: userId,
-         p_customer: customerData,
-         p_items: cleanItems,
-         p_payments: payments,
-         p_totals: totals,
-      });
+      const authHeader = req.headers.authorization;
+      if (!authHeader) {
+         return res.status(401).json({ error: 'No token provided' });
+      }
+
+      const { data, error } = await supabase
+         .rpc('register_new_sale', {
+            p_user_id: userId,
+            p_customer: customerData,
+            p_items: cleanItems,
+            p_payments: payments,
+            p_totals: totals,
+         })
+         .setHeader('Authorization', authHeader || '');
 
       if (error) throw new Error(error.message);
 
