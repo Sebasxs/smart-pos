@@ -7,16 +7,11 @@ export const searchCustomers = async (req: Request, res: Response) => {
 
       if (!term) return res.json([]);
 
-      const authHeader = req.headers.authorization;
-      if (!authHeader) {
-         return res.status(401).json({ error: 'No token provided' });
-      }
-
       const { data, error } = await supabase
          .rpc('search_customers', {
             search_term: term,
          })
-         .setHeader('Authorization', authHeader || '');
+         .setHeader('Authorization', `Bearer ${req.token}`);
 
       if (error) throw error;
 
@@ -32,17 +27,12 @@ export const getCustomers = async (req: Request, res: Response) => {
    try {
       const search = String(req.query.search || '').trim();
 
-      const authHeader = req.headers.authorization;
-      if (!authHeader) {
-         return res.status(401).json({ error: 'No token provided' });
-      }
-
       if (search) {
          const { data, error } = await supabase
             .rpc('search_customers', {
                search_term: search,
             })
-            .setHeader('Authorization', authHeader || '');
+            .setHeader('Authorization', `Bearer ${req.token}`);
 
          if (error) throw error;
          return res.json(data);
@@ -53,7 +43,7 @@ export const getCustomers = async (req: Request, res: Response) => {
          .select('*')
          .order('name', { ascending: true })
          .limit(50)
-         .setHeader('Authorization', authHeader || '');
+         .setHeader('Authorization', `Bearer ${req.token}`);
 
       if (error) throw error;
 
@@ -78,11 +68,6 @@ export const createCustomer = async (req: Request, res: Response) => {
          return res.status(400).json({ error: 'Tipo de documento inválido' });
       }
 
-      const authHeader = req.headers.authorization;
-      if (!authHeader) {
-         return res.status(401).json({ error: 'No token provided' });
-      }
-
       const { data, error } = await supabase
          .from('customers')
          .insert([
@@ -99,7 +84,7 @@ export const createCustomer = async (req: Request, res: Response) => {
          ])
          .select()
          .single()
-         .setHeader('Authorization', authHeader || '');
+         .setHeader('Authorization', `Bearer ${req.token}`);
 
       if (error) throw error;
 
@@ -119,18 +104,13 @@ export const updateCustomer = async (req: Request, res: Response) => {
          return res.status(400).json({ error: 'Tipo de documento inválido' });
       }
 
-      const authHeader = req.headers.authorization;
-      if (!authHeader) {
-         return res.status(401).json({ error: 'No token provided' });
-      }
-
       const { data, error } = await supabase
          .from('customers')
          .update({ name, tax_id, email, phone, city, department, address, document_type })
          .eq('id', id)
          .select()
          .single()
-         .setHeader('Authorization', authHeader || '');
+         .setHeader('Authorization', `Bearer ${req.token}`);
 
       if (error) throw error;
 
@@ -145,17 +125,12 @@ export const deleteCustomer = async (req: Request, res: Response) => {
    try {
       const { id } = req.params;
 
-      const authHeader = req.headers.authorization;
-      if (!authHeader) {
-         return res.status(401).json({ error: 'No token provided' });
-      }
-
       const { data: invoices, error: invoiceError } = await supabase
          .from('sales_invoices')
          .select('id')
          .eq('customer_id', id)
          .limit(1)
-         .setHeader('Authorization', authHeader || '');
+         .setHeader('Authorization', `Bearer ${req.token}`);
 
       if (invoiceError && invoiceError.code !== 'PGRST116') throw invoiceError;
 
@@ -169,7 +144,7 @@ export const deleteCustomer = async (req: Request, res: Response) => {
          .from('customers')
          .delete()
          .eq('id', id)
-         .setHeader('Authorization', authHeader || '');
+         .setHeader('Authorization', `Bearer ${req.token}`);
 
       if (error) throw error;
 

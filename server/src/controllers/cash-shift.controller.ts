@@ -3,23 +3,19 @@ import { supabase } from '../config/supabase';
 
 export const openShift = async (req: Request, res: Response) => {
    try {
-      const { userId, openingAmount } = req.body;
+      const userId = req.user?.id;
+      const { openingAmount } = req.body;
 
-      if (!userId || openingAmount === undefined) {
-         return res.status(400).json({ error: 'Faltan datos requeridos (userId, openingAmount)' });
-      }
-
-      const authHeader = req.headers.authorization;
-      if (!authHeader) {
-         return res.status(401).json({ error: 'No token provided' });
-      }
+      if (!userId) return res.status(401).json({ error: 'Usuario no autenticado' });
+      if (!openingAmount)
+         return res.status(400).json({ error: 'Monto de apertura no proporcionado' });
 
       const { data, error } = await supabase
          .rpc('open_cash_shift', {
             p_user_id: userId,
             p_opening_amount: openingAmount,
          })
-         .setHeader('Authorization', authHeader || '');
+         .setHeader('Authorization', `Bearer ${req.token}`);
 
       if (error) throw error;
 
@@ -32,23 +28,18 @@ export const openShift = async (req: Request, res: Response) => {
 
 export const closeShift = async (req: Request, res: Response) => {
    try {
-      const { userId, actualCash } = req.body;
+      const userId = req.user?.id;
+      const { actualCash } = req.body;
 
-      if (!userId || actualCash === undefined) {
-         return res.status(400).json({ error: 'Faltan datos requeridos (userId, actualCash)' });
-      }
-
-      const authHeader = req.headers.authorization;
-      if (!authHeader) {
-         return res.status(401).json({ error: 'No token provided' });
-      }
+      if (!userId) return res.status(401).json({ error: 'Usuario no autenticado' });
+      if (!actualCash) return res.status(400).json({ error: 'Monto de cierre no proporcionado' });
 
       const { data, error } = await supabase
          .rpc('close_cash_shift', {
             p_user_id: userId,
             p_actual_cash: actualCash,
          })
-         .setHeader('Authorization', authHeader || '');
+         .setHeader('Authorization', `Bearer ${req.token}`);
 
       if (error) throw error;
 
@@ -61,12 +52,9 @@ export const closeShift = async (req: Request, res: Response) => {
 
 export const getShiftStatus = async (req: Request, res: Response) => {
    try {
-      const { userId } = req.params;
+      const userId = req.user?.id;
 
-      const authHeader = req.headers.authorization;
-      if (!authHeader) {
-         return res.status(401).json({ error: 'No token provided' });
-      }
+      if (!userId) return res.status(401).json({ error: 'Usuario no autenticado' });
 
       const { data, error } = await supabase
          .from('cash_shifts')
@@ -74,7 +62,7 @@ export const getShiftStatus = async (req: Request, res: Response) => {
          .eq('user_id', userId)
          .eq('status', 'open')
          .single()
-         .setHeader('Authorization', authHeader || '');
+         .setHeader('Authorization', `Bearer ${req.token}`);
 
       if (error && error.code !== 'PGRST116') throw error; // PGRST116 is "Row not found"
 

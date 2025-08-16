@@ -35,8 +35,12 @@ export const loginCashier = async (req: Request, res: Response) => {
             role: 'authenticated',
             aud: 'authenticated',
             user_metadata: {
-               nickname: (user as any).nickname,
+               nickname: nickname,
+               full_name: user.full_name,
+               job_title: user.job_title,
                role: user.role,
+               permissions: user.permissions,
+               avatar_url: user.avatar_url,
             },
          },
          JWT_SECRET,
@@ -50,6 +54,9 @@ export const loginCashier = async (req: Request, res: Response) => {
             role: user.role,
             avatar_url: user.avatar_url,
             permissions: user.permissions,
+            nickname: nickname,
+            job_title: user.job_title,
+            email: user.email,
          },
          token,
       });
@@ -91,6 +98,9 @@ export const loginAdmin = async (req: Request, res: Response) => {
             role: profile.role,
             avatar_url: profile.avatar_url,
             permissions: profile.permissions,
+            nickname: profile.nickname,
+            job_title: profile.job_title,
+            email: profile.email,
          },
          token,
       });
@@ -101,5 +111,16 @@ export const loginAdmin = async (req: Request, res: Response) => {
 };
 
 export const getProfile = async (req: Request, res: Response) => {
-   res.status(501).json({ message: 'Not implemented' });
+   try {
+      if (!req.user) {
+         return res.status(401).json({ error: 'Usuario no autenticado' });
+      }
+
+      return res.json({
+         user: req.user,
+      });
+   } catch (error) {
+      console.error('Error fetching profile:', error);
+      res.status(500).json({ error: 'Error interno del servidor' });
+   }
 };

@@ -1832,8 +1832,10 @@ export type Database = {
         Args: { p_nickname: string; p_pin: string }
         Returns: {
           avatar_url: string
+          email: string
           full_name: string
           id: string
+          job_title: string
           permissions: Json
           preferences: Json
           role: Database["public"]["Enums"]["user_role_enum"]

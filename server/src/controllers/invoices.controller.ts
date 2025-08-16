@@ -20,7 +20,7 @@ type CreateInvoiceBody = {
       city: string;
    };
    items: InvoiceItemPayload[];
-   paymentMethod: 'cash' | 'transfer';
+   paymentMethod: 'cash' | 'bank_transfer' | 'account_balance' | 'credit_card';
    subtotal: number;
    discount: number;
    total: number;
@@ -30,6 +30,12 @@ export const createInvoice = async (req: Request<{}, {}, CreateInvoiceBody>, res
    const { customer, items, paymentMethod, subtotal, discount, total } = req.body;
 
    try {
+      const userId = req.user?.id;
+
+      if (!userId) {
+         return res.status(401).json({ error: 'Usuario no autenticado' });
+      }
+
       // 1. Prepare Items for JSONB
       const cleanItems = items.map(item => ({
          id: item.id && item.id.length === 36 ? item.id : null,
@@ -58,7 +64,6 @@ export const createInvoice = async (req: Request<{}, {}, CreateInvoiceBody>, res
       };
 
       // 4. Prepare Customer JSONB
-      // The RPC handles upsert based on tax_id
       const customerData = {
          name: customer.name,
          tax_id: customer.taxId,
@@ -70,17 +75,6 @@ export const createInvoice = async (req: Request<{}, {}, CreateInvoiceBody>, res
          document_type: (customer as any).documentType || '31',
       };
 
-      const userId = (req.body as any).userId;
-
-      if (!userId) {
-         throw new Error('User ID is required to register a sale');
-      }
-
-      const authHeader = req.headers.authorization;
-      if (!authHeader) {
-         return res.status(401).json({ error: 'No token provided' });
-      }
-
       const { data, error } = await supabase
          .rpc('register_new_sale', {
             p_user_id: userId,
@@ -89,7 +83,7 @@ export const createInvoice = async (req: Request<{}, {}, CreateInvoiceBody>, res
             p_payments: payments,
             p_totals: totals,
          })
-         .setHeader('Authorization', authHeader || '');
+         .setHeader('Authorization', `Bearer ${req.token}`);
 
       if (error) throw new Error(error.message);
 
@@ -101,8 +95,7 @@ export const createInvoice = async (req: Request<{}, {}, CreateInvoiceBody>, res
       });
    } catch (error) {
       console.error('Transaction Error:', error);
-      const message =
-         error instanceof Error ? error.message : 'Error interno al procesar la transacción';
+      const message = error instanceof Error ? error.message : 'Error interno';
       res.status(500).json({ error: message });
    }
 };
