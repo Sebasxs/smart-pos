@@ -17,7 +17,7 @@ app.use(express.json());
 app.use('/api/products', productRoutes);
 app.use('/api/invoices', invoiceRoutes);
 app.use('/api/customers', customerRoutes);
-app.use('/api/cash-shifts', cashShiftRoutes);
+app.use('/api/cash_shifts', cashShiftRoutes);
 app.use('/api/auth', authRoutes);
 
 app.get('/', (_, res) => {

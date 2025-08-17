@@ -36,44 +36,51 @@ export const createInvoice = async (req: Request<{}, {}, CreateInvoiceBody>, res
          return res.status(401).json({ error: 'Usuario no autenticado' });
       }
 
-      // 1. Prepare Items for JSONB
       const cleanItems = items.map(item => ({
          id: item.id && item.id.length === 36 ? item.id : null,
          quantity: item.quantity,
          price: item.price,
          description: item.description,
-         applied_taxes: [], // Empty array - backend will calculate taxes from product_taxes table
+         applied_taxes: [],
       }));
 
-      // 2. Prepare Payments JSONB
-      // Assuming single payment method for now, but structure supports multiple
       const payments = [
          {
             method: paymentMethod,
             amount: total,
-            reference_code: null, // Add reference code if available in frontend
+            reference_code: null,
          },
       ];
 
-      // 3. Prepare Totals JSONB
       const totals = {
          subtotal: subtotal,
          total: total,
          discount: discount,
-         tax: 0, // Frontend should send tax if applicable
+         tax: 0,
       };
 
-      // 4. Prepare Customer JSONB
       const customerData = {
          name: customer.name,
          tax_id: customer.taxId,
          email: customer.email,
          city: customer.city,
-         // Add other fields if available in frontend payload
          phone: (customer as any).phone,
          address: (customer as any).address,
          document_type: (customer as any).documentType || '31',
       };
+
+      const { data: openShift } = await supabase
+         .from('cash_shifts')
+         .select('id')
+         .eq('user_id', userId)
+         .eq('status', 'open')
+         .maybeSingle();
+
+      if (!openShift) {
+         return res
+            .status(400)
+            .json({ error: 'No tienes un turno de caja abierto. Abre caja antes de vender.' });
+      }
 
       const { data, error } = await supabase
          .rpc('register_new_sale', {

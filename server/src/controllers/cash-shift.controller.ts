@@ -145,3 +145,44 @@ export const getShiftStatus = async (req: Request, res: Response) => {
       res.status(500).json({ error: 'Error al obtener estado de caja' });
    }
 };
+
+export const reconcileClosedShift = async (req: Request, res: Response) => {
+   try {
+      const adminId = req.user?.id;
+      const { shiftId, amount, reasonType, notes, supplierId } = req.body;
+
+      if (!adminId) {
+         return res.status(401).json({ error: 'Usuario no autenticado' });
+      }
+
+      if (!shiftId || amount === undefined || !reasonType) {
+         return res.status(400).json({
+            error: 'Faltan parámetros requeridos: shiftId, amount, reasonType',
+         });
+      }
+
+      const { error } = await supabase.rpc('reconcile_closed_shift', {
+         p_shift_id: shiftId,
+         p_admin_id: adminId,
+         p_amount: amount,
+         p_reason_type: reasonType,
+         p_notes: notes || null,
+         p_supplier_id: supplierId || null,
+      });
+
+      if (error) {
+         console.error('Error calling reconcile_closed_shift RPC:', error);
+         return res
+            .status(400)
+            .json({ error: 'Error: verificar que el turno de caja esté cerrado.' });
+      }
+
+      res.json({
+         success: true,
+         message: 'Auditoría registrada correctamente',
+      });
+   } catch (error: any) {
+      console.error('Error reconciling shift in controller:', error);
+      res.status(500).json({ error: error.message || 'Error interno del servidor' });
+   }
+};
