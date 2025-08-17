@@ -109,18 +109,3 @@ export const loginAdmin = async (req: Request, res: Response) => {
       res.status(500).json({ error: 'Error interno del servidor' });
    }
 };
-
-export const getProfile = async (req: Request, res: Response) => {
-   try {
-      if (!req.user) {
-         return res.status(401).json({ error: 'Usuario no autenticado' });
-      }
-
-      return res.json({
-         user: req.user,
-      });
-   } catch (error) {
-      console.error('Error fetching profile:', error);
-      res.status(500).json({ error: 'Error interno del servidor' });
-   }
-};

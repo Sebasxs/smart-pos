@@ -1722,10 +1722,6 @@ export type Database = {
     }
     Functions: {
       check_permission: { Args: { perm_key: string }; Returns: boolean }
-      close_cash_shift: {
-        Args: { p_actual_cash: number; p_user_id: string }
-        Returns: Json
-      }
       get_bundle_stock: { Args: { p_bundle_id: string }; Returns: number }
       get_current_profile_id: { Args: never; Returns: string }
       get_next_invoice_number: {
@@ -1733,10 +1729,6 @@ export type Database = {
         Returns: number
       }
       immutable_unaccent: { Args: { "": string }; Returns: string }
-      open_cash_shift: {
-        Args: { p_opening_amount: number; p_user_id: string }
-        Returns: string
-      }
       reconcile_closed_shift: {
         Args: {
           p_admin_id: string
