@@ -15,6 +15,7 @@ import { Sales } from './pages/Sales';
 import { Balances } from './pages/Balances';
 import { Warranties } from './pages/Warranties';
 import { Login } from './pages/Login';
+import SmartInputDemo from './pages/SmartInputDemo';
 
 // Hooks
 import { useGlobalEscapeKey } from './hooks/useGlobalEscapeKey';
@@ -84,6 +85,7 @@ function App() {
                      <Route path="/balances" element={<Balances />} />
                      <Route path="/warranties" element={<Warranties />} />
                      <Route path="/chat" element={<Chat />} />
+                     <Route path="/demo" element={<SmartInputDemo />} />
                   </Routes>
                </ProtectedLayout>
             }

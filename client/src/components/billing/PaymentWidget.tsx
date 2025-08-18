@@ -1,5 +1,8 @@
 import { HiOutlineBanknotes, HiOutlineCreditCard } from 'react-icons/hi2';
 import { useBillingStore } from '../../store/billingStore';
+import { SmartNumberInput } from '../ui/SmartNumberInput';
+import { SmartNumber } from '../ui/SmartNumber';
+import { useState, useEffect } from 'react';
 
 type PaymentMethodButtonProps = {
    isActive: boolean;
@@ -46,20 +49,27 @@ type PaymentWidgetProps = {
 
 export const PaymentWidget = ({ total }: PaymentWidgetProps) => {
    const { checkoutData, setCheckoutData } = useBillingStore();
-   const { paymentMethod, cashReceivedStr } = checkoutData;
+   const { paymentMethod } = checkoutData;
 
-   const inputVal = parseInt(cashReceivedStr.replace(/[^0-9]/g, '') || '0', 10);
+   const [cashReceived, setCashReceived] = useState<number | null>(null);
 
-   const effectiveReceived = cashReceivedStr === '' || cashReceivedStr === '0' ? total : inputVal;
+   useEffect(() => {
+      if (paymentMethod === 'cash' && cashReceived === null) {
+         setCashReceived(total);
+      }
+   }, [total, paymentMethod, cashReceived]);
 
+   const effectiveReceived = cashReceived ?? total;
    const change =
       paymentMethod === 'cash' && effectiveReceived >= total ? effectiveReceived - total : 0;
 
-   const handleCashChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const raw = e.target.value.replace(/[^0-9]/g, '');
-      const formatted = raw ? parseInt(raw, 10).toLocaleString('es-CO') : '';
-      setCheckoutData({ cashReceivedStr: formatted });
-   };
+   useEffect(() => {
+      if (paymentMethod === 'cash') {
+         setCheckoutData({
+            cashReceivedStr: cashReceived?.toString() || total.toString(),
+         });
+      }
+   }, [cashReceived, paymentMethod, total, setCheckoutData]);
 
    return (
       <div className="bg-zinc-900 rounded-xl border border-zinc-800 shadow-sm flex flex-col overflow-hidden h-full">
@@ -71,7 +81,10 @@ export const PaymentWidget = ({ total }: PaymentWidgetProps) => {
             <div className="grid grid-cols-2 gap-3 pb-1">
                <PaymentMethodButton
                   isActive={paymentMethod === 'cash'}
-                  onClick={() => setCheckoutData({ paymentMethod: 'cash' })}
+                  onClick={() => {
+                     setCheckoutData({ paymentMethod: 'cash' });
+                     if (cashReceived === null) setCashReceived(total);
+                  }}
                   label="Efectivo"
                   icon={HiOutlineBanknotes}
                   activeClass="bg-emerald-500/10 border-emerald-500/50 text-emerald-400 shadow-[0_0_20px_-5px_rgba(16,185,129,0.2)]"
@@ -93,13 +106,14 @@ export const PaymentWidget = ({ total }: PaymentWidgetProps) => {
                      <label className="absolute -top-2.5 left-2 bg-zinc-900 px-2 text-[10px] font-bold text-zinc-500 uppercase tracking-wider rounded-full">
                         Recibido
                      </label>
-                     <div className="flex items-center border border-zinc-700 rounded-xl px-4 py-3 bg-zinc-800/30 focus-within:bg-zinc-800/50 focus-within:border-emerald-500/50 transition-all">
-                        <span className="text-zinc-500 text-xl font-medium mr-2">$</span>
-                        <input
-                           value={cashReceivedStr}
-                           onChange={handleCashChange}
-                           className="w-full bg-transparent text-right text-3xl font-mono font-bold text-white outline-none placeholder:text-zinc-700"
-                           placeholder={total > 0 ? total.toLocaleString('es-CO') : '0'}
+                     <div className="border border-zinc-700 rounded-xl bg-zinc-800/30 focus-within:bg-zinc-800/50 focus-within:border-emerald-500/50 transition-all">
+                        <SmartNumberInput
+                           value={cashReceived}
+                           onValueChange={v => setCashReceived(v)}
+                           variant="currency"
+                           showPrefix={true}
+                           placeholder={total > 0 ? total.toString() : '0'}
+                           className="[&>input]:w-full [&>input]:bg-transparent [&>input]:text-right [&>input]:text-3xl [&>input]:font-mono [&>input]:font-bold [&>input]:text-white [&>input]:outline-none [&>input]:placeholder:text-zinc-700 [&>input]:border-0 [&>input]:px-4 [&>input]:py-3 [&>input]:focus:ring-0"
                         />
                      </div>
                   </div>
@@ -108,13 +122,13 @@ export const PaymentWidget = ({ total }: PaymentWidgetProps) => {
                      <span className="text-xs font-bold text-zinc-500 uppercase tracking-wide">
                         Cambio
                      </span>
-                     <span
+                     <SmartNumber
+                        value={change}
+                        variant="currency"
                         className={`text-2xl font-mono font-bold ${
                            change > 0 ? 'text-emerald-400' : 'text-zinc-600'
                         }`}
-                     >
-                        ${change.toLocaleString('es-CO')}
-                     </span>
+                     />
                   </div>
                </div>
             ) : (

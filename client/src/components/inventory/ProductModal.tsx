@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { Modal } from '../ui/Modal';
 import { CustomSelect } from '../ui/CustomSelect';
 import { Input } from '../ui/Input';
+import { SmartNumberInput } from '../ui/SmartNumberInput';
 import { Button } from '../ui/Button';
 import { useInventoryStore } from '../../store/inventoryStore';
-import { formatCurrency } from '../../utils/format';
 import { HiOutlineCube, HiOutlineTag } from 'react-icons/hi2';
 
 // Types
@@ -30,11 +30,6 @@ export const ProductModal = ({ isOpen, onClose, productToEdit }: ProductModalPro
    const [form, setForm] = useState(initialForm);
    const [isSubmitting, setIsSubmitting] = useState(false);
 
-   const [rawCost, setRawCost] = useState('');
-   const [rawPrice, setRawPrice] = useState('');
-   const [isCostFocused, setIsCostFocused] = useState(false);
-   const [isPriceFocused, setIsPriceFocused] = useState(false);
-
    useEffect(() => {
       if (!isOpen) return;
 
@@ -48,12 +43,8 @@ export const ProductModal = ({ isOpen, onClose, productToEdit }: ProductModalPro
             discountPercentage: productToEdit.discountPercentage,
             supplierId: productToEdit.supplierId || '',
          });
-         setRawCost(productToEdit.cost === 0 ? '' : String(productToEdit.cost));
-         setRawPrice(productToEdit.price === 0 ? '' : String(productToEdit.price));
       } else {
          setForm(initialForm);
-         setRawCost('');
-         setRawPrice('');
       }
    }, [isOpen, productToEdit, fetchSuppliers]);
 
@@ -61,36 +52,8 @@ export const ProductModal = ({ isOpen, onClose, productToEdit }: ProductModalPro
       const { name, value } = e.target;
       setForm(prev => ({
          ...prev,
-         [name]: ['price', 'cost', 'stock', 'discountPercentage'].includes(name)
-            ? parseFloat(value) || 0
-            : value,
+         [name]: value,
       }));
-   };
-
-   const handleCostChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value;
-      if (value === '' || /^[0-9]*$/.test(value)) {
-         setRawCost(value);
-         const numericValue = value === '' ? 0 : parseInt(value, 10);
-         setForm(prev => ({ ...prev, cost: numericValue }));
-      }
-   };
-
-   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value;
-      if (value === '' || /^[0-9]*$/.test(value)) {
-         setRawPrice(value);
-         const numericValue = value === '' ? 0 : parseInt(value, 10);
-         setForm(prev => ({ ...prev, price: numericValue }));
-      }
-   };
-
-   const handleCostBlur = () => {
-      setIsCostFocused(false);
-   };
-
-   const handlePriceBlur = () => {
-      setIsPriceFocused(false);
    };
 
    const handleSubmit = async (e: React.FormEvent) => {
@@ -156,68 +119,38 @@ export const ProductModal = ({ isOpen, onClose, productToEdit }: ProductModalPro
                {/* 3. Costo y precio */}
                <div className="py-2">
                   <div className="grid grid-cols-2 gap-3 mb-3">
-                     <Input
+                     <SmartNumberInput
                         label="Costo"
-                        name="cost"
-                        value={
-                           isCostFocused
-                              ? rawCost
-                              : form.cost === 0
-                              ? ''
-                              : formatCurrency(form.cost)
-                        }
-                        onChange={handleCostChange}
-                        onFocus={() => {
-                           setIsCostFocused(true);
-                           setRawCost(form.cost === 0 ? '' : String(form.cost));
-                        }}
-                        onBlur={handleCostBlur}
-                        placeholder="0"
-                        prefix="$"
+                        value={form.cost}
+                        onValueChange={v => setForm(prev => ({ ...prev, cost: v ?? 0 }))}
+                        variant="currency"
+                        showPrefix={true}
                      />
-                     <Input
+                     <SmartNumberInput
                         label="Precio de Venta"
-                        name="price"
-                        value={
-                           isPriceFocused
-                              ? rawPrice
-                              : form.price === 0
-                              ? ''
-                              : formatCurrency(form.price)
-                        }
-                        onChange={handlePriceChange}
-                        onFocus={() => {
-                           setIsPriceFocused(true);
-                           setRawPrice(form.price === 0 ? '' : String(form.price));
-                        }}
-                        onBlur={handlePriceBlur}
-                        placeholder="0"
-                        prefix="$"
+                        value={form.price}
+                        onValueChange={v => setForm(prev => ({ ...prev, price: v ?? 0 }))}
+                        variant="currency"
+                        showPrefix={true}
                      />
                   </div>
 
                   {/* Stock y Descuento */}
                   <div className="grid grid-cols-2 gap-3">
-                     <Input
+                     <SmartNumberInput
                         label="Stock"
-                        name="stock"
-                        type="number"
                         value={form.stock}
-                        onChange={handleChange}
-                        min="0"
-                        placeholder="0"
-                        className="no-spinners text-center"
+                        onValueChange={v => setForm(prev => ({ ...prev, stock: v ?? 0 }))}
+                        variant="quantity"
+                        dianUnitCode="EA"
                      />
-                     <Input
+                     <SmartNumberInput
                         label="Descuento (%)"
-                        name="discountPercentage"
-                        type="number"
                         value={form.discountPercentage}
-                        onChange={handleChange}
-                        min="0"
-                        max="100"
-                        placeholder="0"
-                        className="no-spinners text-center"
+                        onValueChange={v =>
+                           setForm(prev => ({ ...prev, discountPercentage: v ?? 0 }))
+                        }
+                        variant="percentage"
                      />
                   </div>
                </div>

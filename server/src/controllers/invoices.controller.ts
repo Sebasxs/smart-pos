@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { supabase } from '../config/supabase';
+import { PrecisionMath } from '../utils/precisionMath';
 
 type InvoiceItemPayload = {
    id: string | null;
@@ -36,6 +37,99 @@ export const createInvoice = async (req: Request<{}, {}, CreateInvoiceBody>, res
          return res.status(401).json({ error: 'Usuario no autenticado' });
       }
 
+      // Validar que los valores estén dentro del rango permitido (DECIMAL(19,6))
+      const allValues = [
+         subtotal,
+         discount,
+         total,
+         ...items.flatMap(item => [item.price, item.quantity, item.originalPrice]),
+      ];
+
+      for (const value of allValues) {
+         if (!PrecisionMath.isValidDecimal(value)) {
+            return res.status(400).json({
+               error: `Valor numérico fuera de rango: ${value}. Máximo permitido: 9999999999999.999999`,
+            });
+         }
+      }
+
+      // ✅ RECALCULAR totales en el servidor (NO confiar en cliente)
+      let calculatedSubtotal = PrecisionMath.toDecimal(0);
+
+      for (const item of items) {
+         const itemTotal = PrecisionMath.multiply(item.price, item.quantity);
+         calculatedSubtotal = calculatedSubtotal.plus(itemTotal);
+      }
+
+      const calculatedTotal = PrecisionMath.subtract(calculatedSubtotal, discount);
+
+      // ✅ VALIDAR diferencias entre cliente y servidor
+      const subtotalDiff = PrecisionMath.subtract(subtotal, calculatedSubtotal).abs();
+      const totalDiff = PrecisionMath.subtract(total, calculatedTotal).abs();
+
+      const maxToleranceAbsolute = 0.01; // 1 centavo de tolerancia
+      const maxTolerancePercent = 0.01; // 1% de tolerancia
+
+      // Rechazar si subtotal difiere más del 1%
+      if (PrecisionMath.compare(subtotalDiff, maxToleranceAbsolute) > 0) {
+         const percentDiff = PrecisionMath.divide(subtotalDiff, calculatedSubtotal);
+
+         if (PrecisionMath.compare(percentDiff, maxTolerancePercent) > 0) {
+            console.error(
+               `⚠️ SECURITY: Subtotal mismatch exceeds 1%:`,
+               `Client=${subtotal}, Server=${PrecisionMath.toNumber(calculatedSubtotal)}`,
+               `Diff=${PrecisionMath.toNumber(subtotalDiff)}`,
+            );
+
+            return res.status(400).json({
+               error: 'Los totales no coinciden. Por favor, recarga la página y vuelve a intentar.',
+               details: {
+                  field: 'subtotal',
+                  clientValue: subtotal,
+                  serverValue: PrecisionMath.toNumber(calculatedSubtotal),
+                  difference: PrecisionMath.toNumber(subtotalDiff),
+               },
+            });
+         }
+
+         // Log warning para diferencias pequeñas
+         console.warn(
+            `Subtotal minor mismatch: Client=${subtotal}, Server=${PrecisionMath.toNumber(
+               calculatedSubtotal,
+            )}`,
+         );
+      }
+
+      // Rechazar si total difiere más del 1%
+      if (PrecisionMath.compare(totalDiff, maxToleranceAbsolute) > 0) {
+         const percentDiff = PrecisionMath.divide(totalDiff, calculatedTotal);
+
+         if (PrecisionMath.compare(percentDiff, maxTolerancePercent) > 0) {
+            console.error(
+               `⚠️ SECURITY: Total mismatch exceeds 1%:`,
+               `Client=${total}, Server=${PrecisionMath.toNumber(calculatedTotal)}`,
+               `Diff=${PrecisionMath.toNumber(totalDiff)}`,
+            );
+
+            return res.status(400).json({
+               error: 'El total de la factura no coincide con los cálculos del servidor. Por favor, recarga la página.',
+               details: {
+                  field: 'total',
+                  clientValue: total,
+                  serverValue: PrecisionMath.toNumber(calculatedTotal),
+                  difference: PrecisionMath.toNumber(totalDiff),
+               },
+            });
+         }
+
+         // Log warning para diferencias pequeñas
+         console.warn(
+            `Total minor mismatch: Client=${total}, Server=${PrecisionMath.toNumber(
+               calculatedTotal,
+            )}`,
+         );
+      }
+
       const cleanItems = items.map(item => ({
          id: item.id && item.id.length === 36 ? item.id : null,
          quantity: item.quantity,
@@ -47,14 +141,14 @@ export const createInvoice = async (req: Request<{}, {}, CreateInvoiceBody>, res
       const payments = [
          {
             method: paymentMethod,
-            amount: total,
+            amount: PrecisionMath.toNumber(calculatedTotal),
             reference_code: null,
          },
       ];
 
       const totals = {
-         subtotal: subtotal,
-         total: total,
+         subtotal: PrecisionMath.toNumber(calculatedSubtotal),
+         total: PrecisionMath.toNumber(calculatedTotal),
          discount: discount,
          tax: 0,
       };

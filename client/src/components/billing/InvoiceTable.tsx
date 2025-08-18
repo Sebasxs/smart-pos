@@ -1,10 +1,10 @@
 import { HiOutlineTrash, HiOutlinePencilSquare } from 'react-icons/hi2';
 import { QuantitySelector } from '../ui/QuantitySelector';
-import { useState, useEffect } from 'react';
+import { SmartNumberInput } from '../ui/SmartNumberInput';
+import { SmartNumber } from '../ui/SmartNumber';
 
 // Types
 import { type InvoiceItem } from '../../types/billing';
-import { formatCurrency, parseFormattedNumber } from '../../utils/format';
 
 type InvoiceItemRowProps = {
    item: InvoiceItem;
@@ -15,25 +15,10 @@ type InvoiceItemRowProps = {
 const GRID_LAYOUT = 'grid grid-cols-[1fr_7rem_8rem_6.5rem_2rem] gap-4 items-center';
 
 const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
-   const [localPrice, setLocalPrice] = useState(formatCurrency(item.price));
-
-   useEffect(() => {
-      if (parseFormattedNumber(localPrice) !== item.price) {
-         setLocalPrice(formatCurrency(item.price));
+   const handlePriceChange = (newPrice: number | null) => {
+      if (newPrice !== null) {
+         onUpdate(item.id, { price: newPrice });
       }
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-   }, [item.price]);
-
-   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const rawValue = e.target.value;
-      if (rawValue === '' || /^[0-9.]*$/.test(rawValue)) {
-         setLocalPrice(rawValue);
-         onUpdate(item.id, { price: parseFormattedNumber(rawValue) });
-      }
-   };
-
-   const handleBlur = () => {
-      setLocalPrice(formatCurrency(parseFormattedNumber(localPrice)));
    };
 
    const hasInventoryDiscount = item.discountPercentage > 0;
@@ -91,17 +76,13 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
          {/* 2. VALOR UNITARIO */}
          <div className="flex flex-col justify-center items-end w-full">
             <div className="relative w-full flex items-center justify-end group/price">
-               <span className="absolute left-auto right-full mr-1 text-xs font-medium pointer-events-none transition-opacity duration-200 opacity-0 group-focus-within/price:opacity-100 text-zinc-600">
-                  $
-               </span>
-               <input
-                  type="text"
-                  value={localPrice}
-                  onChange={handlePriceChange}
-                  onBlur={handleBlur}
-                  onKeyDown={e => e.key === 'Enter' && e.currentTarget.blur()}
+               <SmartNumberInput
+                  value={item.price}
+                  onValueChange={handlePriceChange}
+                  variant="currency"
+                  showPrefix={false}
                   className={`
-                     w-full bg-transparent text-right py-0 border-b border-transparent focus:border-indigo-500 outline-none font-mono font-medium tracking-tight transition-colors duration-200
+                     bg-transparent text-right py-0 border-b border-transparent focus:border-indigo-500 outline-none font-mono font-medium tracking-tight transition-colors duration-200
                      ${
                         hasInventoryDiscount
                            ? 'text-emerald-400 font-bold'
@@ -114,7 +95,7 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
             {hasInventoryDiscount && !item.isPriceEdited && (
                <div className="flex items-center gap-1.5 mt-0.5 justify-end w-full">
                   <span className="text-xs text-zinc-500 line-through decoration-zinc-600 font-mono">
-                     ${formatCurrency(item.originalPrice)}
+                     <SmartNumber value={item.originalPrice} variant="currency" />
                   </span>
                   <span className="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-1.5 rounded-sm leading-none py-0.5 border border-emerald-500/20">
                      -{item.discountPercentage}%
@@ -139,7 +120,7 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
          {/* 4. SUBTOTAL */}
          <div className="flex flex-col items-end w-full">
             <span className="font-bold text-white tracking-tight text-[17px] font-mono tabular-nums">
-               ${formatCurrency(item.quantity * item.price)}
+               <SmartNumber value={item.quantity * item.price} variant="currency" />
             </span>
          </div>
 

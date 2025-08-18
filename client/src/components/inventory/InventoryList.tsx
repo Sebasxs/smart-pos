@@ -6,7 +6,7 @@ import {
    HiChevronDown,
 } from 'react-icons/hi2';
 import { useInventoryStore, type SortKey } from '../../store/inventoryStore';
-import { formatCurrency } from '../../utils/format';
+import { SmartNumber } from '../ui/SmartNumber';
 
 // Types
 import { type Product } from '../../types/inventory';
@@ -125,7 +125,7 @@ export const InventoryList = ({ products, isLoading, onEdit, onDelete }: Invento
                {/* 2. COSTO */}
                <div className="text-right">
                   <span className="font-mono text-zinc-400 text-sm font-medium pr-1">
-                     {formatCurrency(product.cost || 0, true)}
+                     <SmartNumber value={product.cost || 0} variant="currency" />
                   </span>
                </div>
 
@@ -137,13 +137,17 @@ export const InventoryList = ({ products, isLoading, onEdit, onDelete }: Invento
                            hasDiscount ? 'text-emerald-400' : 'text-zinc-200'
                         }`}
                      >
-                        {formatCurrency(finalPrice, true)}
+                        <SmartNumber value={finalPrice} variant="currency" />
                      </span>
 
                      {hasDiscount && (
                         <div className="flex items-center gap-1.5 mt-0.5">
                            <span className="text-xs text-zinc-500 line-through decoration-zinc-700">
-                              {formatCurrency(product.price)}
+                              <SmartNumber
+                                 value={product.price}
+                                 variant="currency"
+                                 showPrefix={false}
+                              />
                            </span>
                            <span className="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-1.5 rounded-sm leading-none py-0.5">
                               -{product.discountPercentage}%

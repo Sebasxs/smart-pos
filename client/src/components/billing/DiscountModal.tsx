@@ -1,5 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Modal } from '../ui/Modal';
+import { SmartNumberInput } from '../ui/SmartNumberInput';
+import { SmartNumber } from '../ui/SmartNumber';
 import { type Discount } from '../../types/billing';
 import { HiOutlineCurrencyDollar, HiOutlineReceiptPercent } from 'react-icons/hi2';
 
@@ -51,24 +53,14 @@ export const DiscountModal = ({
    subtotal,
 }: DiscountModalProps) => {
    const [localDiscount, setLocalDiscount] = useState<Discount>(currentDiscount);
-   const inputRef = useRef<HTMLInputElement>(null);
 
    useEffect(() => {
       if (isOpen) {
          setTimeout(() => {
             setLocalDiscount(currentDiscount);
-            if (inputRef.current) {
-               inputRef.current.focus();
-               inputRef.current.select();
-            }
          }, 100);
       }
    }, [isOpen, currentDiscount]);
-
-   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const raw = e.target.value.replace(/[^0-9]/g, '');
-      setLocalDiscount(prev => ({ ...prev, value: Number(raw) }));
-   };
 
    const handleSubmit = () => {
       onApply(localDiscount);
@@ -108,30 +100,23 @@ export const DiscountModal = ({
 
             <div className="mb-6">
                <div className="relative max-w-[180px] mx-auto">
-                  <input
-                     ref={inputRef}
-                     type="text"
-                     value={localDiscount.value.toLocaleString('es-CO')}
-                     onChange={handleChange}
-                     onKeyDown={e => e.key === 'Enter' && handleSubmit()}
-                     className={`
-                        w-full bg-zinc-900 border rounded-lg px-4 py-2 text-center text-2xl font-bold text-white
-                        outline-none transition-colors border-zinc-700
-                        ${isPercentage ? 'focus:border-blue-500/50' : 'focus:border-green-500/50'}
-                     `}
-                  />
-                  <span
-                     className={`absolute right-4 top-1/2 -translate-y-1/2 font-bold ${
-                        isPercentage ? 'text-blue-500' : 'text-green-500'
+                  <SmartNumberInput
+                     value={localDiscount.value}
+                     onValueChange={v => setLocalDiscount(prev => ({ ...prev, value: v ?? 0 }))}
+                     variant={isPercentage ? 'percentage' : 'currency'}
+                     showPrefix={!isPercentage}
+                     onKeyDown={e => (e as any).key === 'Enter' && handleSubmit()}
+                     className={`[&>input]:w-full [&>input]:bg-zinc-900 [&>input]:border [&>input]:rounded-lg [&>input]:px-4 [&>input]:py-2 [&>input]:text-center [&>input]:text-2xl [&>input]:font-bold [&>input]:text-white [&>input]:outline-none [&>input]:transition-colors [&>input]:border-zinc-700 ${
+                        isPercentage
+                           ? '[&>input]:focus:border-blue-500/50'
+                           : '[&>input]:focus:border-green-500/50'
                      }`}
-                  >
-                     {isPercentage ? '%' : '$'}
-                  </span>
+                  />
                </div>
                <div className="mt-3 flex flex-row justify-center items-center gap-2 text-sm">
                   <span className="text-zinc-400">Descuento real:</span>
                   <span className="text-zinc-200 font-bold bg-zinc-800 px-2 py-0.5 rounded border border-zinc-700">
-                     ${previewDiscountAmount.toLocaleString('es-CO')}
+                     <SmartNumber value={previewDiscountAmount} variant="currency" />
                   </span>
                </div>
             </div>

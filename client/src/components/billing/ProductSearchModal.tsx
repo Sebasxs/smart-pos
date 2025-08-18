@@ -7,6 +7,7 @@ import {
 } from 'react-icons/hi';
 import { CgSpinner } from 'react-icons/cg';
 import { Modal } from '../ui/Modal';
+import { SmartNumber } from '../ui/SmartNumber';
 
 // Types
 import { type InvoiceItem } from '../../types/billing';
@@ -231,16 +232,21 @@ export const ProductSearchModal = ({
                            <div className="flex items-center gap-2">
                               {discount > 0 && (
                                  <span className="text-xs text-zinc-500 line-through decoration-red-500/50">
-                                    ${product.price?.toLocaleString('es-CO')}
+                                    <SmartNumber
+                                       value={product.price}
+                                       variant="currency"
+                                       showPrefix={true}
+                                    />
                                  </span>
                               )}
-                              <span
+                              <SmartNumber
+                                 value={finalPrice}
+                                 variant="currency"
+                                 showPrefix={true}
                                  className={`font-mono font-bold text-lg ${
                                     isSelected ? 'text-purple-200' : 'text-zinc-200'
                                  }`}
-                              >
-                                 ${finalPrice.toLocaleString('es-CO')}
-                              </span>
+                              />
                            </div>
                            <span
                               className={`text-xs font-medium ${

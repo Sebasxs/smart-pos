@@ -1,13 +1,9 @@
-import {
-   HiOutlineCube,
-   HiOutlineExclamationTriangle,
-   HiOutlineTag,
-} from 'react-icons/hi2';
+import { HiOutlineCube, HiOutlineExclamationTriangle, HiOutlineTag } from 'react-icons/hi2';
 
 // Types
 import { type InventoryStatsData } from '../../types/inventory';
 import { type InventoryFilter } from '../../hooks/useInventory';
-import { formatCurrency } from '../../utils/format';
+import { SmartNumber } from '../ui/SmartNumber';
 
 type ExtendedStatsData = InventoryStatsData & {
    discounted: number;
@@ -45,13 +41,15 @@ const StatCard = ({
    const baseStyle =
       'relative overflow-hidden border-2 rounded-xl p-2 flex items-center gap-3 transition-all duration-200 text-left';
 
-   const effectiveColors = isActive ? colorInfo : {
-      text: 'text-zinc-500',
-      bg: 'bg-zinc-500',
-      border: 'border-zinc-800',
-      iconBg: 'bg-zinc-800',
-      shadow: 'shadow-none',
-   };
+   const effectiveColors = isActive
+      ? colorInfo
+      : {
+           text: 'text-zinc-500',
+           bg: 'bg-zinc-500',
+           border: 'border-zinc-800',
+           iconBg: 'bg-zinc-800',
+           shadow: 'shadow-none',
+        };
 
    const activeStyle = isActive
       ? `bg-zinc-800 ${effectiveColors.border} ${effectiveColors.shadow}`
@@ -64,7 +62,9 @@ const StatCard = ({
          onClick={onClick}
          className={`${baseStyle} ${cursorClass} ${activeStyle} ${className}`}
       >
-         <div className={`absolute inset-0 opacity-[0.03] pointer-events-none ${effectiveColors.bg}`} />
+         <div
+            className={`absolute inset-0 opacity-[0.03] pointer-events-none ${effectiveColors.bg}`}
+         />
 
          <div
             className={`m-1 w-22 self-stretch rounded-lg hidden sm:flex items-center justify-center border border-white/5 ${effectiveColors.iconBg} ${effectiveColors.text}`}
@@ -116,8 +116,12 @@ export const InventoryStats = ({ stats, activeFilter, onToggleFilter }: Inventor
             className="flex-1 min-w-0 md:min-w-[140px]"
          >
             <div className="mt-1 pt-1 border-t border-white/10">
-               <p className="text-[10px] text-zinc-400 font-medium tracking-wide uppercase">Valor Total</p>
-               <p className="text-xs font-mono text-purple-300">{formatCurrency(stats.totalValue)}</p>
+               <p className="text-[10px] text-zinc-400 font-medium tracking-wide uppercase">
+                  Valor Total
+               </p>
+               <p className="text-xs font-mono text-purple-300">
+                  <SmartNumber value={stats.totalValue} variant="currency" showPrefix={false} />
+               </p>
             </div>
          </StatCard>
 
@@ -138,7 +142,9 @@ export const InventoryStats = ({ stats, activeFilter, onToggleFilter }: Inventor
             className="flex-1 min-w-0 md:min-w-[140px]"
          >
             <div className="mt-1 pt-1 border-t border-white/10">
-               <p className="text-[10px] text-zinc-400 font-medium tracking-wide uppercase">Promedio Descuento</p>
+               <p className="text-[10px] text-zinc-400 font-medium tracking-wide uppercase">
+                  Promedio Descuento
+               </p>
                <p className="text-xs font-mono text-emerald-300">{stats.averageDiscount}%</p>
             </div>
          </StatCard>
@@ -160,7 +166,9 @@ export const InventoryStats = ({ stats, activeFilter, onToggleFilter }: Inventor
             className="flex-1 min-w-0 md:min-w-[140px]"
          >
             <div className="mt-1 pt-1 border-t border-white/10">
-               <p className="text-[10px] text-zinc-400 font-medium tracking-wide uppercase">Agotados</p>
+               <p className="text-[10px] text-zinc-400 font-medium tracking-wide uppercase">
+                  Agotados
+               </p>
                <p className="text-xs font-mono text-amber-300">{stats.outOfStock}</p>
             </div>
          </StatCard>

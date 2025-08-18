@@ -10,7 +10,7 @@ import {
 import { HiOutlineMail } from 'react-icons/hi';
 import { useNavigate } from 'react-router-dom';
 import { useCustomerStore } from '../../store/customerStore';
-import { formatCurrency } from '../../utils/format';
+import { SmartNumber } from '../ui/SmartNumber';
 import { formatRelativeDate, differenceInDays, parseISO } from '../../utils/date';
 import { getDocumentTypeLabel } from '../../utils/documentTypes';
 import { CustomerStatusBadge } from './CustomerStatusBadge';
@@ -168,7 +168,11 @@ export const CustomerList = ({ customers, isLoading, onEdit, onDelete }: Custome
                {/* 5. TOTAL GASTADO */}
                <div className="text-right">
                   <span className="font-mono text-zinc-300 text-sm font-bold">
-                     {formatCurrency(customer.total_spent || 0)}
+                     <SmartNumber
+                        value={customer.total_spent || 0}
+                        variant="currency"
+                        showPrefix={false}
+                     />
                   </span>
                </div>
 

@@ -1,5 +1,7 @@
 import { type CheckoutState } from '../../store/billingStore';
 import { type InvoiceItem } from '../../types/billing';
+import { formatNumber } from '../../lib/formatNumber';
+import { usePreferencesStore } from '../../store/usePreferencesStore';
 
 type TicketViewProps = {
    invoiceId?: number;
@@ -26,16 +28,24 @@ export const TicketView = ({
    cashReceived,
    change,
 }: TicketViewProps) => {
-   const formatCurrency = (val: number) => `$${val.toLocaleString('es-CO')}`;
+   const { currencyDecimalPreference } = usePreferencesStore();
+
+   const formatCurrency = (val: number) =>
+      formatNumber(val, {
+         variant: 'currency',
+         decimalPreference: currencyDecimalPreference,
+         showPrefix: true,
+      });
 
    return (
       <div className="bg-white text-black font-mono text-xs p-4 w-full max-w-[300px] mx-auto shadow-sm leading-tight select-text">
          {/* CABECERA */}
          <div className="text-center mb-3">
             <h2 className="font-black text-lg uppercase mb-1">AudioVideoFP</h2>
-            <p>NIT: 900.123.456-7</p>
-            <p>Calle 123 # 45-67, Bogotá</p>
-            <p>Tel: (601) 123 4567</p>
+            <p>NIT: 70070658-1</p>
+            <p>NO RESPONSABLE DE IVA</p>
+            <p>CRA 14 # 5B-14</p>
+            <p>TEL: 300 261 2587</p>
          </div>
 
          <div className="border-b border-black border-dashed my-2" />
@@ -121,7 +131,6 @@ export const TicketView = ({
 
          <div className="mt-6 text-center text-[10px] opacity-70">
             <p>*** GRACIAS POR SU COMPRA ***</p>
-            <p className="mt-1">Régimen Simplificado</p>
             <p>Software: SmartPOS v1.0</p>
          </div>
       </div>

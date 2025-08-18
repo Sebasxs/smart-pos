@@ -1,5 +1,6 @@
 import { HiOutlineTrash, HiOutlineCheckCircle, HiOutlineTag } from 'react-icons/hi2';
 import { Button } from '../ui/Button';
+import { SmartNumber } from '../ui/SmartNumber';
 
 // Types
 import { type Discount } from '../../types/billing';
@@ -27,8 +28,6 @@ export const BillingTotals = ({
    onDiscard,
    onProcessPayment,
 }: BillingTotalsProps) => {
-   const formatCurrency = (amount: number) => `$${amount.toLocaleString('es-CO')}`;
-
    return (
       <div className="w-full md:flex-1 bg-zinc-900 rounded-xl border border-zinc-800 shadow-sm shrink-0 flex flex-col overflow-hidden">
          <div className="py-3 px-4 border-b border-zinc-800 bg-zinc-900/50 flex justify-between items-center">
@@ -48,9 +47,11 @@ export const BillingTotals = ({
             <div className="space-y-3">
                <div className="flex justify-between items-center text-sm">
                   <span className="text-zinc-400 font-medium">Subtotal</span>
-                  <span className="font-mono font-medium text-zinc-300">
-                     {formatCurrency(subtotal)}
-                  </span>
+                  <SmartNumber
+                     value={subtotal}
+                     variant="currency"
+                     className="font-mono font-medium text-zinc-300"
+                  />
                </div>
 
                <div className="flex justify-between items-center text-sm">
@@ -70,10 +71,12 @@ export const BillingTotals = ({
                         </span>
                      )}
                      <span
-                        className={`font-mono font-medium ${discountAmount > 0 ? 'text-red-400' : 'text-zinc-500'
-                           }`}
+                        className={`font-mono font-medium ${
+                           discountAmount > 0 ? 'text-red-400' : 'text-zinc-500'
+                        }`}
                      >
-                        -{formatCurrency(discountAmount)}
+                        -
+                        <SmartNumber value={discountAmount} variant="currency" showPrefix={false} />
                      </span>
                   </div>
                </div>
@@ -82,9 +85,11 @@ export const BillingTotals = ({
             <div className="mt-auto pt-4 border-t border-zinc-800 border-dashed">
                <div className="flex justify-between items-end mb-4">
                   <span className="text-lg font-bold text-zinc-300">Total</span>
-                  <span className="text-4xl font-mono font-black text-white tracking-tighter">
-                     {formatCurrency(total)}
-                  </span>
+                  <SmartNumber
+                     value={total}
+                     variant="currency"
+                     className="text-4xl font-mono font-black text-white tracking-tighter"
+                  />
                </div>
 
                <Button
@@ -97,8 +102,9 @@ export const BillingTotals = ({
                      <>
                         <span>Confirmar Venta</span>
                         <HiOutlineCheckCircle
-                           className={`transition-colors ${isPaymentValid ? 'text-blue-200' : 'text-zinc-600'
-                              }`}
+                           className={`transition-colors ${
+                              isPaymentValid ? 'text-blue-200' : 'text-zinc-600'
+                           }`}
                            size={24}
                         />
                      </>
