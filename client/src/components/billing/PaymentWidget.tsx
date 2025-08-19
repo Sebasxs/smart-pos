@@ -72,7 +72,7 @@ export const PaymentWidget = ({ total }: PaymentWidgetProps) => {
    }, [cashReceived, paymentMethod, total, setCheckoutData]);
 
    return (
-      <div className="bg-zinc-900 rounded-xl border border-zinc-800 shadow-sm flex flex-col overflow-hidden h-full">
+      <div className="bg-zinc-900/50 rounded-xl border border-zinc-800 shadow-sm flex flex-col overflow-hidden h-full">
          <div className="py-3 px-4 border-b border-zinc-800 bg-zinc-900/50 flex justify-between items-center">
             <h2 className="text-zinc-500 text-[11px] font-bold uppercase tracking-wider">Pago</h2>
          </div>

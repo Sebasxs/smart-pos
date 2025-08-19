@@ -16,6 +16,15 @@ import { Balances } from './pages/Balances';
 import { Warranties } from './pages/Warranties';
 import { Login } from './pages/Login';
 import SmartInputDemo from './pages/SmartInputDemo';
+import { Shift } from './pages/Shift';
+import { CreditNotes } from './pages/CreditNotes';
+import { Purchases } from './pages/Purchases';
+import { Adjustments } from './pages/Adjustments';
+import { Kardex } from './pages/Kardex';
+import { Suppliers } from './pages/Suppliers';
+import { Users } from './pages/Users';
+import { Settings } from './pages/Settings';
+import { Profile } from './pages/Profile';
 
 // Hooks
 import { useGlobalEscapeKey } from './hooks/useGlobalEscapeKey';
@@ -85,6 +94,26 @@ function App() {
                      <Route path="/balances" element={<Balances />} />
                      <Route path="/warranties" element={<Warranties />} />
                      <Route path="/chat" element={<Chat />} />
+                     <Route path="/shift" element={<Shift />} />
+
+                     {/* Operaciones */}
+                     <Route path="/credit-notes" element={<CreditNotes />} />
+
+                     {/* Logística */}
+                     <Route path="/purchases" element={<Purchases />} />
+                     <Route path="/adjustments" element={<Adjustments />} />
+                     <Route path="/kardex" element={<Kardex />} />
+
+                     {/* Directorio */}
+                     <Route path="/suppliers" element={<Suppliers />} />
+
+                     {/* Admin */}
+                     <Route path="/users" element={<Users />} />
+                     <Route path="/settings" element={<Settings />} />
+
+                     {/* User */}
+                     <Route path="/profile" element={<Profile />} />
+
                      <Route path="/demo" element={<SmartInputDemo />} />
                   </Routes>
                </ProtectedLayout>

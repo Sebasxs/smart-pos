@@ -5,7 +5,7 @@ import { InventoryStats } from '../components/inventory/InventoryStats';
 import { InventoryList } from '../components/inventory/InventoryList';
 import { ProductModal } from '../components/inventory/ProductModal';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
-import { HiOutlineArrowPath } from 'react-icons/hi2';
+import { HiOutlineArrowPath, HiOutlineArchiveBox } from 'react-icons/hi2';
 
 // Types
 import { type Product } from '../types/inventory';
@@ -120,7 +120,7 @@ export const Inventory = () => {
    return (
       <div
          ref={containerRef}
-         className="flex flex-col h-full max-h-screen overflow-auto p-2 md:p-0 gap-4"
+         className="flex flex-col h-full max-h-screen overflow-auto p-4 gap-4"
          style={{
             transform: isPulling ? `translateY(${pullDistance}px)` : undefined,
             transition: isPulling ? 'none' : 'transform 0.3s ease-out',
@@ -138,16 +138,32 @@ export const Inventory = () => {
                <div className="bg-zinc-800/90 backdrop-blur-sm border border-zinc-700 rounded-full p-3 shadow-lg">
                   <HiOutlineArrowPath
                      size={24}
-                     className={`text-blue-500 ${isRefreshing || pullProgress >= 1 ? 'animate-spin' : ''}`}
+                     className={`text-blue-500 ${
+                        isRefreshing || pullProgress >= 1 ? 'animate-spin' : ''
+                     }`}
                      style={{
-                        transform: !isRefreshing && pullProgress < 1 ? `rotate(${pullProgress * 360}deg)` : undefined,
+                        transform:
+                           !isRefreshing && pullProgress < 1
+                              ? `rotate(${pullProgress * 360}deg)`
+                              : undefined,
                      }}
                   />
                </div>
             </div>
          )}
 
-         <div className="shrink-0 bg-zinc-900 border border-zinc-800 rounded-xl shadow-sm p-3">
+         {/* PAGE HEADER */}
+         <div className="flex items-center gap-3 mb-6">
+            <div className="p-3 bg-teal-500/10 rounded-xl text-teal-400">
+               <HiOutlineArchiveBox size={24} />
+            </div>
+            <div>
+               <h1 className="text-2xl font-bold text-white">Catálogo</h1>
+               <p className="text-zinc-400">Gestión de productos</p>
+            </div>
+         </div>
+
+         <div className="shrink-0 bg-zinc-900/50 border border-zinc-800 rounded-xl shadow-sm p-3">
             <div className="flex flex-col lg:flex-col items-start lg:items-stretch gap-4 justify-between">
                <div className="w-full lg:w-auto shrink-0">
                   <InventoryHeader
@@ -192,7 +208,7 @@ export const Inventory = () => {
             onClose={() => setDeleteModalOpen(false)}
             onConfirm={handleConfirmDelete}
             title="¿Eliminar producto?"
-            message={`Estás a punto de eliminar "${productToDelete?.name}".`}
+            message={`Estás a punto de eliminar "${productToDelete?.description}".`}
          />
       </div>
    );

@@ -29,7 +29,7 @@ export const BillingTotals = ({
    onProcessPayment,
 }: BillingTotalsProps) => {
    return (
-      <div className="w-full md:flex-1 bg-zinc-900 rounded-xl border border-zinc-800 shadow-sm shrink-0 flex flex-col overflow-hidden">
+      <div className="w-full md:flex-1 bg-zinc-900/50 rounded-xl border border-zinc-800 shadow-sm shrink-0 flex flex-col overflow-hidden">
          <div className="py-3 px-4 border-b border-zinc-800 bg-zinc-900/50 flex justify-between items-center">
             <h2 className="text-zinc-500 text-[11px] font-bold uppercase tracking-wider">
                Resumen

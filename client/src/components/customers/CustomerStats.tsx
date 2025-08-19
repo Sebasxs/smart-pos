@@ -52,7 +52,7 @@ const StatCard = ({
 
    const activeStyle = isActive
       ? `bg-zinc-800 ${effectiveColors.border} ${effectiveColors.shadow}`
-      : `bg-zinc-900 hover:bg-zinc-800 ${effectiveColors.border}`;
+      : `bg-zinc-900/50 hover:bg-zinc-800 ${effectiveColors.border}`;
 
    const cursorClass = onClick ? 'cursor-pointer active:scale-[0.98]' : 'cursor-default';
 

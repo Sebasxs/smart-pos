@@ -6,7 +6,7 @@ import { CustomerStats } from '../components/customers/CustomerStats';
 import { CustomerModal } from '../components/customers/CustomerModal';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { ErrorModal } from '../components/ui/ErrorModal';
-import { HiOutlineArrowPath } from 'react-icons/hi2';
+import { HiOutlineArrowPath, HiOutlineUsers } from 'react-icons/hi2';
 
 // Types
 import { type Customer } from '../types/customer';
@@ -129,7 +129,7 @@ export const Customers = () => {
    return (
       <div
          ref={containerRef}
-         className="flex flex-col h-full max-h-screen overflow-auto p-2 md:p-0 gap-4"
+         className="flex flex-col h-full max-h-screen overflow-auto p-4 gap-4"
          style={{
             transform: isPulling ? `translateY(${pullDistance}px)` : undefined,
             transition: isPulling ? 'none' : 'transform 0.3s ease-out',
@@ -160,7 +160,18 @@ export const Customers = () => {
             </div>
          )}
 
-         <div className="shrink-0 bg-zinc-900 border border-zinc-800 rounded-xl shadow-sm p-3">
+         {/* PAGE HEADER */}
+         <div className="flex items-center gap-3 mb-6">
+            <div className="p-3 bg-cyan-500/10 rounded-xl text-cyan-400">
+               <HiOutlineUsers size={24} />
+            </div>
+            <div>
+               <h1 className="text-2xl font-bold text-white">Clientes</h1>
+               <p className="text-zinc-400">Directorio y gestión</p>
+            </div>
+         </div>
+
+         <div className="shrink-0 bg-zinc-900/50 border border-zinc-800 rounded-xl shadow-sm p-3">
             <div className="flex flex-col lg:flex-col items-start lg:items-stretch gap-4 justify-between">
                <div className="w-full lg:w-auto shrink-0">
                   <CustomerHeader

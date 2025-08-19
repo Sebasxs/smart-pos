@@ -226,7 +226,7 @@ export const CustomerList = ({ customers, isLoading, onEdit, onDelete }: Custome
    }
 
    return (
-      <div className="flex flex-col h-full w-full bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden shadow-sm">
+      <div className="flex flex-col h-full w-full bg-zinc-900/50 border border-zinc-800 rounded-xl overflow-hidden shadow-sm">
          <div className="flex-1 overflow-x-auto overflow-y-hidden custom-scrollbar">
             <div className="min-w-[1000px] flex flex-col h-full">
                {/* 1. HEADER */}

@@ -10,6 +10,7 @@ export interface User {
    job_title?: string;
    avatar_url?: string;
    permissions?: Record<string, boolean>;
+   email?: string;
 }
 
 interface AuthState {
@@ -83,6 +84,7 @@ export const useAuthStore = create<AuthState>()(
                         job_title: profile.job_title,
                         avatar_url: profile.avatar_url,
                         permissions: profile.permissions,
+                        email: session.user.email,
                      },
                      token: session.access_token,
                      isAuthenticated: true,

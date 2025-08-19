@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
+import { HiOutlineComputerDesktop } from 'react-icons/hi2';
 
 // Components
 import { InvoiceTable } from '../components/billing/InvoiceTable';
@@ -205,14 +206,25 @@ export const Billing = () => {
    const finalizedChange = finalizedData?.paymentMethod === 'cash' ? finalizedCash - total : 0;
 
    return (
-      <div className="relative w-full flex flex-col gap-4 lg:h-full lg:max-h-screen">
+      <div className="relative w-full flex flex-col gap-4 lg:h-full lg:max-h-screen p-4">
+         {/* PAGE HEADER */}
+         <div className="flex items-center gap-3 mb-6">
+            <div className="p-3 bg-blue-500/10 rounded-xl text-blue-400">
+               <HiOutlineComputerDesktop size={24} />
+            </div>
+            <div>
+               <h1 className="text-2xl font-bold text-white">Facturar</h1>
+               <p className="text-zinc-400">Punto de venta</p>
+            </div>
+         </div>
+
          {/* 1. HEADER CLIENTE */}
          <CustomerHeader />
 
          <div className="flex flex-col lg:flex-row gap-4 lg:flex-1 lg:min-h-0 lg:overflow-hidden pb-2">
             {/* 2. TABLA DE PRODUCTOS */}
-            <div className="h-[500px] lg:h-full flex-1 flex flex-col bg-zinc-900 rounded-xl border border-zinc-800 shadow-sm overflow-hidden min-h-0 shrink-0">
-               <div className="flex-1 relative bg-zinc-900 h-full min-h-0">
+            <div className="h-[500px] lg:h-full flex-1 flex flex-col bg-zinc-900/50 rounded-xl border border-zinc-800 shadow-sm overflow-hidden min-h-0 shrink-0">
+               <div className="flex-1 relative bg-zinc-900/50 h-full min-h-0">
                   <InvoiceTable items={items} onUpdateItem={updateItem} onRemoveItem={removeItem} />
                </div>
             </div>

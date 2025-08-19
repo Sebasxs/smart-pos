@@ -83,7 +83,7 @@ export const CustomerHeader = () => {
    const hasCustomerData = Object.values(customer).some(val => val.trim() !== '');
 
    return (
-      <div className="flex flex-col bg-zinc-900 border border-zinc-800 rounded-xl shadow-sm">
+      <div className="flex flex-col bg-zinc-900/50 border border-zinc-800 rounded-xl shadow-sm">
          <div className="py-3 px-4 border-b border-zinc-800 bg-zinc-900/50 flex justify-between items-center rounded-t-xl">
             <h2 className="text-zinc-500 text-[11px] font-bold uppercase tracking-wider">
                Cliente
