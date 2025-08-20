@@ -3,7 +3,7 @@ import { Modal } from '../ui/Modal';
 import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
 import { useCustomerStore } from '../../store/customerStore';
-import { HiOutlineUser, HiOutlineUserPlus } from 'react-icons/hi2';
+import { HiOutlineUser, HiOutlineUserPlus, HiOutlineExclamationCircle } from 'react-icons/hi2';
 import { DOCUMENT_TYPES } from '../../utils/documentTypes';
 
 // Types
@@ -30,9 +30,11 @@ export const CustomerModal = ({ isOpen, onClose, customerToEdit }: CustomerModal
    const { createCustomer, updateCustomer } = useCustomerStore();
    const [form, setForm] = useState(initialForm);
    const [isSubmitting, setIsSubmitting] = useState(false);
+   const [error, setError] = useState<string | null>(null);
 
    useEffect(() => {
       if (!isOpen) return;
+      setError(null);
 
       if (customerToEdit) {
          setForm({
@@ -52,18 +54,24 @@ export const CustomerModal = ({ isOpen, onClose, customerToEdit }: CustomerModal
    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const { name, value } = e.target;
       setForm(prev => ({ ...prev, [name]: value }));
+      setError(null);
    };
 
    const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
       setIsSubmitting(true);
+      setError(null);
 
       const success = customerToEdit
          ? await updateCustomer(customerToEdit.id, form)
          : await createCustomer(form);
 
       setIsSubmitting(false);
-      if (success) onClose();
+      if (success) {
+         onClose();
+      } else {
+         setError('Error: verificar Identificación duplicada.');
+      }
    };
 
    return (
@@ -91,6 +99,12 @@ export const CustomerModal = ({ isOpen, onClose, customerToEdit }: CustomerModal
             </div>
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+               {error && (
+                  <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 flex items-center gap-2 text-red-400 text-sm">
+                     <HiOutlineExclamationCircle size={18} />
+                     <span>{error}</span>
+                  </div>
+               )}
                {/* 1. Nombre */}
                <div>
                   <Input
@@ -125,6 +139,7 @@ export const CustomerModal = ({ isOpen, onClose, customerToEdit }: CustomerModal
                      value={form.tax_id}
                      onChange={handleChange}
                      placeholder="123456789"
+                     required
                   />
                </div>
 
@@ -137,6 +152,7 @@ export const CustomerModal = ({ isOpen, onClose, customerToEdit }: CustomerModal
                      value={form.email}
                      onChange={handleChange}
                      placeholder="juan@ejemplo.com"
+                     required
                   />
                </div>
 

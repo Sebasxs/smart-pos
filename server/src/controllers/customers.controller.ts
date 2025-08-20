@@ -58,30 +58,29 @@ const validDocumentTypes = ['11', '12', '13', '21', '22', '31', '41', '42', '91'
 
 export const createCustomer = async (req: Request, res: Response) => {
    try {
-      const { name, tax_id, email, phone, city, department, address, document_type } = req.body;
+      const rawData = req.body;
 
-      if (!name) {
-         return res.status(400).json({ error: 'El nombre es obligatorio' });
-      }
+      if (!rawData.name?.trim()) return res.status(400).json({ error: 'El nombre es obligatorio' });
+      if (!rawData.email?.trim()) return res.status(400).json({ error: 'El email es obligatorio' });
+      if (!rawData.tax_id?.trim())
+         return res.status(400).json({ error: 'La identificación es obligatoria' });
+      if (!rawData.document_type?.trim())
+         return res.status(400).json({ error: 'El tipo de documento es obligatorio' });
 
-      if (document_type && !validDocumentTypes.includes(document_type)) {
-         return res.status(400).json({ error: 'Tipo de documento inválido' });
-      }
+      const cleanData = {
+         name: rawData.name,
+         tax_id: rawData.tax_id,
+         email: rawData.email,
+         phone: rawData.phone || null,
+         city: rawData.city || null,
+         address: rawData.address || null,
+         document_type: rawData.document_type,
+         created_by: req.user?.id,
+      };
 
       const { data, error } = await supabase
          .from('customers')
-         .insert([
-            {
-               name,
-               tax_id,
-               email,
-               phone,
-               city,
-               department,
-               address,
-               document_type: document_type || '31',
-            },
-         ])
+         .insert([cleanData])
          .select()
          .single()
          .setHeader('Authorization', `Bearer ${req.token}`);
@@ -89,9 +88,13 @@ export const createCustomer = async (req: Request, res: Response) => {
       if (error) throw error;
 
       res.status(201).json(data);
-   } catch (error) {
-      console.error('Error creating customer:', error);
-      res.status(500).json({ error: 'Error al crear cliente' });
+   } catch (error: any) {
+      console.error('Error creating/updating customer:', error);
+      if (error.code === '23505') {
+         return res.status(409).json({ error: 'Ya existe un cliente con esa identificación.' });
+      }
+
+      res.status(500).json({ error: error.message || 'Error al procesar cliente' });
    }
 };
 
@@ -103,6 +106,9 @@ export const updateCustomer = async (req: Request, res: Response) => {
       if (document_type && !validDocumentTypes.includes(document_type)) {
          return res.status(400).json({ error: 'Tipo de documento inválido' });
       }
+      if (!name) return res.status(400).json({ error: 'El nombre es requerido' });
+      if (!tax_id) return res.status(400).json({ error: 'La identificación es requerida' });
+      if (!email) return res.status(400).json({ error: 'El email es requerido' });
 
       const { data, error } = await supabase
          .from('customers')

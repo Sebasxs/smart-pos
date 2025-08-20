@@ -174,10 +174,14 @@ export const useCustomerStore = create<CustomerState>((set, get) => ({
    },
 
    createCustomer: async customer => {
+      const token = useAuthStore.getState().token;
       try {
          const res = await fetch(`${API_URL}/customers`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+               'Content-Type': 'application/json',
+               Authorization: `Bearer ${token}`,
+            },
             body: JSON.stringify(customer),
          });
 
@@ -192,10 +196,14 @@ export const useCustomerStore = create<CustomerState>((set, get) => ({
    },
 
    updateCustomer: async (id, customer) => {
+      const token = useAuthStore.getState().token;
       try {
          const res = await fetch(`${API_URL}/customers/${id}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+               'Content-Type': 'application/json',
+               Authorization: `Bearer ${token}`,
+            },
             body: JSON.stringify(customer),
          });
 
@@ -210,9 +218,13 @@ export const useCustomerStore = create<CustomerState>((set, get) => ({
    },
 
    deleteCustomer: async id => {
+      const token = useAuthStore.getState().token;
       try {
          const res = await fetch(`${API_URL}/customers/${id}`, {
             method: 'DELETE',
+            headers: {
+               Authorization: `Bearer ${token}`,
+            },
          });
 
          if (!res.ok) {

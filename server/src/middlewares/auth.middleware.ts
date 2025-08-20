@@ -14,16 +14,54 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
    const token = authHeader.split(' ')[1];
 
    try {
-      if (!JWT_SECRET) throw new Error('SUPABASE_JWT_SECRET no está configurado en el .env');
-      const decoded = jwt.verify(token, JWT_SECRET) as any;
+      // Decode token without verification to check the algorithm
+      const decodedHeader = jwt.decode(token, { complete: true });
 
+      if (!decodedHeader) {
+         return res.status(403).json({ error: 'Token inválido' });
+      }
+
+      const algorithm = decodedHeader.header.alg;
+      let userId: string;
+
+      // Handle Supabase tokens (RS256) - for Admin users
+      if (
+         algorithm === 'RS256' ||
+         algorithm === 'ES256' ||
+         (algorithm === 'HS256' && !JWT_SECRET)
+      ) {
+         const { data, error } = await supabase.auth.getUser(token);
+
+         if (error || !data.user) {
+            return res.status(403).json({ error: 'Token de Supabase inválido o expirado' });
+         }
+
+         userId = data.user.id;
+      }
+      // Handle custom tokens (HS256) - for Cashier users
+      else if (algorithm === 'HS256') {
+         if (!JWT_SECRET) {
+            throw new Error('SUPABASE_JWT_SECRET no está configurado en el .env');
+         }
+
+         const verified = jwt.verify(token, JWT_SECRET, { algorithms: ['HS256'] }) as any;
+         userId = verified.sub;
+      } else {
+         return res.status(403).json({ error: `Algoritmo no soportado: ${algorithm}` });
+      }
+
+      // Fetch user profile from database
       const { data: profile, error } = await supabase
          .from('profiles')
          .select('*')
-         .or(`id.eq.${decoded.sub},auth_user_id.eq.${decoded.sub}`)
+         .or(`id.eq.${userId},auth_user_id.eq.${userId}`)
          .single();
 
-      if (error || !profile || !profile.is_active) {
+      if (error) {
+         return res.status(403).json({ error: error.message });
+      }
+
+      if (!profile || !profile.is_active) {
          return res.status(403).json({ error: 'Usuario inactivo, bloqueado o no encontrado.' });
       }
 

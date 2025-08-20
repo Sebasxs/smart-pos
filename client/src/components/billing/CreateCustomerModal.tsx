@@ -8,6 +8,7 @@ import {
 import { HiOutlineMail, HiX } from 'react-icons/hi';
 import { CustomSelect } from '../ui/CustomSelect';
 import { DOCUMENT_TYPES } from '../../utils/documentTypes';
+import { useAuthStore } from '../../store/authStore';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -34,12 +35,14 @@ const FormInput = ({
    icon: Icon,
    placeholder,
    type = 'text',
+   required = false,
 }: {
    value: string;
    onChange: (val: string) => void;
    icon: React.ElementType;
    placeholder: string;
    type?: string;
+   required?: boolean;
 }) => (
    <div className="relative group w-full">
       <div className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none transition-colors group-focus-within:text-blue-500/80">
@@ -50,6 +53,7 @@ const FormInput = ({
          value={value}
          onChange={e => onChange(e.target.value)}
          placeholder={placeholder}
+         required={required}
          className="w-full bg-zinc-800/50 hover:bg-zinc-800 focus:bg-zinc-800 border border-zinc-800 focus:border-blue-500/50 rounded-lg py-2.5 text-sm text-zinc-200 placeholder:text-zinc-500 outline-none transition-all duration-200 pl-10 pr-3"
       />
    </div>
@@ -61,6 +65,7 @@ export const CreateCustomerModal = ({
    initialName = '',
    onCustomerCreated,
 }: CreateCustomerModalProps) => {
+   const { token } = useAuthStore();
    const [formData, setFormData] = useState({
       name: '',
       taxId: '',
@@ -93,7 +98,7 @@ export const CreateCustomerModal = ({
       try {
          const res = await fetch(`${API_URL}/customers`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
             body: JSON.stringify({
                name: formData.name,
                tax_id: formData.taxId,
@@ -150,7 +155,7 @@ export const CreateCustomerModal = ({
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800">
                <div>
-                  <h2 className="text-xl font-bold text-white">Crear Nuevo Cliente</h2>
+                  <h2 className="text-xl font-bold text-white">Agregar Cliente</h2>
                   <p className="text-sm text-zinc-400 mt-0.5">Complete los datos del cliente</p>
                </div>
                <button
@@ -170,7 +175,8 @@ export const CreateCustomerModal = ({
                         value={formData.name}
                         onChange={val => setFormData(prev => ({ ...prev, name: val }))}
                         icon={HiOutlineIdentification}
-                        placeholder="Nombre / Razón Social *"
+                        placeholder="Nombre / Razón Social"
+                        required
                      />
                   </div>
 
@@ -198,6 +204,7 @@ export const CreateCustomerModal = ({
                         onChange={val => setFormData(prev => ({ ...prev, taxId: val }))}
                         icon={HiOutlineIdentification}
                         placeholder="Identificación"
+                        required
                      />
                   </div>
 
@@ -209,6 +216,7 @@ export const CreateCustomerModal = ({
                         icon={HiOutlineMail}
                         placeholder="Correo Electrónico"
                         type="email"
+                        required
                      />
                   </div>
 

@@ -6,6 +6,8 @@ import { KeyRound, LogIn, Loader2 } from 'lucide-react';
 import clsx from 'clsx';
 import { FullPageLoader } from '../components/ui/FullPageLoader';
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 export const Login = () => {
    const navigate = useNavigate();
    const { login, isAuthenticated } = useAuthStore();
@@ -52,7 +54,7 @@ export const Login = () => {
       setError(null);
 
       try {
-         const response = await fetch('http://localhost:3000/api/auth/login/cashier', {
+         const response = await fetch(`${API_URL}/api/auth/login/cashier`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ nickname, pin }),
