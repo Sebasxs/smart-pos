@@ -142,9 +142,15 @@ export type InvoiceTableProps = {
    items: InvoiceItem[];
    onUpdateItem: (id: string, newValues: Partial<InvoiceItem>) => void;
    onRemoveItem: (id: string) => void;
+   onAddProductClick: () => void;
 };
 
-export const InvoiceTable = ({ items, onUpdateItem, onRemoveItem }: InvoiceTableProps) => {
+export const InvoiceTable = ({
+   items,
+   onUpdateItem,
+   onRemoveItem,
+   onAddProductClick,
+}: InvoiceTableProps) => {
    return (
       <div className="flex flex-col h-full bg-transparent overflow-x-auto overflow-y-hidden rounded-xl custom-scrollbar">
          <div className="min-w-[640px] flex flex-col h-full">
@@ -167,6 +173,16 @@ export const InvoiceTable = ({ items, onUpdateItem, onRemoveItem }: InvoiceTable
                      onRemove={onRemoveItem}
                   />
                ))}
+
+               {/* Ghost Row - Notion Style */}
+               <div
+                  onClick={onAddProductClick}
+                  className="group cursor-pointer px-6 py-3 border-b border-transparent hover:bg-zinc-800/30 hover:border-zinc-800 transition-all duration-200 flex items-center gap-3 text-zinc-600 hover:text-zinc-400"
+               >
+                  <HiOutlinePencilSquare size={18} className="opacity-50 group-hover:opacity-100" />
+                  <span className="text-sm font-medium">Nuevo producto</span>
+                  <span className="text-xs opacity-50 ml-auto">ESPACIO</span>
+               </div>
 
                {items.length === 0 && (
                   <div className="h-full flex flex-col py-6 items-center justify-center text-zinc-600 animate-in fade-in duration-500">

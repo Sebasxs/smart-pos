@@ -13,6 +13,12 @@ type InvoiceItemPayload = {
    isDescriptionEdited: boolean;
 };
 
+type PaymentPayload = {
+   method: 'cash' | 'bank_transfer' | 'account_balance' | 'credit_card';
+   amount: number;
+   reference_code?: string | null;
+};
+
 type CreateInvoiceBody = {
    customer: {
       name: string;
@@ -21,14 +27,14 @@ type CreateInvoiceBody = {
       city: string;
    };
    items: InvoiceItemPayload[];
-   paymentMethod: 'cash' | 'bank_transfer' | 'account_balance' | 'credit_card';
+   payments: PaymentPayload[];
    subtotal: number;
    discount: number;
    total: number;
 };
 
 export const createInvoice = async (req: Request<{}, {}, CreateInvoiceBody>, res: Response) => {
-   const { customer, items, paymentMethod, subtotal, discount, total } = req.body;
+   const { customer, items, payments, subtotal, discount, total } = req.body;
 
    try {
       const userId = req.user?.id;
@@ -37,12 +43,35 @@ export const createInvoice = async (req: Request<{}, {}, CreateInvoiceBody>, res
          return res.status(401).json({ error: 'Usuario no autenticado' });
       }
 
+      // Validate payments array
+      if (!payments || payments.length === 0) {
+         return res.status(400).json({ error: 'Se requiere al menos un método de pago' });
+      }
+
+      // Validate total of payments matches invoice total
+      const paymentsTotal = payments.reduce(
+         (sum, p) => PrecisionMath.add(sum, p.amount),
+         PrecisionMath.toDecimal(0),
+      );
+
+      const paymentsDiff = PrecisionMath.subtract(paymentsTotal, total).abs();
+      if (PrecisionMath.compare(paymentsDiff, 0.01) > 0) {
+         return res.status(400).json({
+            error: 'El total de los pagos no coincide con el total de la factura',
+            details: {
+               paymentsTotal: PrecisionMath.toNumber(paymentsTotal),
+               invoiceTotal: total,
+            },
+         });
+      }
+
       // Validar que los valores estén dentro del rango permitido (DECIMAL(19,6))
       const allValues = [
          subtotal,
          discount,
          total,
          ...items.flatMap(item => [item.price, item.quantity, item.originalPrice]),
+         ...payments.map(p => p.amount),
       ];
 
       for (const value of allValues) {
@@ -138,13 +167,11 @@ export const createInvoice = async (req: Request<{}, {}, CreateInvoiceBody>, res
          applied_taxes: [],
       }));
 
-      const payments = [
-         {
-            method: paymentMethod,
-            amount: PrecisionMath.toNumber(calculatedTotal),
-            reference_code: null,
-         },
-      ];
+      const cleanPayments = payments.map(p => ({
+         method: p.method,
+         amount: p.amount,
+         reference_code: p.reference_code || null,
+      }));
 
       const totals = {
          subtotal: PrecisionMath.toNumber(calculatedSubtotal),
@@ -181,7 +208,7 @@ export const createInvoice = async (req: Request<{}, {}, CreateInvoiceBody>, res
             p_user_id: userId,
             p_customer: customerData,
             p_items: cleanItems,
-            p_payments: payments,
+            p_payments: cleanPayments,
             p_totals: totals,
          })
          .setHeader('Authorization', `Bearer ${req.token}`);

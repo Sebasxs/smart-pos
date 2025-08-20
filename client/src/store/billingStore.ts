@@ -3,6 +3,14 @@ import { create } from 'zustand';
 // Types
 import { type InvoiceItem, type Discount } from '../types/billing';
 
+export type PaymentMethodType = 'cash' | 'bank_transfer' | 'credit_card' | 'account_balance';
+
+export type PaymentEntry = {
+   id: string;
+   method: PaymentMethodType;
+   amount: number | null;
+};
+
 export type CheckoutState = {
    customer: {
       id: string;
@@ -13,9 +21,9 @@ export type CheckoutState = {
       phone: string;
       city: string;
       address: string;
+      accountBalance: number;
    };
-   paymentMethod: 'cash' | 'transfer';
-   cashReceivedStr: string;
+   payments: PaymentEntry[];
 };
 
 const initialCustomer = {
@@ -27,12 +35,12 @@ const initialCustomer = {
    phone: '',
    city: '',
    address: '',
+   accountBalance: 0,
 };
 
 const initialCheckoutState: CheckoutState = {
    customer: initialCustomer,
-   paymentMethod: 'cash',
-   cashReceivedStr: '',
+   payments: [],
 };
 
 interface BillingState {
@@ -45,6 +53,9 @@ interface BillingState {
    removeItem: (id: string) => void;
    setDiscount: (discount: Discount) => void;
    setCheckoutData: (data: Partial<CheckoutState>) => void;
+   addPayment: (method: PaymentMethodType, amount?: number | null) => void;
+   updatePayment: (id: string, amount: number | null) => void;
+   removePayment: (id: string) => void;
    resetCustomer: () => void;
    resetInvoice: () => void;
 }
@@ -133,6 +144,40 @@ export const useBillingStore = create<BillingState>(set => ({
       set(state => ({
          checkoutData: { ...state.checkoutData, ...newData },
       })),
+
+   addPayment: (method, amount = null) => {
+      set(state => ({
+         checkoutData: {
+            ...state.checkoutData,
+            payments: [
+               ...state.checkoutData.payments,
+               {
+                  id: crypto.randomUUID(),
+                  method,
+                  amount,
+               },
+            ],
+         },
+      }));
+   },
+
+   updatePayment: (id, amount) => {
+      set(state => ({
+         checkoutData: {
+            ...state.checkoutData,
+            payments: state.checkoutData.payments.map(p => (p.id === id ? { ...p, amount } : p)),
+         },
+      }));
+   },
+
+   removePayment: id => {
+      set(state => ({
+         checkoutData: {
+            ...state.checkoutData,
+            payments: state.checkoutData.payments.filter(p => p.id !== id),
+         },
+      }));
+   },
 
    resetCustomer: () =>
       set(state => ({

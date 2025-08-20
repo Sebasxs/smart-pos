@@ -7,7 +7,7 @@ type PaymentSuccessModalProps = {
    isOpen: boolean;
    onClose: () => void;
    total: number;
-   paymentMethod: 'cash' | 'transfer';
+   paymentMethod: string; // More flexible to support all payment types
    change: number;
    cashReceived: number;
    invoiceId?: number;

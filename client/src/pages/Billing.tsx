@@ -4,13 +4,14 @@ import { HiOutlineComputerDesktop } from 'react-icons/hi2';
 // Components
 import { InvoiceTable } from '../components/billing/InvoiceTable';
 import { ProductSearchModal } from '../components/billing/ProductSearchModal';
-
-import { CustomerHeader } from '../components/billing/CustomerHeader';
+import { ClientCombobox } from '../components/billing/ClientCombobox';
+import { ClientBadge } from '../components/billing/ClientBadge';
+import { CreateClientModal } from '../components/billing/CreateClientModal';
 import { DiscountModal } from '../components/billing/DiscountModal';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { PaymentSuccessModal } from '../components/billing/PaymentSuccessModal';
 import { ErrorModal } from '../components/ui/ErrorModal';
-import { PaymentWidget } from '../components/billing/PaymentWidget';
+import { SplitPaymentWidget } from '../components/billing/SplitPaymentWidget';
 import { BillingTotals } from '../components/billing/BillingTotals';
 import { useInventoryStore } from '../store/inventoryStore';
 import { useCustomerStore } from '../store/customerStore';
@@ -30,6 +31,8 @@ export const Billing = () => {
       updateItem,
       removeItem,
       setDiscount,
+      setCheckoutData,
+      resetCustomer,
       resetInvoice,
    } = useBillingStore();
    const { decreaseStockBatch } = useInventoryStore();
@@ -37,13 +40,15 @@ export const Billing = () => {
 
    const [modals, setModals] = useState({
       productSearch: false,
-
+      clientCreate: false,
       discount: false,
       discardConfirm: false,
       success: false,
       error: false,
    });
 
+   const [searchInputValue, setSearchInputValue] = useState('');
+   const [createClientName, setCreateClientName] = useState('');
    const [finalizedData, setFinalizedData] = useState<CheckoutState | null>(null);
    const [isProcessing, setIsProcessing] = useState(false);
    const [generatedInvoiceId, setGeneratedInvoiceId] = useState<number | undefined>(undefined);
@@ -62,15 +67,14 @@ export const Billing = () => {
 
    const total = Math.max(0, subtotal - discountAmount);
 
-   const cashReceived = useMemo(
-      () => parseInt(checkoutData.cashReceivedStr.replace(/[^0-9]/g, '') || '0', 10) || total,
-      [checkoutData.cashReceivedStr, total],
+   // Check if payments are valid
+   const totalPaid = useMemo(
+      () => checkoutData.payments.reduce((sum, p) => sum + (p.amount || 0), 0),
+      [checkoutData.payments],
    );
 
    const isPaymentValid =
-      items.length > 0 &&
-      (checkoutData.paymentMethod === 'transfer' ||
-         (checkoutData.paymentMethod === 'cash' && cashReceived >= total));
+      items.length > 0 && totalPaid >= total && checkoutData.payments.length > 0;
 
    const toggleModal = useCallback((key: keyof typeof modals, value: boolean) => {
       setModals(prev => ({ ...prev, [key]: value }));
@@ -84,6 +88,38 @@ export const Billing = () => {
    const triggerDiscard = useCallback(() => {
       if (items.length > 0) toggleModal('discardConfirm', true);
    }, [items.length, toggleModal]);
+
+   const handleClientSelect = (client: any) => {
+      setCheckoutData({
+         customer: {
+            id: client.id,
+            name: client.name,
+            email: client.email || '',
+            taxId: client.tax_id || '',
+            documentType: client.document_type || '31',
+            phone: client.phone || '',
+            city: client.city || '',
+            address: client.address || '',
+            accountBalance: client.account_balance || 0,
+         },
+      });
+      setSearchInputValue(client.name);
+   };
+
+   const handleClientCreated = (client: any) => {
+      handleClientSelect(client);
+      toggleModal('clientCreate', false);
+   };
+
+   const handleRequestCreateClient = (name: string) => {
+      setCreateClientName(name);
+      toggleModal('clientCreate', true);
+   };
+
+   const handleRemoveClient = () => {
+      resetCustomer();
+      setSearchInputValue('');
+   };
 
    const handlePaymentProcess = useCallback(async () => {
       if (!isPaymentValid || isProcessing) return;
@@ -104,7 +140,11 @@ export const Billing = () => {
                isPriceEdited: i.isPriceEdited,
                isDescriptionEdited: i.isDescriptionEdited,
             })),
-            paymentMethod: checkoutData.paymentMethod,
+            payments: checkoutData.payments.map(p => ({
+               method: p.method,
+               amount: p.amount || 0,
+               reference_code: null,
+            })),
             subtotal,
             discount: discountAmount,
             total,
@@ -156,6 +196,7 @@ export const Billing = () => {
 
    const handleFinalizeSuccess = () => {
       resetInvoice();
+      setSearchInputValue('');
       toggleModal('success', false);
       setFinalizedData(null);
       setGeneratedInvoiceId(undefined);
@@ -177,7 +218,7 @@ export const Billing = () => {
                   break;
                case 'KeyC':
                   event.preventDefault();
-                  document.getElementById('customer-name-input')?.focus();
+                  document.getElementById('client-search-input')?.focus();
                   break;
                case 'KeyD':
                   event.preventDefault();
@@ -200,32 +241,59 @@ export const Billing = () => {
       return () => window.removeEventListener('keydown', handleKeyDown);
    }, [modals, isPaymentValid, triggerDiscard, handlePaymentProcess, toggleModal]);
 
-   const finalizedCash = finalizedData
-      ? parseInt(finalizedData.cashReceivedStr.replace(/[^0-9]/g, '') || '0', 10) || total
-      : 0;
-   const finalizedChange = finalizedData?.paymentMethod === 'cash' ? finalizedCash - total : 0;
+   // Calculate finalized payment info for success modal
+   const finalizedCashPayment = finalizedData?.payments.find(p => p.method === 'cash');
+   const finalizedCashAmount = finalizedCashPayment?.amount || 0;
+   const finalizedChange =
+      finalizedCashPayment && finalizedCashAmount > total ? finalizedCashAmount - total : 0;
 
    return (
       <div className="relative w-full flex flex-col gap-4 lg:h-full lg:max-h-screen p-4">
-         {/* PAGE HEADER */}
-         <div className="flex items-center gap-3 mb-6">
-            <div className="p-3 bg-blue-500/10 rounded-xl text-blue-400">
-               <HiOutlineComputerDesktop size={24} />
+         {/* PAGE HEADER WITH CLIENT SEARCH */}
+         <div className="flex items-center justify-between gap-4 mb-2">
+            <div className="flex items-center gap-3">
+               <div className="p-3 bg-blue-500/10 rounded-xl text-blue-400">
+                  <HiOutlineComputerDesktop size={24} />
+               </div>
+               <div>
+                  <h1 className="text-2xl font-bold text-white">Facturar</h1>
+                  <p className="text-zinc-400">Punto de venta</p>
+               </div>
             </div>
-            <div>
-               <h1 className="text-2xl font-bold text-white">Facturar</h1>
-               <p className="text-zinc-400">Punto de venta</p>
+
+            {/* Client Search / Badge */}
+            <div className="flex items-center gap-3">
+               {!checkoutData.customer.id ? (
+                  <div className="w-80">
+                     <ClientCombobox
+                        id="client-search-input"
+                        value={searchInputValue}
+                        onChange={setSearchInputValue}
+                        onSelectCustomer={handleClientSelect}
+                        onRequestCreate={handleRequestCreateClient}
+                        placeholder="Buscar cliente..."
+                     />
+                  </div>
+               ) : (
+                  <ClientBadge
+                     name={checkoutData.customer.name}
+                     accountBalance={checkoutData.customer.accountBalance}
+                     onRemove={handleRemoveClient}
+                  />
+               )}
             </div>
          </div>
-
-         {/* 1. HEADER CLIENTE */}
-         <CustomerHeader />
 
          <div className="flex flex-col lg:flex-row gap-4 lg:flex-1 lg:min-h-0 lg:overflow-hidden pb-2">
             {/* 2. TABLA DE PRODUCTOS */}
             <div className="h-[500px] lg:h-full flex-1 flex flex-col bg-zinc-900/50 rounded-xl border border-zinc-800 shadow-sm overflow-hidden min-h-0 shrink-0">
                <div className="flex-1 relative bg-zinc-900/50 h-full min-h-0">
-                  <InvoiceTable items={items} onUpdateItem={updateItem} onRemoveItem={removeItem} />
+                  <InvoiceTable
+                     items={items}
+                     onUpdateItem={updateItem}
+                     onRemoveItem={removeItem}
+                     onAddProductClick={() => toggleModal('productSearch', true)}
+                  />
                </div>
             </div>
 
@@ -233,7 +301,7 @@ export const Billing = () => {
             <aside className="w-full lg:w-[340px] lg:shrink-0 flex flex-col h-fit lg:max-h-full lg:overflow-y-auto custom-scrollbar pr-1">
                <div className="flex flex-col md:flex-row lg:flex-col gap-3 w-full shrink-0">
                   <div className="w-full md:flex-1">
-                     <PaymentWidget total={total} />
+                     <SplitPaymentWidget total={total} />
                   </div>
 
                   <BillingTotals
@@ -271,6 +339,13 @@ export const Billing = () => {
             onSelectProduct={handleProductSelect}
          />
 
+         <CreateClientModal
+            isOpen={modals.clientCreate}
+            onClose={() => toggleModal('clientCreate', false)}
+            initialName={createClientName}
+            onClientCreated={handleClientCreated}
+         />
+
          <DiscountModal
             isOpen={modals.discount}
             onClose={() => toggleModal('discount', false)}
@@ -289,8 +364,8 @@ export const Billing = () => {
             isOpen={modals.success}
             onClose={handleFinalizeSuccess}
             total={total}
-            paymentMethod={finalizedData?.paymentMethod || 'cash'}
-            cashReceived={finalizedCash}
+            paymentMethod={finalizedData?.payments[0]?.method || 'cash'}
+            cashReceived={finalizedCashAmount}
             change={Math.max(0, finalizedChange)}
             invoiceId={generatedInvoiceId}
          />
