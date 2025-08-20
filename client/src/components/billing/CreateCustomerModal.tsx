@@ -11,11 +11,11 @@ import { DOCUMENT_TYPES } from '../../utils/documentTypes';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-type CreateClientModalProps = {
+type CreateCustomerModalProps = {
    isOpen: boolean;
    onClose: () => void;
    initialName?: string;
-   onClientCreated: (client: {
+   onCustomerCreated: (customer: {
       id: string;
       name: string;
       tax_id: string;
@@ -55,12 +55,12 @@ const FormInput = ({
    </div>
 );
 
-export const CreateClientModal = ({
+export const CreateCustomerModal = ({
    isOpen,
    onClose,
    initialName = '',
-   onClientCreated,
-}: CreateClientModalProps) => {
+   onCustomerCreated,
+}: CreateCustomerModalProps) => {
    const [formData, setFormData] = useState({
       name: '',
       taxId: '',
@@ -111,7 +111,7 @@ export const CreateClientModal = ({
          }
 
          const data = await res.json();
-         onClientCreated(data);
+         onCustomerCreated(data);
          handleClose();
       } catch (err) {
          console.error(err);

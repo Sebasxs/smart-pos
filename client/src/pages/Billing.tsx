@@ -6,7 +6,7 @@ import { InvoiceTable } from '../components/billing/InvoiceTable';
 import { ProductSearchModal } from '../components/billing/ProductSearchModal';
 import { ClientCombobox } from '../components/billing/ClientCombobox';
 import { ClientBadge } from '../components/billing/ClientBadge';
-import { CreateClientModal } from '../components/billing/CreateClientModal';
+import { CreateCustomerModal } from '../components/billing/CreateCustomerModal';
 import { DiscountModal } from '../components/billing/DiscountModal';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { PaymentSuccessModal } from '../components/billing/PaymentSuccessModal';
@@ -339,11 +339,11 @@ export const Billing = () => {
             onSelectProduct={handleProductSelect}
          />
 
-         <CreateClientModal
+         <CreateCustomerModal
             isOpen={modals.clientCreate}
             onClose={() => toggleModal('clientCreate', false)}
             initialName={createClientName}
-            onClientCreated={handleClientCreated}
+            onCustomerCreated={handleClientCreated}
          />
 
          <DiscountModal
