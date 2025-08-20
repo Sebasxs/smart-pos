@@ -2,7 +2,7 @@ import { HiOutlineLockOpen } from 'react-icons/hi2';
 
 export const Shift = () => {
    return (
-      <div className="flex flex-col h-full text-zinc-200 p-4">
+      <div className="flex flex-col h-full text-zinc-200">
          <div className="flex items-center gap-3 mb-6">
             <div className="p-3 bg-blue-500/10 rounded-xl text-blue-400">
                <HiOutlineLockOpen size={24} />

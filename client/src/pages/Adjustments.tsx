@@ -2,7 +2,7 @@ import { HiOutlineAdjustmentsHorizontal } from 'react-icons/hi2';
 
 export const Adjustments = () => {
    return (
-      <div className="flex flex-col h-full text-zinc-200 p-4">
+      <div className="flex flex-col h-full text-zinc-200">
          <div className="flex items-center gap-3 mb-6">
             <div className="p-3 bg-orange-500/10 rounded-xl text-orange-400">
                <HiOutlineAdjustmentsHorizontal size={24} />

@@ -1,4 +1,5 @@
 import { HiOutlineTrash, HiOutlinePencilSquare } from 'react-icons/hi2';
+import { LucidePlus } from 'lucide-react';
 import { QuantitySelector } from '../ui/QuantitySelector';
 import { SmartNumberInput } from '../ui/SmartNumberInput';
 import { SmartNumber } from '../ui/SmartNumber';
@@ -55,7 +56,7 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
                   type="text"
                   value={item.description}
                   onChange={e => onUpdate(item.id, { description: e.target.value })}
-                  className="w-full bg-transparent border-b border-transparent focus:border-indigo-500 pb-0.5 outline-none truncate transition-colors duration-200 font-bold text-[15px] tracking-tight placeholder:text-zinc-600 text-zinc-100"
+                  className="w-full bg-transparent border-b border-transparent focus:border-indigo-500 pb-0.5 outline-none truncate transition-colors duration-200 font-bold text-[15px] tracking-tight placeholder:text-zinc-600 text-zinc-100 capitalize"
                />
             </div>
 
@@ -152,7 +153,7 @@ export const InvoiceTable = ({
    onAddProductClick,
 }: InvoiceTableProps) => {
    return (
-      <div className="flex flex-col h-full bg-transparent overflow-x-auto overflow-y-hidden rounded-xl custom-scrollbar">
+      <div className="flex flex-col h-full bg-zinc-950/50 overflow-x-auto overflow-y-hidden rounded-xl custom-scrollbar">
          <div className="min-w-[640px] flex flex-col h-full">
             <div
                className={`${GRID_LAYOUT} py-3 px-6 mb-0 text-[11px] font-bold text-zinc-500 uppercase tracking-wider border-b border-zinc-800 bg-zinc-900/50 shrink-0 select-none`}
@@ -177,15 +178,19 @@ export const InvoiceTable = ({
                {/* Ghost Row - Notion Style */}
                <div
                   onClick={onAddProductClick}
-                  className="group cursor-pointer px-6 py-3 border-b border-transparent hover:bg-zinc-800/30 hover:border-zinc-800 transition-all duration-200 flex items-center gap-3 text-zinc-600 hover:text-zinc-400"
+                  className={`group cursor-pointer px-6 py-3 border-b border-transparent hover:border-zinc-800 transition-all duration-200 flex items-center gap-2 ${
+                     items.length === 0
+                        ? 'text-zinc-300 hover:text-zinc-200 bg-blue-500/70 hover:bg-blue-500/90 lg:text-zinc-500 lg:hover:text-zinc-400 lg:bg-transparent lg:hover:bg-zinc-500/10'
+                        : 'text-zinc-500 hover:text-zinc-400'
+                  }`}
                >
-                  <HiOutlinePencilSquare size={18} className="opacity-50 group-hover:opacity-100" />
+                  <LucidePlus size={18} className="opacity-70 group-hover:opacity-100" />
                   <span className="text-sm font-medium">Nuevo producto</span>
                   <span className="text-xs opacity-50 ml-auto">ESPACIO</span>
                </div>
 
                {items.length === 0 && (
-                  <div className="h-full flex flex-col py-6 items-center justify-center text-zinc-600 animate-in fade-in duration-500">
+                  <div className="hidden lg:flex min-h-[200px] h-full flex-col py-6 items-center justify-center text-zinc-600 animate-in fade-in duration-500">
                      <div className="relative">
                         <div className="absolute inset-0 bg-indigo-500/20 blur-xl rounded-full opacity-20" />
                         <div className="relative bg-zinc-900/50 p-6 rounded-3xl border border-zinc-800 mb-4 shadow-xl">

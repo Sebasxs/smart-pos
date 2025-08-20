@@ -7,11 +7,11 @@ export const MobileNavbar = () => {
    const { toggleMobileMenu } = useUIStore();
 
    return (
-      <header className="md:hidden h-12 bg-zinc-950 flex items-center px-4 justify-between shrink-0 z-30 relative">
+      <header className="md:hidden h-12 bg-zinc-950 flex items-center justify-between px-4 shrink-0 z-30 relative">
          <div className="flex items-center gap-3">
             <button
                onClick={toggleMobileMenu}
-               className="p-2 -ml-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors cursor-pointer"
+               className="text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors cursor-pointer"
             >
                <HiOutlineBars3 size={26} />
             </button>

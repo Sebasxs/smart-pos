@@ -8,7 +8,6 @@ import {
    HiOutlineArchiveBox,
    HiOutlineUsers,
    HiOutlineCog6Tooth,
-   HiOutlineXMark,
    HiOutlineUserCircle,
    HiOutlineChevronDown,
 } from 'react-icons/hi2';
@@ -261,13 +260,7 @@ const SidebarGroup = ({
    );
 };
 
-const SidebarContent = ({
-   variant,
-   onCloseMobile,
-}: {
-   variant: 'mobile' | 'desktop';
-   onCloseMobile?: () => void;
-}) => {
+const SidebarContent = ({ variant }: { variant: 'mobile' | 'desktop' }) => {
    const { user } = useAuthStore();
    const navigate = useNavigate();
    const { user: currentUser } = useAuthStore();
@@ -321,14 +314,6 @@ const SidebarContent = ({
                   SmartPOS
                </span>
             </a>
-            {variant === 'mobile' && onCloseMobile && (
-               <button
-                  onClick={onCloseMobile}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 p-2 text-zinc-500 hover:text-white hover:bg-zinc-900 rounded-lg transition-colors cursor-pointer z-30"
-               >
-                  <HiOutlineXMark size={24} />
-               </button>
-            )}
          </div>
 
          {/* NAV */}
@@ -499,7 +484,7 @@ export const Sidebar = () => {
                   ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
                `}
             >
-               <SidebarContent variant="mobile" onCloseMobile={closeMobileMenu} />
+               <SidebarContent variant="mobile" />
             </aside>
          </div>
 

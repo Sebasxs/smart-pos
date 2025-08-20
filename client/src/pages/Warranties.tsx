@@ -2,7 +2,7 @@ import { HiOutlineShieldCheck } from 'react-icons/hi2';
 
 export const Warranties = () => {
    return (
-      <div className="flex flex-col h-full text-zinc-200 p-4">
+      <div className="flex flex-col h-full text-zinc-200">
          <div className="flex items-center gap-3 mb-6">
             <div className="p-3 bg-amber-500/10 rounded-xl text-amber-400">
                <HiOutlineShieldCheck size={24} />

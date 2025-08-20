@@ -129,7 +129,7 @@ export const Customers = () => {
    return (
       <div
          ref={containerRef}
-         className="flex flex-col h-full max-h-screen overflow-auto p-4 gap-4"
+         className="flex flex-col h-full max-h-screen overflow-auto gap-4"
          style={{
             transform: isPulling ? `translateY(${pullDistance}px)` : undefined,
             transition: isPulling ? 'none' : 'transform 0.3s ease-out',

@@ -93,7 +93,7 @@ export const Login = () => {
    };
 
    return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
          <div className="w-full max-w-xs bg-zinc-900 rounded-2xl border border-zinc-800 shadow-2xl overflow-hidden">
             {/* Header */}
             <div className="p-6 pb-4 text-center border-b border-zinc-800">

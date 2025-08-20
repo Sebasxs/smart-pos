@@ -28,7 +28,7 @@ export function formatNumber(value: number | null | undefined, options: FormatOp
    if (variant === 'currency') {
       decimalScale = maxDecimals ?? decimalPreference;
       if (showPrefix) {
-         prefix = '$ ';
+         prefix = '$';
       }
    } else if (variant === 'quantity') {
       decimalScale = maxDecimals ?? (dianUnitCode ? getDecimalScaleByUnit(dianUnitCode) : 2);

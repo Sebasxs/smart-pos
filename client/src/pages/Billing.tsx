@@ -248,9 +248,9 @@ export const Billing = () => {
       finalizedCashPayment && finalizedCashAmount > total ? finalizedCashAmount - total : 0;
 
    return (
-      <div className="relative w-full flex flex-col gap-4 lg:h-full lg:max-h-screen p-4">
+      <div className="relative w-full flex flex-col gap-4 lg:h-full lg:max-h-screen">
          {/* PAGE HEADER WITH CLIENT SEARCH */}
-         <div className="flex items-center justify-between gap-4 mb-2">
+         <div className="flex flex-col md:flex-row md:items-end justify-between">
             <div className="flex items-center gap-3">
                <div className="p-3 bg-blue-500/10 rounded-xl text-blue-400">
                   <HiOutlineComputerDesktop size={24} />
@@ -262,9 +262,9 @@ export const Billing = () => {
             </div>
 
             {/* Client Search / Badge */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 mt-4 w-full md:w-auto">
                {!checkoutData.customer.id ? (
-                  <div className="w-80">
+                  <div className="w-full md:w-[340px]">
                      <ClientCombobox
                         id="client-search-input"
                         value={searchInputValue}
@@ -275,11 +275,15 @@ export const Billing = () => {
                      />
                   </div>
                ) : (
-                  <ClientBadge
-                     name={checkoutData.customer.name}
-                     accountBalance={checkoutData.customer.accountBalance}
-                     onRemove={handleRemoveClient}
-                  />
+                  <div className="w-full md:w-[340px] flex">
+                     <ClientBadge
+                        name={checkoutData.customer.name}
+                        taxId={checkoutData.customer.taxId}
+                        email={checkoutData.customer.email}
+                        accountBalance={checkoutData.customer.accountBalance}
+                        onRemove={handleRemoveClient}
+                     />
+                  </div>
                )}
             </div>
          </div>
@@ -299,7 +303,7 @@ export const Billing = () => {
 
             {/* 3. RESUMEN */}
             <aside className="w-full lg:w-[340px] lg:shrink-0 flex flex-col h-fit lg:max-h-full lg:overflow-y-auto custom-scrollbar pr-1">
-               <div className="flex flex-col md:flex-row lg:flex-col gap-3 w-full shrink-0">
+               <div className="flex flex-col md:flex-row lg:flex-col gap-4 w-full shrink-0">
                   <div className="w-full md:flex-1">
                      <SplitPaymentWidget total={total} />
                   </div>

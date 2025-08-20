@@ -2,7 +2,7 @@ import { HiOutlineShoppingBag } from 'react-icons/hi2';
 
 export const Purchases = () => {
    return (
-      <div className="flex flex-col h-full text-zinc-200 p-4">
+      <div className="flex flex-col h-full text-zinc-200">
          <div className="flex items-center gap-3 mb-6">
             <div className="p-3 bg-emerald-500/10 rounded-xl text-emerald-400">
                <HiOutlineShoppingBag size={24} />
