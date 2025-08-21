@@ -128,7 +128,7 @@ export const useCustomerStore = create<CustomerState>((set, get) => ({
 
    fetchCustomers: async (forceRefresh = false) => {
       const { customers } = get();
-      const token = useAuthStore.getState().token;
+      const token = await useAuthStore.getState().getAccessToken();
 
       if (!forceRefresh && customers.length > 0) {
          get().applyFilters();
@@ -174,7 +174,8 @@ export const useCustomerStore = create<CustomerState>((set, get) => ({
    },
 
    createCustomer: async customer => {
-      const token = useAuthStore.getState().token;
+      const token = await useAuthStore.getState().getAccessToken();
+
       try {
          const res = await fetch(`${API_URL}/customers`, {
             method: 'POST',
@@ -196,7 +197,8 @@ export const useCustomerStore = create<CustomerState>((set, get) => ({
    },
 
    updateCustomer: async (id, customer) => {
-      const token = useAuthStore.getState().token;
+      const token = await useAuthStore.getState().getAccessToken();
+
       try {
          const res = await fetch(`${API_URL}/customers/${id}`, {
             method: 'PUT',
@@ -218,7 +220,8 @@ export const useCustomerStore = create<CustomerState>((set, get) => ({
    },
 
    deleteCustomer: async id => {
-      const token = useAuthStore.getState().token;
+      const token = await useAuthStore.getState().getAccessToken();
+
       try {
          const res = await fetch(`${API_URL}/customers/${id}`, {
             method: 'DELETE',

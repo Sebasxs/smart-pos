@@ -48,7 +48,8 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
    fetchProducts: async () => {
       set({ isLoading: true, error: '' });
       try {
-         const token = useAuthStore.getState().token;
+         const token = await useAuthStore.getState().getAccessToken();
+
          const res = await fetch(`${API_URL}/products`, {
             headers: {
                Authorization: `Bearer ${token}`,
@@ -132,7 +133,8 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
    fetchSuppliers: async () => {
       if (get().suppliers.length > 0) return;
       try {
-         const token = useAuthStore.getState().token;
+         const token = await useAuthStore.getState().getAccessToken();
+
          const res = await fetch(`${API_URL}/products/suppliers`, {
             headers: {
                Authorization: `Bearer ${token}`,
@@ -145,7 +147,8 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
    },
 
    createProduct: async data => {
-      const token = useAuthStore.getState().token;
+      const token = await useAuthStore.getState().getAccessToken();
+
       try {
          const res = await fetch(`${API_URL}/products`, {
             method: 'POST',
@@ -163,7 +166,8 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
    },
 
    updateProduct: async (id, data) => {
-      const token = useAuthStore.getState().token;
+      const token = await useAuthStore.getState().getAccessToken();
+
       try {
          const res = await fetch(`${API_URL}/products/${id}`, {
             method: 'PUT',

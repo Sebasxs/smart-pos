@@ -17,11 +17,13 @@ interface AuthState {
    user: User | null;
    token: string | null;
    isAuthenticated: boolean;
+
    login: (user: User, token: string) => void;
    logout: () => void;
    checkSession: () => Promise<void>;
    fetchProfile: (session: any) => Promise<void>;
    initializeListener: () => () => void;
+   getAccessToken: () => Promise<string | null>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -96,6 +98,25 @@ export const useAuthStore = create<AuthState>()(
                console.error('Fetch profile exception:', e);
                set({ user: null, token: null, isAuthenticated: false });
             }
+         },
+
+         getAccessToken: async () => {
+            const state = get();
+
+            if (state.user?.role === 'cashier') {
+               return state.token;
+            }
+
+            const { data } = await supabase.auth.getSession();
+
+            if (data.session?.access_token) {
+               if (data.session.access_token !== state.token) {
+                  set({ token: data.session.access_token });
+               }
+               return data.session.access_token;
+            }
+
+            return null;
          },
 
          initializeListener: () => {
