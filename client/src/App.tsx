@@ -15,7 +15,6 @@ import { Sales } from './pages/Sales';
 import { Balances } from './pages/Balances';
 import { Warranties } from './pages/Warranties';
 import { Login } from './pages/Login';
-import SmartInputDemo from './pages/SmartInputDemo';
 import { Shift } from './pages/Shift';
 import { CreditNotes } from './pages/CreditNotes';
 import { Purchases } from './pages/Purchases';
@@ -113,8 +112,6 @@ function App() {
 
                      {/* User */}
                      <Route path="/profile" element={<Profile />} />
-
-                     <Route path="/demo" element={<SmartInputDemo />} />
                   </Routes>
                </ProtectedLayout>
             }
