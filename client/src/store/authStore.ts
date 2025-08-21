@@ -104,6 +104,8 @@ export const useAuthStore = create<AuthState>()(
             } = supabase.auth.onAuthStateChange(async (event, session) => {
                if (event === 'SIGNED_IN' && session) {
                   await get().fetchProfile(session);
+               } else if (event === 'TOKEN_REFRESHED' && session) {
+                  set({ token: session.access_token });
                } else if (event === 'SIGNED_OUT') {
                   set({ user: null, token: null, isAuthenticated: false });
                }
