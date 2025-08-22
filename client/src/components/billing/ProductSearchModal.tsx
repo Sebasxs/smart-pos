@@ -8,6 +8,7 @@ import {
 import { CgSpinner } from 'react-icons/cg';
 import { Modal } from '../ui/Modal';
 import { SmartNumber } from '../ui/SmartNumber';
+import { useAuthStore } from '../../store/authStore';
 
 // Types
 import { type InvoiceItem } from '../../types/billing';
@@ -21,6 +22,7 @@ type ProductSearchModalProps = {
 };
 
 const useProductSearch = (isOpen: boolean) => {
+   const { token } = useAuthStore();
    const [searchTerm, setSearchTerm] = useState('');
    const [results, setResults] = useState<Partial<InvoiceItem>[]>([]);
    const [isLoading, setIsLoading] = useState(false);
@@ -47,7 +49,14 @@ const useProductSearch = (isOpen: boolean) => {
          setIsLoading(true);
          setError('');
          try {
-            const res = await fetch(`${API_URL}/products?search=${encodeURIComponent(searchTerm)}`);
+            const res = await fetch(
+               `${API_URL}/products?search=${encodeURIComponent(searchTerm)}`,
+               {
+                  headers: {
+                     Authorization: `Bearer ${token}`,
+                  },
+               },
+            );
             if (!res.ok) throw new Error('Error buscando');
             const data = await res.json();
             setResults(data);
@@ -61,7 +70,7 @@ const useProductSearch = (isOpen: boolean) => {
       }, 300);
 
       return () => clearTimeout(timeoutId);
-   }, [searchTerm, isOpen]);
+   }, [searchTerm, isOpen, token]);
 
    return { searchTerm, setSearchTerm, results, isLoading, error };
 };
@@ -107,7 +116,6 @@ export const ProductSearchModal = ({
                   description: searchTerm,
                   price: 0,
                   stock: 9999,
-                  supplier: 'No especificado',
                   discountPercentage: 0,
                });
             }
@@ -218,7 +226,6 @@ export const ProductSearchModal = ({
                                  )}
                               </div>
                               <div className="flex items-center gap-2 text-xs">
-                                 <span className="text-zinc-500">{product.supplier}</span>
                                  {product.stock && product.stock < 5 && (
                                     <span className="text-amber-500 font-bold">
                                        • Pocas unidades
@@ -280,7 +287,6 @@ export const ProductSearchModal = ({
                                  description: searchTerm,
                                  price: 0,
                                  stock: 9999,
-                                 supplier: 'No especificado',
                                  discountPercentage: 0,
                               })
                            }

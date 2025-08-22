@@ -13,41 +13,46 @@ export const getProducts = async (req: Request, res: Response) => {
                search_term: search,
             })
             .setHeader('Authorization', `Bearer ${req.token}`);
+
          data = result.data || [];
          error = result.error;
       } else {
          const result = await supabase
             .from('products')
-            .select('*, suppliers (name)')
+            .select('*')
             .order('description', { ascending: true })
-            .limit(100) // Limit for performance
+            .limit(100)
             .setHeader('Authorization', `Bearer ${req.token}`);
+
          data = result.data || [];
          error = result.error;
       }
 
-      if (error) throw error;
+      if (error) {
+         console.error('Supabase Error:', error);
+         throw new Error(error.message);
+      }
 
       const formattedData = data.map((product: any) => ({
          id: product.id,
          description: product.description,
          price: product.price,
-         cost: product.cost,
+         cost: product.cost || 0,
          stock: product.stock,
-         discountPercentage: product.discount_percentage || 0,
-         supplier: product.suppliers?.name || 'Sin proveedor',
-         supplierId: product.supplier_id,
+         discountPercentage: product.discount_percentage || product.discountPercentage || 0,
          createdAt: product.created_at,
          sku: product.sku,
          isActive: product.is_active,
       }));
 
       res.json(formattedData);
-   } catch (error) {
-      console.error('Error fetching products:', error);
-      res.status(500).json({ error: 'Error al obtener el inventario' });
+   } catch (error: any) {
+      console.error('Error fetching products endpoint:', error);
+      res.status(500).json({ error: error.message || 'Error al obtener el inventario' });
    }
 };
+
+// ... el resto del archivo sigue igual
 
 export const getSuppliersList = async (req: Request, res: Response) => {
    try {

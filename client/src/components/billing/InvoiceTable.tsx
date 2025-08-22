@@ -60,18 +60,14 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
                />
             </div>
 
-            <div className="flex items-center gap-2 mt-1 min-w-0">
-               <span className="text-[12px] font-medium truncate text-zinc-500 max-w-full">
-                  {item.supplier}
-               </span>
-
-               {isModified && (
+            {isModified && (
+               <div className="flex items-center mt-1">
                   <div className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-md font-bold bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 leading-none shrink-0">
                      <HiOutlinePencilSquare size={11} />
                      <span>Editado</span>
                   </div>
-               )}
-            </div>
+               </div>
+            )}
          </div>
 
          {/* 2. VALOR UNITARIO */}
@@ -178,7 +174,7 @@ export const InvoiceTable = ({
                {/* Ghost Row - Notion Style */}
                <div
                   onClick={onAddProductClick}
-                  className={`group cursor-pointer px-6 py-3 border-b border-transparent hover:border-zinc-800 transition-all duration-200 flex items-center gap-2 ${
+                  className={`group cursor-pointer px-6 py-3 border-b border-transparent hover:border-zinc-800/60 transition-all duration-200 flex items-center gap-2 ${
                      items.length === 0
                         ? 'text-zinc-300 hover:text-zinc-200 bg-blue-500/70 hover:bg-blue-500/90 lg:text-zinc-500 lg:hover:text-zinc-400 lg:bg-transparent lg:hover:bg-zinc-500/10'
                         : 'text-zinc-500 hover:text-zinc-400'
