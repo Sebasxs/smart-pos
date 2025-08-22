@@ -47,6 +47,7 @@ export const Billing = () => {
       error: false,
    });
 
+   const [isClientSearchFocused, setIsClientSearchFocused] = useState(false);
    const [searchInputValue, setSearchInputValue] = useState('');
    const [createClientName, setCreateClientName] = useState('');
    const [finalizedData, setFinalizedData] = useState<CheckoutState | null>(null);
@@ -104,6 +105,7 @@ export const Billing = () => {
          },
       });
       setSearchInputValue(client.name);
+      setIsClientSearchFocused(false);
    };
 
    const handleClientCreated = (client: any) => {
@@ -249,8 +251,19 @@ export const Billing = () => {
 
    return (
       <div className="relative w-full flex flex-col gap-4 lg:h-full lg:max-h-screen">
+         <div
+            className={`
+               fixed inset-0 bg-black/60 backdrop-blur-md z-40 transition-all duration-300
+               ${
+                  isClientSearchFocused
+                     ? 'opacity-80 pointer-events-auto'
+                     : 'opacity-0 pointer-events-none'
+               }
+            `}
+            onClick={() => setIsClientSearchFocused(false)}
+         />
          {/* PAGE HEADER WITH CLIENT SEARCH */}
-         <div className="flex flex-col md:flex-row md:items-end justify-between">
+         <div className="flex flex-col md:flex-row md:items-end justify-between relative">
             <div className="flex items-center gap-3">
                <div className="p-3 bg-blue-500/10 rounded-xl text-blue-400">
                   <HiOutlineComputerDesktop size={24} />
@@ -264,7 +277,16 @@ export const Billing = () => {
             {/* Client Search / Badge */}
             <div className="flex items-center gap-3 mt-4 w-full md:w-auto">
                {!checkoutData.customer.id ? (
-                  <div className="w-full md:w-[340px]">
+                  <div
+                     className={`
+                        relative w-full md:w-[340px] transition-transform duration-300 ease-out
+                        ${isClientSearchFocused ? 'z-50' : 'z-20'}
+                     `}
+                     style={{
+                        transitionProperty: 'transform, z-index',
+                        transitionDelay: isClientSearchFocused ? '0ms' : '100ms, 300ms',
+                     }}
+                  >
                      <ClientCombobox
                         id="client-search-input"
                         value={searchInputValue}
@@ -272,6 +294,8 @@ export const Billing = () => {
                         onSelectCustomer={handleClientSelect}
                         onRequestCreate={handleRequestCreateClient}
                         placeholder="Buscar cliente..."
+                        onFocus={() => setIsClientSearchFocused(true)}
+                        onBlur={() => setIsClientSearchFocused(false)}
                      />
                   </div>
                ) : (
