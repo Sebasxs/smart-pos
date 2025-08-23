@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Modal } from '../ui/Modal';
-import { CustomSelect } from '../ui/CustomSelect';
 import { Input } from '../ui/Input';
 import { SmartNumberInput } from '../ui/SmartNumberInput';
 import { Button } from '../ui/Button';
@@ -19,34 +18,29 @@ type ProductModalProps = {
 const initialForm = {
    description: '',
    price: 0,
-   cost: 0,
    stock: 0,
    discountPercentage: 0,
-   supplierId: '',
 };
 
 export const ProductModal = ({ isOpen, onClose, productToEdit }: ProductModalProps) => {
-   const { createProduct, updateProduct, suppliers, fetchSuppliers } = useInventoryStore();
+   const { createProduct, updateProduct } = useInventoryStore();
    const [form, setForm] = useState(initialForm);
    const [isSubmitting, setIsSubmitting] = useState(false);
 
    useEffect(() => {
       if (!isOpen) return;
 
-      fetchSuppliers();
       if (productToEdit) {
          setForm({
             description: productToEdit.description,
             price: productToEdit.price,
-            cost: productToEdit.cost,
             stock: productToEdit.stock,
             discountPercentage: productToEdit.discountPercentage,
-            supplierId: productToEdit.supplierId || '',
          });
       } else {
          setForm(initialForm);
       }
-   }, [isOpen, productToEdit, fetchSuppliers]);
+   }, [isOpen, productToEdit]);
 
    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
       const { name, value } = e.target;
@@ -61,8 +55,8 @@ export const ProductModal = ({ isOpen, onClose, productToEdit }: ProductModalPro
       setIsSubmitting(true);
 
       const success = productToEdit
-         ? await updateProduct(productToEdit.id, form)
-         : await createProduct(form);
+         ? await updateProduct(productToEdit.id, form as Product)
+         : await createProduct(form as Product);
 
       setIsSubmitting(false);
       if (success) onClose();
@@ -106,26 +100,9 @@ export const ProductModal = ({ isOpen, onClose, productToEdit }: ProductModalPro
                   />
                </div>
 
-               {/* 2. Proveedor */}
-               <CustomSelect
-                  label="Proveedor"
-                  value={form.supplierId}
-                  onChange={value => handleChange({ target: { name: 'supplierId', value } } as any)}
-                  options={suppliers.map(s => ({ value: s.id, label: s.name }))}
-                  placeholder="-- Seleccionar --"
-                  color="gray"
-               />
-
                {/* 3. Costo y precio */}
                <div className="py-2">
                   <div className="grid grid-cols-2 gap-3 mb-3">
-                     <SmartNumberInput
-                        label="Costo"
-                        value={form.cost}
-                        onValueChange={v => setForm(prev => ({ ...prev, cost: v ?? 0 }))}
-                        variant="currency"
-                        showPrefix={true}
-                     />
                      <SmartNumberInput
                         label="Precio de Venta"
                         value={form.price}

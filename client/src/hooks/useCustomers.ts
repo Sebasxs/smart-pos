@@ -6,10 +6,18 @@ export const useCustomers = () => {
 
    useEffect(() => {
       store.fetchCustomers();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
    }, []);
 
    return {
-      ...store,
       customers: store.filteredCustomers,
+      isLoading: store.isLoading,
+      search: store.search,
+      setSearch: store.setSearch,
+      deleteCustomer: store.deleteCustomer,
+      stats: store.stats,
+      refresh: store.refresh,
+      filterStatus: store.filterStatus,
+      setFilterStatus: store.setFilterStatus,
    };
 };

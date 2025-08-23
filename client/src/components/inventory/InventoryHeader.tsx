@@ -4,7 +4,6 @@ import {
    HiOutlineArrowPath,
    HiOutlineXMark,
 } from 'react-icons/hi2';
-import { CustomSelect } from '../ui/CustomSelect';
 import { Button } from '../ui/Button';
 
 type InventoryHeaderProps = {
@@ -13,9 +12,6 @@ type InventoryHeaderProps = {
    onAddClick: () => void;
    onRefresh: () => void;
    isLoading: boolean;
-   suppliers: { id: string; name: string }[];
-   selectedSupplier: string;
-   onSupplierChange: (val: string) => void;
 };
 
 export const InventoryHeader = ({
@@ -24,9 +20,6 @@ export const InventoryHeader = ({
    onAddClick,
    onRefresh,
    isLoading,
-   suppliers,
-   selectedSupplier,
-   onSupplierChange,
 }: InventoryHeaderProps) => {
    return (
       <div className="flex flex-col md:flex-row gap-3 w-full h-full">
@@ -49,22 +42,6 @@ export const InventoryHeader = ({
                   <HiOutlineXMark size={16} />
                </button>
             )}
-         </div>
-
-         {/* Supplier Select */}
-         <div className="w-full md:w-56 lg:w-64 h-full shrink-0">
-            <CustomSelect
-               value={selectedSupplier}
-               onChange={onSupplierChange}
-               options={[
-                  { value: '', label: 'Todos los proveedores' },
-                  ...suppliers.map(s => ({ value: s.id, label: s.name })),
-               ]}
-               placeholder="Filtrar por proveedor"
-               className="w-full h-full lg:h-auto min-h-[42px] hover:bg-zinc-800"
-               containerClassName="h-full lg:h-auto"
-               color="flat"
-            />
          </div>
 
          {/* Actions */}

@@ -7,14 +7,11 @@ const API_URL = import.meta.env.VITE_API_URL;
 type InventoryFilter = 'all' | 'lowStock' | 'discounted';
 export type SortKey = 'description' | 'cost' | 'price' | 'margin' | 'stock';
 
-export type ProductPayload = Omit<Product, 'id' | 'supplier' | 'created_at'> & {
-   supplierId?: string;
-};
+export type ProductPayload = Omit<Product, 'id' | 'created_at'>;
 
 interface InventoryState {
    products: Product[];
    allProducts: Product[];
-   suppliers: { id: string; name: string }[];
    isLoading: boolean;
    isInitialized: boolean;
    search: string;
@@ -23,7 +20,6 @@ interface InventoryState {
    error: string;
 
    fetchProducts: (force?: boolean) => Promise<void>;
-   fetchSuppliers: () => Promise<void>;
    createProduct: (data: ProductPayload) => Promise<boolean>;
    updateProduct: (id: string, data: ProductPayload) => Promise<boolean>;
    setSearch: (val: string) => void;
@@ -37,7 +33,6 @@ interface InventoryState {
 export const useInventoryStore = create<InventoryState>((set, get) => ({
    products: [],
    allProducts: [],
-   suppliers: [],
    isLoading: false,
    isInitialized: false,
    search: '',
@@ -45,7 +40,7 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
    sortConfig: { key: 'description', direction: 'asc' },
    error: '',
 
-   fetchProducts: async () => {
+   fetchProducts: async (_force = false) => {
       set({ isLoading: true, error: '' });
       try {
          const token = await useAuthStore.getState().getAccessToken();
@@ -55,6 +50,7 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
                Authorization: `Bearer ${token}`,
             },
          });
+         console.log(res);
          if (!res.ok) throw new Error('Error cargando inventario');
 
          const data = await res.json();
@@ -82,11 +78,7 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
       // 1. Filter by Search
       if (search.trim()) {
          const term = normalize(search);
-         filtered = filtered.filter(
-            p =>
-               normalize(p.description).includes(term) ||
-               (p.supplier && normalize(p.supplier).includes(term)),
-         );
+         filtered = filtered.filter(p => normalize(p.description).includes(term));
       }
 
       // 2. Filter by Type
@@ -128,22 +120,6 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
       });
 
       set({ products: filtered });
-   },
-
-   fetchSuppliers: async () => {
-      if (get().suppliers.length > 0) return;
-      try {
-         const token = await useAuthStore.getState().getAccessToken();
-
-         const res = await fetch(`${API_URL}/products/suppliers`, {
-            headers: {
-               Authorization: `Bearer ${token}`,
-            },
-         });
-         if (res.ok) set({ suppliers: await res.json() });
-      } catch (e) {
-         console.error(e);
-      }
    },
 
    createProduct: async data => {

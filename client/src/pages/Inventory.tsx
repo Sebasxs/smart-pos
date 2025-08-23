@@ -21,9 +21,6 @@ export const Inventory = () => {
       activeFilter,
       toggleFilter,
       refresh,
-      suppliers,
-      selectedSupplier,
-      setSelectedSupplier,
    } = useInventory();
 
    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -172,9 +169,6 @@ export const Inventory = () => {
                      onAddClick={handleAddClick}
                      onRefresh={refresh}
                      isLoading={isLoading}
-                     suppliers={suppliers}
-                     selectedSupplier={selectedSupplier}
-                     onSupplierChange={setSelectedSupplier}
                   />
                </div>
 
