@@ -28,6 +28,7 @@ import { Profile } from './pages/Profile';
 // Hooks
 import { useGlobalEscapeKey } from './hooks/useGlobalEscapeKey';
 import { useAuthStore } from './store/authStore';
+import { useCashShiftStore } from './store/cashShiftStore';
 
 function ProtectedLayout({ children }: { children: React.ReactNode }) {
    const { isAuthenticated } = useAuthStore();
@@ -61,10 +62,14 @@ function App() {
          setIsChecking(false);
       }, 5000);
 
-      checkSession().finally(() => {
-         clearTimeout(timer);
-         setIsChecking(false);
-      });
+      checkSession()
+         .then(() => {
+            useCashShiftStore.getState().checkShiftStatus();
+         })
+         .finally(() => {
+            clearTimeout(timer);
+            setIsChecking(false);
+         });
 
       return () => {
          clearTimeout(timer);

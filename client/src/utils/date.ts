@@ -38,3 +38,29 @@ export const formatDate = (dateString?: string | null): string => {
       day: 'numeric',
    });
 };
+
+export const formatDateTime = (dateString: string | Date | null): string => {
+   if (!dateString) return '---';
+   const date = new Date(dateString);
+   if (isNaN(date.getTime())) return '---';
+
+   return new Intl.DateTimeFormat('es-CO', {
+      day: 'numeric',
+      month: 'long',
+      hour: 'numeric',
+      minute: 'numeric',
+      hour12: true,
+   }).format(date);
+};
+
+export const formatTime = (dateString: string | Date | null): string => {
+   if (!dateString) return '--:--';
+   const date = new Date(dateString);
+   if (isNaN(date.getTime())) return '--:--';
+
+   return new Intl.DateTimeFormat('es-CO', {
+      hour: 'numeric',
+      minute: 'numeric',
+      hour12: true,
+   }).format(date);
+};

@@ -186,3 +186,94 @@ export const reconcileClosedShift = async (req: Request, res: Response) => {
       res.status(500).json({ error: error.message || 'Error interno del servidor' });
    }
 };
+
+export const registerMovement = async (req: Request, res: Response) => {
+   try {
+      const userId = req.user?.id;
+      const { cash_shift_id, amount, reason } = req.body;
+
+      if (!userId) return res.status(401).json({ error: 'Usuario no autenticado' });
+      if (!cash_shift_id || amount === undefined || !reason) {
+         return res.status(400).json({ error: 'Faltan datos requeridos' });
+      }
+
+      const { data, error } = await supabase
+         .from('cash_shift_movements')
+         .insert({
+            cash_shift_id,
+            amount, // Amount should be signed from frontend (positive for income, negative for expense)
+            reason,
+         })
+         .select()
+         .single();
+
+      if (error) throw error;
+
+      res.status(201).json(data);
+   } catch (error: any) {
+      console.error('Error registering movement:', error);
+      res.status(500).json({ error: error.message || 'Error al registrar movimiento' });
+   }
+};
+
+export const getShiftDetails = async (req: Request, res: Response) => {
+   try {
+      const userId = req.user?.id;
+      const { id } = req.params;
+
+      if (!userId) return res.status(401).json({ error: 'Usuario no autenticado' });
+
+      const { data: shift, error: shiftError } = await supabase
+         .from('cash_shifts')
+         .select('*')
+         .eq('id', id)
+         .single();
+
+      if (shiftError || !shift) {
+         return res.status(404).json({ error: 'Turno no encontrado' });
+      }
+
+      const { data: movements } = await supabase
+         .from('cash_shift_movements')
+         .select('*')
+         .eq('cash_shift_id', id)
+         .order('created_at', { ascending: false });
+
+      const { data: payments } = await supabase
+         .from('sale_payments')
+         .select('*, sales_invoices!inner(id, invoice_number)')
+         .eq('cash_shift_id', id)
+         .eq('method', 'cash');
+
+      const openingAmount = Number(shift.opening_amount);
+      const salesCash = payments?.reduce((sum, p) => sum + Number(p.amount), 0) || 0;
+
+      const manualIncome =
+         movements
+            ?.filter(m => Number(m.amount) > 0)
+            .reduce((sum, m) => sum + Number(m.amount), 0) || 0;
+
+      const manualExpense =
+         movements
+            ?.filter(m => Number(m.amount) < 0)
+            .reduce((sum, m) => sum + Math.abs(Number(m.amount)), 0) || 0;
+
+      const expectedCash = openingAmount + salesCash + manualIncome - manualExpense;
+
+      res.json({
+         shift,
+         movements: movements || [],
+         payments: payments || [],
+         summary: {
+            openingAmount,
+            salesCash,
+            manualIncome,
+            manualExpense,
+            expectedCash,
+         },
+      });
+   } catch (error: any) {
+      console.error('Error fetching shift details:', error);
+      res.status(500).json({ error: error.message || 'Error al obtener detalles del turno' });
+   }
+};

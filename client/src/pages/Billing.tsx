@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import { HiOutlineComputerDesktop } from 'react-icons/hi2';
+import { HiOutlineComputerDesktop, HiOutlineBanknotes } from 'react-icons/hi2';
 
 // Components
 import { InvoiceTable } from '../components/billing/InvoiceTable';
@@ -13,8 +13,11 @@ import { PaymentSuccessModal } from '../components/billing/PaymentSuccessModal';
 import { ErrorModal } from '../components/ui/ErrorModal';
 import { SplitPaymentWidget } from '../components/billing/SplitPaymentWidget';
 import { BillingTotals } from '../components/billing/BillingTotals';
+import { SmartNumberInput } from '../components/ui/SmartNumberInput';
 import { useInventoryStore } from '../store/inventoryStore';
 import { useCustomerStore } from '../store/customerStore';
+import { useCashShiftStore } from '../store/cashShiftStore';
+import { Button } from '../components/ui/Button';
 
 // Types
 import { useBillingStore, type CheckoutState } from '../store/billingStore';
@@ -37,6 +40,7 @@ export const Billing = () => {
    } = useBillingStore();
    const { decreaseStockBatch } = useInventoryStore();
    const { updateCustomerAfterPurchase } = useCustomerStore();
+   const { isOpen, openShift, loading: shiftLoading } = useCashShiftStore();
 
    const [modals, setModals] = useState({
       productSearch: false,
@@ -54,6 +58,7 @@ export const Billing = () => {
    const [isProcessing, setIsProcessing] = useState(false);
    const [generatedInvoiceId, setGeneratedInvoiceId] = useState<number | undefined>(undefined);
    const [errorMessage, setErrorMessage] = useState('');
+   const [openingAmount, setOpeningAmount] = useState<number | null>(0);
 
    const subtotal = useMemo(
       () => items.reduce((acc, item) => acc + item.price * item.quantity, 0),
@@ -68,7 +73,6 @@ export const Billing = () => {
 
    const total = Math.max(0, subtotal - discountAmount);
 
-   // Check if payments are valid
    const totalPaid = useMemo(
       () => checkoutData.payments.reduce((sum, p) => sum + (p.amount || 0), 0),
       [checkoutData.payments],
@@ -243,11 +247,52 @@ export const Billing = () => {
       return () => window.removeEventListener('keydown', handleKeyDown);
    }, [modals, isPaymentValid, triggerDiscard, handlePaymentProcess, toggleModal]);
 
-   // Calculate finalized payment info for success modal
    const finalizedCashPayment = finalizedData?.payments.find(p => p.method === 'cash');
    const finalizedCashAmount = finalizedCashPayment?.amount || 0;
    const finalizedChange =
       finalizedCashPayment && finalizedCashAmount > total ? finalizedCashAmount - total : 0;
+
+   // --- CASH SHIFT BLOCKING ---
+   if (!isOpen) {
+      return (
+         <div className="flex items-center justify-center h-full w-full bg-zinc-950 animate-in fade-in duration-500">
+            <div className="w-full max-w-sm p-8 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl flex flex-col gap-6 items-center text-center">
+               <div className="w-20 h-20 bg-gradient-to-br from-blue-600/20 to-purple-600/20 rounded-full flex items-center justify-center border border-blue-500/20 shadow-inner">
+                  <HiOutlineBanknotes className="text-blue-400" size={32} />
+               </div>
+
+               <div className="space-y-2">
+                  <h2 className="text-xl font-bold text-white">Apertura de Caja</h2>
+                  <p className="text-zinc-400 text-sm leading-relaxed">
+                     Para comenzar a facturar, es necesario abrir un turno e indicar la base de
+                     efectivo.
+                  </p>
+               </div>
+
+               <div className="w-full space-y-4 pt-2">
+                  <div className="bg-zinc-950 p-1 rounded-xl border border-zinc-800">
+                     <SmartNumberInput
+                        value={openingAmount}
+                        onValueChange={setOpeningAmount}
+                        variant="currency"
+                        placeholder="0"
+                        className="[&>input]:text-center [&>input]:text-xl [&>input]:font-bold [&>input]:bg-transparent [&>input]:border-none [&>input]:py-3"
+                     />
+                  </div>
+
+                  <Button
+                     onClick={() => openShift(openingAmount || 0)}
+                     disabled={shiftLoading}
+                     isLoading={shiftLoading}
+                     className="w-full py-3.5 text-base shadow-blue-900/20"
+                  >
+                     Iniciar Turno
+                  </Button>
+               </div>
+            </div>
+         </div>
+      );
+   }
 
    return (
       <div className="relative w-full flex flex-col gap-4 lg:h-full lg:max-h-screen">
