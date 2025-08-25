@@ -22,23 +22,26 @@ export function SmartNumberInput({
    variant,
    dianUnitCode,
    maxDecimals,
-   showPrefix,
    label,
    error,
    className,
    disabled,
    placeholder,
+   showPrefix = true,
    ...props
 }: SmartNumberInputProps) {
-   const { currencyDecimalPreference } = usePreferencesStore();
+   const { preferences } = usePreferencesStore();
 
    let decimalScale = 2;
    let prefix = '';
    let suffix = '';
 
+   const shouldShowPrefix =
+      variant === 'currency' ? showPrefix && preferences.showCurrencySymbol : showPrefix;
+
    if (variant === 'currency') {
-      decimalScale = maxDecimals ?? currencyDecimalPreference;
-      if (showPrefix !== false) {
+      decimalScale = maxDecimals ?? preferences.currencyDecimalPreference;
+      if (shouldShowPrefix) {
          prefix = '$ ';
       }
    } else if (variant === 'quantity') {

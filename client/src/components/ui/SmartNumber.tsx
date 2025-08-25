@@ -19,14 +19,17 @@ export function SmartNumber({
    showPrefix = true,
    className,
 }: SmartNumberProps) {
-   const { currencyDecimalPreference } = usePreferencesStore();
+   const { preferences } = usePreferencesStore();
+
+   const shouldShowPrefix =
+      variant === 'currency' ? showPrefix && preferences.showCurrencySymbol : showPrefix;
 
    const formatted = formatNumber(value, {
       variant,
       dianUnitCode,
       maxDecimals,
-      decimalPreference: currencyDecimalPreference,
-      showPrefix,
+      decimalPreference: preferences.currencyDecimalPreference,
+      showPrefix: shouldShowPrefix,
    });
 
    return <span className={twMerge('font-mono', className)}>{formatted || '0'}</span>;

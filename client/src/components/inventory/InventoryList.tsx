@@ -4,6 +4,7 @@ import {
    HiOutlineArchiveBoxXMark,
    HiChevronUp,
    HiChevronDown,
+   HiOutlineQrCode,
 } from 'react-icons/hi2';
 import { useInventoryStore, type SortKey } from '../../store/inventoryStore';
 import { SmartNumber } from '../ui/SmartNumber';
@@ -108,28 +109,32 @@ export const InventoryList = ({ products, isLoading, onEdit, onDelete }: Invento
             className={`relative group transition-colors cursor-pointer border-b border-zinc-800/50 ${rowClass}`}
             title="Click para editar"
          >
-            {/* Indicador lateral */}
+            {/* LEFT INDICATOR */}
             <div className={`absolute left-0 top-0 bottom-0 w-[2px] ${indicatorClass}`} />
 
             <div className={`${GRID_LAYOUT} py-3`}>
-               {/* 1. PRODUCTO */}
+               {/* 1. PRODUCT & SKU */}
                <div className="flex flex-col justify-center min-w-0 pr-2">
                   <span className="font-bold text-zinc-200 text-[15px] truncate w-full">
                      {product.description}
                   </span>
-                  <span className="text-sm text-zinc-500 truncate w-full mt-0.5 font-medium">
-                     {product.supplier}
-                  </span>
+
+                  <div className="flex items-center gap-1.5 mt-0.5 text-zinc-500">
+                     <HiOutlineQrCode size={14} className="shrink-0 opacity-70" />
+                     <span className="text-xs font-mono tracking-wide truncate">
+                        {product.sku || 'Sin SKU'}
+                     </span>
+                  </div>
                </div>
 
-               {/* 2. COSTO */}
+               {/* 2. COST */}
                <div className="text-right">
                   <span className="font-mono text-zinc-400 text-sm font-medium pr-1">
                      <SmartNumber value={product.cost || 0} variant="currency" />
                   </span>
                </div>
 
-               {/* 3. PRECIO */}
+               {/* 3. PRICE */}
                <div className="text-right">
                   <div className="flex flex-col items-end justify-center pr-1">
                      <span
@@ -157,7 +162,7 @@ export const InventoryList = ({ products, isLoading, onEdit, onDelete }: Invento
                   </div>
                </div>
 
-               {/* 4. GANANCIA */}
+               {/* 4. PROFIT */}
                <div className="text-center pl-2">
                   <span
                      className={`
@@ -185,7 +190,7 @@ export const InventoryList = ({ products, isLoading, onEdit, onDelete }: Invento
                   </span>
                </div>
 
-               {/* 6. ACCIONES */}
+               {/* 6. ACTIONS */}
                <div className="text-right">
                   <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                      <button
@@ -233,7 +238,7 @@ export const InventoryList = ({ products, isLoading, onEdit, onDelete }: Invento
                   <div
                      className={`${GRID_LAYOUT} py-4 text-xs font-bold text-zinc-500 uppercase tracking-wider`}
                   >
-                     <SortableHeader label="Producto / Proveedor" sortKey="description" />
+                     <SortableHeader label="Producto / SKU" sortKey="description" />
                      <SortableHeader label="Costo" sortKey="cost" align="right" />
                      <SortableHeader label="Precio Venta" sortKey="price" align="right" />
                      <SortableHeader label="Ganancia" sortKey="margin" align="center" />
@@ -242,7 +247,7 @@ export const InventoryList = ({ products, isLoading, onEdit, onDelete }: Invento
                   </div>
                </div>
 
-               {/* 2. LISTA VIRTUALIZADA */}
+               {/* 2. VIRTUOSO LIST */}
                <div className="flex-1">
                   <Virtuoso
                      data={products}

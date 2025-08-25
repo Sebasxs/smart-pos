@@ -105,14 +105,14 @@ export const CustomerList = ({ customers, isLoading, onEdit, onDelete }: Custome
             onClick={() => onEdit(customer)}
             className={`relative group transition-colors cursor-pointer border-b border-zinc-800/50 ${rowClass}`}
          >
-            {/* Indicador lateral */}
+            {/* LEFT INDICATOR */}
             <div className={`absolute left-0 top-0 bottom-0 w-[2px] ${indicatorClass}`} />
 
             <div className={`${GRID_LAYOUT} py-3`}>
-               {/* 1. NOMBRE / EMAIL / TELÉFONO */}
+               {/* 1. NAME / EMAIL / PHONE */}
                <div className="flex flex-col min-w-0 gap-1 pr-2">
                   <div className="flex items-center gap-2">
-                     <span className="font-bold text-zinc-200 text-[15px] truncate">
+                     <span className="font-bold text-zinc-200 text-[15px] truncate capitalize">
                         {customer.name}
                      </span>
                      <CustomerStatusBadge customer={customer} />
@@ -133,7 +133,7 @@ export const CustomerList = ({ customers, isLoading, onEdit, onDelete }: Custome
                   </div>
                </div>
 
-               {/* 2. IDENTIFICACIÓN / TIPO DOC */}
+               {/* 2. IDENTIFICATION / DOCUMENT TYPE */}
                <div className="flex flex-col min-w-0 gap-1">
                   <span className="text-zinc-300 text-sm font-medium truncate">
                      {customer.tax_id || '---'}
@@ -143,7 +143,7 @@ export const CustomerList = ({ customers, isLoading, onEdit, onDelete }: Custome
                   </span>
                </div>
 
-               {/* 3. CIUDAD / DIRECCIÓN */}
+               {/* 3. CITY / ADDRESS */}
                <div className="flex flex-col min-w-0 gap-1">
                   <span className="text-zinc-300 text-sm truncate">{customer.city || '---'}</span>
                   {customer.address && (
@@ -156,7 +156,7 @@ export const CustomerList = ({ customers, isLoading, onEdit, onDelete }: Custome
                   )}
                </div>
 
-               {/* 4. ACTIVIDAD */}
+               {/* 4. ACTIVITY */}
                <div className="flex flex-col min-w-0">
                   <span className="text-zinc-300 text-sm truncate">
                      {customer.last_purchase_date
@@ -165,18 +165,18 @@ export const CustomerList = ({ customers, isLoading, onEdit, onDelete }: Custome
                   </span>
                </div>
 
-               {/* 5. TOTAL GASTADO */}
+               {/* 5. TOTAL SPENT */}
                <div className="text-right">
                   <span className="font-mono text-zinc-300 text-sm font-bold">
                      <SmartNumber
                         value={customer.total_spent || 0}
                         variant="currency"
-                        showPrefix={false}
+                        showPrefix={true}
                      />
                   </span>
                </div>
 
-               {/* 6. ACCIONES */}
+               {/* 6. ACTIONS */}
                <div className="text-right">
                   <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                      <button
@@ -252,7 +252,7 @@ export const CustomerList = ({ customers, isLoading, onEdit, onDelete }: Custome
                   </div>
                </div>
 
-               {/* 2. LISTA VIRTUALIZADA */}
+               {/* 2. VIRTUOSO LIST */}
                <div className="flex-1">
                   <Virtuoso
                      data={customers}

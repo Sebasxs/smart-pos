@@ -2,6 +2,8 @@ import { type CheckoutState } from '../../store/billingStore';
 import { type InvoiceItem } from '../../types/billing';
 import { formatNumber } from '../../lib/formatNumber';
 import { usePreferencesStore } from '../../store/usePreferencesStore';
+import { useOrganizationStore } from '../../store/organizationStore';
+import { useEffect } from 'react';
 
 type TicketViewProps = {
    invoiceId?: number;
@@ -28,29 +30,41 @@ export const TicketView = ({
    cashReceived,
    change,
 }: TicketViewProps) => {
-   const { currencyDecimalPreference } = usePreferencesStore();
+   const { preferences } = usePreferencesStore();
+   const { settings, fetchSettings } = useOrganizationStore();
+
+   useEffect(() => {
+      if (!settings) fetchSettings();
+   }, []);
+
+   const companyName = settings?.company_name || 'Mi Empresa';
+   const nit = settings?.tax_id || '---';
+   const regime = settings?.tax_regime || '';
+   const address = settings?.address || '';
+   const phone = settings?.phone || '';
+   const footer = settings?.invoice_footer || 'Gracias por su compra';
 
    const formatCurrency = (val: number) =>
       formatNumber(val, {
          variant: 'currency',
-         decimalPreference: currencyDecimalPreference,
+         decimalPreference: preferences.currencyDecimalPreference,
          showPrefix: true,
       });
 
    return (
       <div className="bg-white text-black font-mono text-xs p-4 w-full max-w-[300px] mx-auto shadow-sm leading-tight select-text">
-         {/* CABECERA */}
+         {/* HEADER */}
          <div className="text-center mb-3">
-            <h2 className="font-black text-lg uppercase mb-1">AudioVideoFP</h2>
-            <p>NIT: 70070658-1</p>
-            <p>NO RESPONSABLE DE IVA</p>
-            <p>CRA 14 # 5B-14</p>
-            <p>TEL: 300 261 2587</p>
+            <h2 className="font-black text-lg uppercase mb-1">{companyName}</h2>
+            <p>NIT: {nit}</p>
+            {regime && <p className="text-[10px] uppercase">{regime}</p>}
+            {address && <p>{address}</p>}
+            {phone && <p>TEL: {phone}</p>}
          </div>
 
          <div className="border-b border-black border-dashed my-2" />
 
-         {/* INFO FACTURA */}
+         {/* INVOICE INFO */}
          <div className="flex flex-col gap-0.5 mb-2">
             <div className="flex justify-between">
                <span>Factura de Venta:</span>
@@ -87,7 +101,7 @@ export const TicketView = ({
 
          <div className="border-b border-black border-dashed my-2" />
 
-         {/* TOTALES */}
+         {/* TOTALS */}
          <div className="flex flex-col gap-1 text-right">
             <div className="flex justify-between">
                <span>Subtotal:</span>
@@ -107,7 +121,7 @@ export const TicketView = ({
 
          <div className="border-b border-black border-dashed my-2" />
 
-         {/* PAGO */}
+         {/* PAYMENT */}
          <div className="flex flex-col gap-1 text-right text-[11px]">
             <div className="flex justify-between">
                <span>Método:</span>
@@ -129,9 +143,15 @@ export const TicketView = ({
             )}
          </div>
 
-         <div className="mt-6 text-center text-[10px] opacity-70">
-            <p>*** GRACIAS POR SU COMPRA ***</p>
-            <p>Software: SmartPOS v1.0</p>
+         {/* FOOTER */}
+         <div className="mt-6 text-center text-[10px] opacity-80">
+            {footer.split('\n').map((line, i) => (
+               <p key={i} className="mb-0.5 whitespace-pre-wrap">
+                  {line ? line.trim() : <br />}
+               </p>
+            ))}
+
+            <p className="mt-4 opacity-50 text-[9px]">Software: SmartPOS v1.0</p>
          </div>
       </div>
    );

@@ -822,6 +822,59 @@ export type Database = {
           },
         ]
       }
+      organization_settings: {
+        Row: {
+          address: string | null
+          city: string | null
+          company_name: string | null
+          email: string | null
+          id: string
+          invoice_footer: string | null
+          logo_url: string | null
+          phone: string | null
+          tax_id: string | null
+          tax_regime: Database["public"]["Enums"]["tax_regime_enum"] | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          company_name?: string | null
+          email?: string | null
+          id?: string
+          invoice_footer?: string | null
+          logo_url?: string | null
+          phone?: string | null
+          tax_id?: string | null
+          tax_regime?: Database["public"]["Enums"]["tax_regime_enum"] | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          company_name?: string | null
+          email?: string | null
+          id?: string
+          invoice_footer?: string | null
+          logo_url?: string | null
+          phone?: string | null
+          tax_id?: string | null
+          tax_regime?: Database["public"]["Enums"]["tax_regime_enum"] | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_settings_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_bundles: {
         Row: {
           child_product_id: string
@@ -1561,6 +1614,45 @@ export type Database = {
           },
         ]
       }
+      supplier_product_aliases: {
+        Row: {
+          created_at: string | null
+          id: string
+          product_id: string
+          supplier_description: string
+          supplier_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          product_id: string
+          supplier_description: string
+          supplier_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          product_id?: string
+          supplier_description?: string
+          supplier_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplier_product_aliases_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supplier_product_aliases_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       supplier_return_items: {
         Row: {
           id: string
@@ -1784,6 +1876,7 @@ export type Database = {
         Returns: {
           account_balance: number
           address: string
+          city: string
           document_type: Database["public"]["Enums"]["document_type_enum"]
           email: string
           id: string
@@ -1793,10 +1886,23 @@ export type Database = {
           tax_id: string
         }[]
       }
+      search_product_alias: {
+        Args: {
+          p_description: string
+          p_supplier_id: string
+          p_threshold?: number
+        }
+        Returns: {
+          alias_text: string
+          product_id: string
+          similarity: number
+        }[]
+      }
       search_products: {
         Args: { search_term: string }
         Returns: {
           description: string
+          discount_percentage: number
           id: string
           is_active: boolean
           price: number
@@ -1879,6 +1985,12 @@ export type Database = {
         | "rejected"
       tax_calculation_enum: "percentage" | "fixed_amount"
       tax_category_enum: "tax" | "withholding"
+      tax_regime_enum:
+        | "not_responsible_iva"
+        | "responsible_iva"
+        | "simple_taxation_regime"
+        | "grand_contributor"
+        | "special_regime"
       tax_type_enum: "IVA" | "EXENTO"
       unit_type_enum:
         | "unit"
@@ -2068,6 +2180,13 @@ export const Constants = {
       ],
       tax_calculation_enum: ["percentage", "fixed_amount"],
       tax_category_enum: ["tax", "withholding"],
+      tax_regime_enum: [
+        "not_responsible_iva",
+        "responsible_iva",
+        "simple_taxation_regime",
+        "grand_contributor",
+        "special_regime",
+      ],
       tax_type_enum: ["IVA", "EXENTO"],
       unit_type_enum: [
         "unit",

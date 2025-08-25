@@ -5,6 +5,7 @@ export interface Product {
    cost: number;
    stock: number;
    discountPercentage: number;
+   sku?: string;
    createdAt?: string;
 }
 

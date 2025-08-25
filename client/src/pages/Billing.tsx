@@ -18,6 +18,7 @@ import { useInventoryStore } from '../store/inventoryStore';
 import { useCustomerStore } from '../store/customerStore';
 import { useCashShiftStore } from '../store/cashShiftStore';
 import { Button } from '../components/ui/Button';
+import { usePreferencesStore } from '../store/usePreferencesStore';
 
 // Types
 import { useBillingStore, type CheckoutState } from '../store/billingStore';
@@ -41,7 +42,7 @@ export const Billing = () => {
    const { decreaseStockBatch } = useInventoryStore();
    const { updateCustomerAfterPurchase } = useCustomerStore();
    const { isOpen, openShift, loading: shiftLoading } = useCashShiftStore();
-
+   const { preferences } = usePreferencesStore();
    const [modals, setModals] = useState({
       productSearch: false,
       clientCreate: false,
@@ -58,7 +59,9 @@ export const Billing = () => {
    const [isProcessing, setIsProcessing] = useState(false);
    const [generatedInvoiceId, setGeneratedInvoiceId] = useState<number | undefined>(undefined);
    const [errorMessage, setErrorMessage] = useState('');
-   const [openingAmount, setOpeningAmount] = useState<number | null>(0);
+   const [openingAmount, setOpeningAmount] = useState<number | null>(
+      preferences.defaultOpeningCash || 0,
+   );
 
    const subtotal = useMemo(
       () => items.reduce((acc, item) => acc + item.price * item.quantity, 0),
@@ -207,6 +210,12 @@ export const Billing = () => {
       setFinalizedData(null);
       setGeneratedInvoiceId(undefined);
    };
+
+   useEffect(() => {
+      if (preferences.defaultOpeningCash > 0 && openingAmount === 0) {
+         setOpeningAmount(preferences.defaultOpeningCash);
+      }
+   }, [preferences.defaultOpeningCash]);
 
    useEffect(() => {
       const handleKeyDown = (event: KeyboardEvent) => {

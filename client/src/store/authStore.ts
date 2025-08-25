@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { supabase } from '../utils/supabase';
+import { usePreferencesStore } from './usePreferencesStore';
 
 export interface User {
    id: string;
@@ -91,6 +92,8 @@ export const useAuthStore = create<AuthState>()(
                      token: session.access_token,
                      isAuthenticated: true,
                   });
+
+                  usePreferencesStore.getState().loadPreferencesFromProfile(profile.preferences);
                } else {
                   console.error('Error fetching profile:', error);
                }
