@@ -44,7 +44,7 @@ export const Profile = () => {
             <div className="mt-8 pt-6 border-t border-zinc-800">
                <button
                   onClick={() => useAuthStore.getState().logout()}
-                  className="px-4 py-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors text-sm font-medium"
+                  className="px-4 py-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors text-sm font-medium cursor-pointer"
                >
                   Cerrar Sesión
                </button>

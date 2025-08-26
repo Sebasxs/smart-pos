@@ -1,4 +1,4 @@
-import { type ReactNode, useState, useEffect } from 'react';
+import { type ReactNode, useState, useEffect, useRef } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
    HiOutlineSparkles,
@@ -14,6 +14,7 @@ import {
 import { useUIStore } from '../../store/uiStore';
 import { useAuthStore } from '../../store/authStore';
 import { Logo } from '../ui/Logo';
+import { createPortal } from 'react-dom';
 
 // --- Types ---
 type NavItem = {
@@ -32,9 +33,8 @@ type NavGroup = {
 
 type NavigationConfig = (NavItem | NavGroup)[];
 
-// --- Configuration ---
 const navigation: NavigationConfig = [
-   // ACCESO RÁPIDO (Fixed Items)
+   // Fixed Items
    {
       name: 'IA Assistant',
       path: '/chat',
@@ -57,7 +57,7 @@ const navigation: NavigationConfig = [
       activeColor: 'bg-green-500/10 text-green-400 ring-green-500/20',
    },
 
-   // GRUPO: OPERACIONES
+   // Operations
    {
       name: 'Operaciones',
       icon: <HiOutlineDocumentText size={22} />,
@@ -68,7 +68,7 @@ const navigation: NavigationConfig = [
       ],
    },
 
-   // GRUPO: LOGÍSTICA
+   // Logistics
    {
       name: 'Logística',
       icon: <HiOutlineArchiveBox size={22} />,
@@ -80,7 +80,7 @@ const navigation: NavigationConfig = [
       ],
    },
 
-   // GRUPO: DIRECTORIO
+   // Directory
    {
       name: 'Directorio',
       icon: <HiOutlineUsers size={22} />,
@@ -90,8 +90,6 @@ const navigation: NavigationConfig = [
       ],
    },
 ];
-
-// --- Components ---
 
 const SidebarItem = ({ item, variant }: { item: NavItem; variant: 'mobile' | 'desktop' }) => (
    <NavLink
@@ -129,133 +127,178 @@ const SidebarItem = ({ item, variant }: { item: NavItem; variant: 'mobile' | 'de
 const SidebarGroup = ({
    group,
    variant,
-   isExpanded,
-   onToggle,
+   isXlScreen,
+   openGroupName,
+   setOpenGroupName,
 }: {
    group: NavGroup;
    variant: 'mobile' | 'desktop';
-   isExpanded: boolean;
-   onToggle: () => void;
+   isXlScreen: boolean;
+   openGroupName: string | null;
+   setOpenGroupName: (name: string | null) => void;
 }) => {
    const location = useLocation();
+   const isExpanded = openGroupName === group.name;
    const isActiveGroup = group.items.some(item => item.path === location.pathname);
-   const [isHovered, setIsHovered] = useState(false);
+
+   const buttonRef = useRef<HTMLButtonElement>(null);
+   const popoverRef = useRef<HTMLDivElement>(null);
+
+   const [popoverCoords, setPopoverCoords] = useState<{ top: number; left: number } | null>(null);
+
+   const handleToggle = () => setOpenGroupName(isExpanded ? null : group.name);
+
+   const handleOpenOnHover = () => {
+      if (!isXlScreen) {
+         if (buttonRef.current) {
+            const rect = buttonRef.current.getBoundingClientRect();
+            setPopoverCoords({ top: rect.top, left: rect.right + 8 });
+         }
+         setOpenGroupName(group.name);
+      }
+   };
+
+   const handleCloseOnLeave = () => {
+      if (!isXlScreen) {
+         setOpenGroupName(null);
+      }
+   };
+
+   useEffect(() => {
+      if (!isExpanded) {
+         setPopoverCoords(null);
+         return;
+      }
+
+      const handleKeyDown = (e: KeyboardEvent) => e.key === 'Escape' && setOpenGroupName(null);
+      const handleClickOutside = (e: MouseEvent) => {
+         if (
+            popoverRef.current &&
+            !popoverRef.current.contains(e.target as Node) &&
+            buttonRef.current &&
+            !buttonRef.current.contains(e.target as Node)
+         ) {
+            setOpenGroupName(null);
+         }
+      };
+
+      document.addEventListener('keydown', handleKeyDown);
+      document.addEventListener('mousedown', handleClickOutside);
+
+      return () => {
+         document.removeEventListener('keydown', handleKeyDown);
+         document.removeEventListener('mousedown', handleClickOutside);
+      };
+   }, [isExpanded, setOpenGroupName]);
 
    return (
       <div
-         className="flex flex-col mx-2 mb-1 relative"
-         onMouseEnter={() => setIsHovered(true)}
-         onMouseLeave={() => setIsHovered(false)}
+         className="flex flex-col mx-2 mb-1"
+         onMouseEnter={handleOpenOnHover}
+         onMouseLeave={handleCloseOnLeave}
       >
-         {/* Group Header */}
          <button
-            onClick={onToggle}
-            className={`
-               flex items-center h-11 rounded-xl transition-all duration-200 overflow-hidden shrink-0 w-full
-               ${
-                  isActiveGroup
-                     ? 'text-zinc-200 bg-zinc-900/50'
-                     : 'text-zinc-500 hover:bg-zinc-900 hover:text-zinc-200'
-               }
-            `}
+            ref={buttonRef}
+            onClick={handleToggle}
+            className={`flex items-center h-11 rounded-xl transition-colors duration-200 w-full relative cursor-pointer ${
+               isActiveGroup || isExpanded
+                  ? 'text-zinc-200 bg-zinc-900/50'
+                  : 'text-zinc-500 hover:bg-zinc-900 hover:text-zinc-200'
+            }`}
+            title={group.name}
          >
+            {isActiveGroup && (
+               <div className="absolute left-0 top-2 bottom-2 w-1 bg-blue-500 rounded-r-full xl:hidden" />
+            )}
             <div className="w-[56px] min-w-[56px] flex items-center justify-center shrink-0">
                {group.icon}
             </div>
             <div className="whitespace-nowrap overflow-hidden flex-1 flex items-center justify-between pr-3">
                <span
-                  className={`
-                  text-sm font-medium tracking-wide transition-opacity duration-300
-                  ${
+                  className={`text-sm font-medium tracking-wide transition-opacity duration-300 ${
                      variant === 'desktop'
                         ? 'opacity-0 w-0 xl:w-auto xl:opacity-100'
                         : 'opacity-100 w-auto'
-                  }
-               `}
+                  }`}
                >
                   {group.name}
                </span>
                <div
-                  className={`
-                   transition-transform duration-200
-                   ${
-                      variant === 'desktop'
-                         ? 'opacity-0 w-0 xl:w-auto xl:opacity-100'
-                         : 'opacity-100 w-auto'
-                   }
-                   ${isExpanded ? 'rotate-0' : '-rotate-90'}
-                   `}
+                  className={`transition-transform duration-200 ${
+                     variant === 'desktop'
+                        ? 'opacity-0 w-0 xl:w-auto xl:opacity-100'
+                        : 'opacity-100 w-auto'
+                  } ${isExpanded ? 'rotate-0' : '-rotate-90'}`}
                >
                   <HiOutlineChevronDown size={16} />
                </div>
             </div>
          </button>
 
-         {/* Children - Expanded Mode (Mobile or Desktop Large) */}
          <div
-            className={`
-               overflow-hidden transition-all duration-300 ease-in-out flex flex-col gap-1
-               ${isExpanded ? 'max-h-[500px] opacity-100 mt-1' : 'max-h-0 opacity-0'}
-               ${variant === 'desktop' ? 'xl:block hidden' : 'block'} 
-            `}
+            className={`overflow-hidden transition-all duration-300 ease-in-out flex flex-col gap-1 ${
+               isExpanded ? 'max-h-[500px] opacity-100 mt-1' : 'max-h-0 opacity-0'
+            } ${variant === 'desktop' ? 'xl:block hidden' : 'block'}`}
          >
             {group.items.map(item => (
                <NavLink
                   key={item.path}
                   to={item.path}
-                  className={({ isActive }) => `
-                     flex items-center h-9 pl-[56px] pr-2 rounded-lg transition-all duration-200
-                     ${
+                  className={({ isActive }) =>
+                     `flex items-center h-10 px-3 ml-[40px] rounded-lg transition-all duration-200 ${
                         isActive
-                           ? 'text-blue-400 bg-blue-500/10'
-                           : 'text-zinc-500 hover:text-zinc-300'
-                     }
-                  `}
+                           ? 'text-blue-400 bg-blue-500/10 font-medium'
+                           : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800'
+                     }`
+                  }
                >
                   <span className="text-sm truncate">{item.name}</span>
                </NavLink>
             ))}
          </div>
 
-         {/* Children - Mini Mode (Desktop Small) - Popover */}
-         {variant === 'desktop' && (
-            <div
-               className={`
-                  absolute left-[60px] top-0 z-50 bg-zinc-900 border border-zinc-800 rounded-xl shadow-xl p-2 w-48
-                  transition-all duration-200 origin-top-left
-                  ${
-                     isHovered
-                        ? 'opacity-100 scale-100 visible pointer-events-auto'
-                        : 'opacity-0 scale-95 invisible pointer-events-none'
-                  }
-                  xl:hidden
-               `}
-            >
-               <div className="px-3 py-2 border-b border-zinc-800 mb-2">
-                  <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
-                     {group.name}
-                  </span>
-               </div>
-               <div className="flex flex-col gap-1">
-                  {group.items.map(item => (
-                     <NavLink
-                        key={item.path}
-                        to={item.path}
-                        className={({ isActive }) => `
-                           flex items-center h-9 px-3 rounded-lg transition-all duration-200
-                           ${
-                              isActive
-                                 ? 'text-blue-400 bg-blue-500/10'
-                                 : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800'
+         {variant === 'desktop' &&
+            isExpanded &&
+            popoverCoords &&
+            !isXlScreen &&
+            createPortal(
+               <div
+                  ref={popoverRef}
+                  style={{
+                     position: 'fixed',
+                     top: popoverCoords.top,
+                     left: popoverCoords.left,
+                     zIndex: 60,
+                  }}
+                  className="bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl p-2 w-52 origin-left animate-in fade-in zoom-in-95 duration-100"
+               >
+                  <div className="absolute -left-1.5 top-3.5 w-3 h-3 bg-zinc-900 border-l border-t border-zinc-800 transform rotate-[-45deg] rounded-sm" />
+                  <div className="px-3 py-2 border-b border-zinc-800 mb-2 bg-zinc-900/50 rounded-t-lg">
+                     <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-2">
+                        {group.icon} {group.name}
+                     </span>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                     {group.items.map(item => (
+                        <NavLink
+                           key={item.path}
+                           to={item.path}
+                           onClick={() => setOpenGroupName(null)}
+                           className={({ isActive }) =>
+                              `flex items-center h-10 px-3 rounded-lg transition-all duration-200 ${
+                                 isActive
+                                    ? 'text-blue-400 bg-blue-500/10 font-medium'
+                                    : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800'
+                              }`
                            }
-                        `}
-                     >
-                        <span className="text-sm">{item.name}</span>
-                     </NavLink>
-                  ))}
-               </div>
-            </div>
-         )}
+                        >
+                           <span className="text-sm">{item.name}</span>
+                        </NavLink>
+                     ))}
+                  </div>
+               </div>,
+               document.body,
+            )}
       </div>
    );
 };
@@ -264,99 +307,83 @@ const SidebarContent = ({ variant }: { variant: 'mobile' | 'desktop' }) => {
    const { user } = useAuthStore();
    const navigate = useNavigate();
    const { user: currentUser } = useAuthStore();
+   const [openGroupName, setOpenGroupName] = useState<string | null>(null);
+   const [isXlScreen, setIsXlScreen] = useState(window.innerWidth >= 1280);
 
-   // State for expanded groups
-   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
-
-   const toggleGroup = (groupName: string) => {
-      setExpandedGroups(prev => ({
-         ...prev,
-         [groupName]: !prev[groupName],
-      }));
-   };
+   useEffect(() => {
+      const mediaQuery = window.matchMedia('(min-width: 1280px)');
+      const handleResize = () => setIsXlScreen(mediaQuery.matches);
+      mediaQuery.addEventListener('change', handleResize);
+      return () => mediaQuery.removeEventListener('change', handleResize);
+   }, []);
 
    const getDisplayRole = () => {
       if (user?.job_title) return user.job_title;
-      switch (user?.role) {
-         case 'super_admin':
-            return 'Propietario';
-         case 'admin':
-            return 'Administrador';
-         case 'cashier':
-            return 'Asesor comercial';
-         default:
-            return 'Usuario';
-      }
+      return user?.role === 'super_admin'
+         ? 'Propietario'
+         : user?.role === 'admin'
+         ? 'Administrador'
+         : 'Asesor comercial';
    };
 
-   // Separate fixed items from groups
    const fixedItems = navigation.filter(item => !('items' in item)) as NavItem[];
    const groupItems = navigation.filter(item => 'items' in item) as NavGroup[];
 
    return (
       <div className="flex flex-col h-full w-full bg-zinc-950">
-         {/* HEADER */}
          <div className="h-20 flex items-center shrink-0 relative px-0">
             <a href="/" className="flex items-center h-full w-full overflow-hidden group">
                <div className="w-[72px] min-w-[72px] h-full flex items-center justify-center shrink-0 z-20 bg-zinc-950">
                   <Logo showText={false} />
                </div>
                <span
-                  className={`
-                  font-bold text-lg text-zinc-400 tracking-tight whitespace-nowrap overflow-hidden transition-all duration-300
-                  ${
+                  className={`font-bold text-lg text-zinc-400 tracking-tight whitespace-nowrap overflow-hidden transition-all duration-300 ${
                      variant === 'desktop'
                         ? 'w-0 opacity-0 xl:w-auto xl:opacity-100'
                         : 'w-auto opacity-100'
-                  }
-               `}
+                  }`}
                >
                   SmartPOS
                </span>
             </a>
          </div>
 
-         {/* NAV */}
-         <div className="flex flex-col flex-grow overflow-y-auto overflow-x-hidden custom-scrollbar py-4">
+         <div
+            className="flex flex-col flex-grow overflow-y-auto overflow-x-hidden custom-scrollbar py-4"
+            onMouseLeave={() => !isXlScreen && setOpenGroupName(null)}
+         >
             <nav className="flex flex-col gap-1">
-               {/* Fixed Items */}
                {fixedItems.map(item => (
                   <SidebarItem key={item.path} item={item} variant={variant} />
                ))}
-
-               {/* Separator */}
                {fixedItems.length > 0 && groupItems.length > 0 && (
                   <div className="mx-4 my-2 border-t border-zinc-800/50" />
                )}
-
-               {/* Group Items */}
                {groupItems.map(group => (
                   <SidebarGroup
                      key={group.name}
                      group={group}
                      variant={variant}
-                     isExpanded={!!expandedGroups[group.name]}
-                     onToggle={() => toggleGroup(group.name)}
+                     isXlScreen={isXlScreen}
+                     openGroupName={openGroupName}
+                     setOpenGroupName={setOpenGroupName}
                   />
                ))}
             </nav>
          </div>
 
-         {/* FOOTER (Admin + Profile) */}
          <div className="mt-auto shrink-0 overflow-hidden">
-            {/* Admin Items - Only for non-cashiers */}
             {currentUser?.role !== 'cashier' && (
                <div className="px-2 pb-2 border-t border-zinc-900 pt-2">
                   <NavLink
                      to="/users"
-                     className={({ isActive }) => `
-                        group flex items-center h-10 mx-0 rounded-xl transition-all duration-200 overflow-hidden shrink-0 relative
-                        ${
+                     className={({ isActive }) =>
+                        `group flex items-center h-10 mx-0 rounded-xl transition-all duration-200 overflow-hidden shrink-0 relative ${
                            isActive
                               ? 'bg-zinc-800 text-white shadow-sm ring-1 ring-zinc-700/50'
                               : 'text-zinc-500 hover:bg-zinc-900 hover:text-zinc-200'
-                        }
-                     `}
+                        }`
+                     }
                      title="Equipo"
                   >
                      <div className="w-[56px] min-w-[56px] flex items-center justify-center shrink-0">
@@ -364,30 +391,25 @@ const SidebarContent = ({ variant }: { variant: 'mobile' | 'desktop' }) => {
                      </div>
                      <div className="whitespace-nowrap overflow-hidden w-full">
                         <span
-                           className={`
-                           text-sm font-medium tracking-wide pr-4 block transition-opacity duration-300
-                           ${
+                           className={`text-sm font-medium tracking-wide pr-4 block transition-opacity duration-300 ${
                               variant === 'desktop'
                                  ? 'opacity-0 w-0 xl:w-auto xl:opacity-100'
                                  : 'opacity-100 w-auto'
-                           }
-                        `}
+                           }`}
                         >
                            Equipo
                         </span>
                      </div>
                   </NavLink>
-
                   <NavLink
                      to="/settings"
-                     className={({ isActive }) => `
-                        group flex items-center h-10 mx-0 mt-1 rounded-xl transition-all duration-200 overflow-hidden shrink-0 relative
-                        ${
+                     className={({ isActive }) =>
+                        `group flex items-center h-10 mx-0 mt-1 rounded-xl transition-all duration-200 overflow-hidden shrink-0 relative ${
                            isActive
                               ? 'bg-zinc-800 text-white shadow-sm ring-1 ring-zinc-700/50'
                               : 'text-zinc-500 hover:bg-zinc-900 hover:text-zinc-200'
-                        }
-                     `}
+                        }`
+                     }
                      title="Configuración"
                   >
                      <div className="w-[56px] min-w-[56px] flex items-center justify-center shrink-0">
@@ -395,14 +417,11 @@ const SidebarContent = ({ variant }: { variant: 'mobile' | 'desktop' }) => {
                      </div>
                      <div className="whitespace-nowrap overflow-hidden w-full">
                         <span
-                           className={`
-                           text-sm font-medium tracking-wide pr-4 block transition-opacity duration-300
-                           ${
+                           className={`text-sm font-medium tracking-wide pr-4 block transition-opacity duration-300 ${
                               variant === 'desktop'
                                  ? 'opacity-0 w-0 xl:w-auto xl:opacity-100'
                                  : 'opacity-100 w-auto'
-                           }
-                        `}
+                           }`}
                         >
                            Configuración
                         </span>
@@ -410,18 +429,16 @@ const SidebarContent = ({ variant }: { variant: 'mobile' | 'desktop' }) => {
                   </NavLink>
                </div>
             )}
-
-            {/* User Profile */}
-            <div className="p-4 border-t border-zinc-900">
+            <div className="p-2 border-t border-zinc-900">
                <button
                   onClick={() => navigate('/profile')}
-                  className="flex items-center rounded-xl transition-all duration-300 p-0 -mx-2 h-10 w-full hover:bg-zinc-900 group/user text-left"
+                  className="flex items-center rounded-xl transition-all duration-300 h-14 w-full hover:bg-zinc-900 group/user text-left cursor-pointer"
                >
                   <div className="w-[56px] min-w-[56px] flex items-center justify-center shrink-0">
                      {user?.avatar_url ? (
                         <img
                            src={user.avatar_url}
-                           alt={user.full_name}
+                           alt={user.full_name || ''}
                            className="w-8 h-8 rounded-full object-cover border border-zinc-700/50"
                         />
                      ) : (
@@ -431,14 +448,11 @@ const SidebarContent = ({ variant }: { variant: 'mobile' | 'desktop' }) => {
                      )}
                   </div>
                   <div
-                     className={`
-                     flex flex-col overflow-hidden whitespace-nowrap transition-all duration-300 flex-1
-                     ${
+                     className={`flex flex-col overflow-hidden whitespace-nowrap transition-all duration-300 flex-1 ${
                         variant === 'desktop'
                            ? 'w-0 opacity-0 xl:w-auto xl:opacity-100'
                            : 'w-auto opacity-100'
-                     }
-                  `}
+                     }`}
                   >
                      <span className="text-sm font-bold text-zinc-300 truncate group-hover/user:text-white">
                         {user?.full_name || 'Usuario'}
@@ -464,38 +478,24 @@ export const Sidebar = () => {
 
    return (
       <>
-         {/* MOBILE OVERLAY */}
          <div className="md:hidden">
             <div
-               className={`
-                  fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity duration-300
-                  ${
-                     isMobileMenuOpen
-                        ? 'opacity-100 pointer-events-auto'
-                        : 'opacity-0 pointer-events-none'
-                  }
-               `}
+               className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity duration-300 ${
+                  isMobileMenuOpen
+                     ? 'opacity-100 pointer-events-auto'
+                     : 'opacity-0 pointer-events-none'
+               }`}
                onClick={closeMobileMenu}
             />
             <aside
-               className={`
-                  fixed inset-y-0 left-0 z-50 w-64 border-r border-zinc-800
-                  transition-transform duration-300 ease-in-out will-change-transform
-                  ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
-               `}
+               className={`fixed inset-y-0 left-0 z-50 w-64 border-r border-zinc-800 transition-transform duration-300 ease-in-out will-change-transform ${
+                  isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+               }`}
             >
                <SidebarContent variant="mobile" />
             </aside>
          </div>
-
-         {/* DESKTOP SIDEBAR */}
-         <aside
-            className={`
-               hidden md:flex flex-col shrink-0 h-screen sticky top-0 border-r border-zinc-800
-               transition-[width] duration-300 ease-in-out
-               md:w-[72px] xl:w-64 overflow-visible z-30 bg-zinc-950
-            `}
-         >
+         <aside className="hidden md:flex flex-col shrink-0 h-screen sticky top-0 border-r border-zinc-800 transition-[width] duration-300 ease-in-out md:w-[72px] xl:w-64 z-30 bg-zinc-950">
             <div className="w-full h-full">
                <SidebarContent variant="desktop" />
             </div>
