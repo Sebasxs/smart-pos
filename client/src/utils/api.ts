@@ -1,14 +1,17 @@
 import { useAuthStore } from '../store/authStore';
 
 export const authenticatedFetch = async (url: string, options: RequestInit = {}) => {
-   const { getAccessToken, logout } = useAuthStore.getState();
+   const store = useAuthStore.getState();
 
-   const token = await getAccessToken();
+   // Intentamos obtener el token fresco
+   // Si es admin y el token expiró, esto intentará refrescarlo internamente
+   // Si falla el refresh, getAccessToken ejecutará logout() y retornará null.
+   const token = await store.getAccessToken();
 
    if (!token) {
-      console.warn('No hay token válido, cerrando sesión...');
-      logout();
-      throw new Error('Sesión expirada');
+      // Ya se ejecutó logout dentro de getAccessToken si falló,
+      // pero por seguridad lanzamos error para detener la ejecución del componente.
+      throw new Error('Sesión finalizada');
    }
 
    const headers = {
@@ -17,15 +20,22 @@ export const authenticatedFetch = async (url: string, options: RequestInit = {})
       'Content-Type': 'application/json',
    };
 
-   const response = await fetch(url, {
-      ...options,
-      headers,
-   });
+   try {
+      const response = await fetch(url, {
+         ...options,
+         headers,
+      });
 
-   if (response.status === 401) {
-      logout();
-      throw new Error('Sesión inválida');
+      // Interceptor Global de Errores de Sesión
+      if (response.status === 401 || response.status === 403) {
+         console.warn('Respuesta 401/403 detectada. Cerrando sesión...');
+         store.logout();
+         throw new Error('Tu sesión ha expirado. Por favor ingresa nuevamente.');
+      }
+
+      return response;
+   } catch (error) {
+      // Si es un error de red o fetch falla
+      throw error;
    }
-
-   return response;
 };
