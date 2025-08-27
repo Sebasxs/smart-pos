@@ -27,10 +27,8 @@ interface AuthState {
    getAccessToken: () => Promise<string | null>;
 }
 
-// Adaptador de almacenamiento inteligente
 const smartStorage: StateStorage = {
    getItem: (name: string): string | null => {
-      // Intentar buscar en ambos, dando prioridad a Local (Admin)
       return localStorage.getItem(name) || sessionStorage.getItem(name) || null;
    },
    setItem: (name: string, value: string): void => {
@@ -39,16 +37,13 @@ const smartStorage: StateStorage = {
          const role = parsed.state?.user?.role;
 
          if (role === 'cashier') {
-            // Cajeros: Session Storage (Se borra al cerrar pestaña)
             sessionStorage.setItem(name, value);
-            localStorage.removeItem(name); // Limpiar rastro anterior
+            localStorage.removeItem(name);
          } else {
-            // Admins/Otros: Local Storage (Persistente)
             localStorage.setItem(name, value);
-            sessionStorage.removeItem(name); // Limpiar rastro anterior
+            sessionStorage.removeItem(name);
          }
       } catch (e) {
-         // Fallback por seguridad
          localStorage.setItem(name, value);
       }
    },
@@ -72,11 +67,9 @@ export const useAuthStore = create<AuthState>()(
          logout: async () => {
             set({ user: null, token: null, isAuthenticated: false });
 
-            // Limpiar ambos storages
             localStorage.removeItem('auth-storage');
             sessionStorage.removeItem('auth-storage');
 
-            // Limpiar cache de Supabase
             Object.keys(localStorage).forEach(key => {
                if (key.startsWith('sb-')) localStorage.removeItem(key);
             });
@@ -90,22 +83,18 @@ export const useAuthStore = create<AuthState>()(
 
          checkSession: async () => {
             try {
-               // Para cajeros, la sesión es local y se valida solo con el token almacenado
                if (get().user?.role === 'cashier') {
                   return;
                }
 
-               // Para Admins (OAuth), verificamos con Supabase
                const { data, error } = await supabase.auth.getSession();
 
                if (error || !data.session) {
-                  // Si hay error o no hay sesión, logout
                   console.warn('Sesión inválida o expirada:', error);
                   get().logout();
                   return;
                }
 
-               // Si la sesión es válida, actualizamos perfil y token si cambió
                if (data.session.access_token !== get().token) {
                   set({ token: data.session.access_token });
                }
@@ -152,22 +141,16 @@ export const useAuthStore = create<AuthState>()(
          getAccessToken: async () => {
             const state = get();
 
-            // 1. Caso Cajero: Devolver token estático (JWT expirará en backend a las 12h)
             if (state.user?.role === 'cashier') {
                return state.token;
             }
-
-            // 2. Caso Admin (Supabase): Obtener sesión ACTIVA
-            // getSession() maneja automáticamente el refresh token si el access token expiró.
             const { data, error } = await supabase.auth.getSession();
 
             if (error || !data.session) {
-               // Si no se pudo refrescar (ej. pasaron 30 días o revocaron acceso), logout inmediato
                get().logout();
                return null;
             }
 
-            // Actualizar el store si el token cambió (refresh ocurrió)
             if (data.session.access_token !== state.token) {
                set({ token: data.session.access_token });
             }
@@ -192,7 +175,6 @@ export const useAuthStore = create<AuthState>()(
       }),
       {
          name: 'auth-storage',
-         // Usamos el storage inteligente definido arriba
          storage: createJSONStorage(() => smartStorage),
          partialize: state => ({
             user: state.user,
