@@ -32,17 +32,23 @@ import { useCashShiftStore } from './store/cashShiftStore';
 
 function ProtectedLayout({ children }: { children: React.ReactNode }) {
    const { isAuthenticated } = useAuthStore();
+   const { checkShiftStatus } = useCashShiftStore();
    const location = useLocation();
+
+   useEffect(() => {
+      if (isAuthenticated) {
+         checkShiftStatus();
+      }
+   }, [isAuthenticated]);
 
    if (!isAuthenticated) {
       return <Navigate to="/login" state={{ from: location }} replace />;
    }
 
    return (
-      <div className="h-screen w-screen bg-zinc-950 flex flex-col md:flex-row text-zinc-200 font-sans antialiased selection:bg-blue-500/30 overflow-hidden">
+      <div className="h-screen w-screen bg-zinc-950 flex flex-col md:flex-row text-zinc-200 font-sans antialiased overflow-hidden">
          <MobileNavbar />
          <Sidebar />
-
          <main className="flex-1 p-2 md:p-4 lg:p-6 overflow-y-auto overflow-x-hidden relative w-full">
             {children}
          </main>
@@ -64,11 +70,13 @@ function App() {
 
       checkSession()
          .then(() => {
-            useCashShiftStore.getState().checkShiftStatus();
+            if (isAuthenticated) {
+               useCashShiftStore.getState().checkShiftStatus();
+            }
          })
          .finally(() => {
-            clearTimeout(timer);
             setIsChecking(false);
+            clearTimeout(timer);
          });
 
       return () => {
@@ -77,7 +85,7 @@ function App() {
       };
    }, []);
 
-   if (isChecking && !isAuthenticated) {
+   if (isChecking) {
       return <FullPageLoader message="Iniciando sistema..." />;
    }
 

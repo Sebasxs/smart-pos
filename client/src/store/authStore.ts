@@ -66,36 +66,29 @@ export const useAuthStore = create<AuthState>()(
 
          logout: async () => {
             set({ user: null, token: null, isAuthenticated: false });
-
             localStorage.removeItem('auth-storage');
             sessionStorage.removeItem('auth-storage');
-
-            Object.keys(localStorage).forEach(key => {
-               if (key.startsWith('sb-')) localStorage.removeItem(key);
-            });
-
-            await supabase.auth.signOut().catch(err => {
-               console.warn('Supabase signOut warning:', err);
-            });
-
-            window.location.href = '/login';
+            supabase.auth.signOut().catch(console.warn);
          },
 
          checkSession: async () => {
             try {
-               if (get().user?.role === 'cashier') {
+               const state = get();
+
+               if (state.user?.role === 'cashier' && state.token) {
                   return;
                }
 
                const { data, error } = await supabase.auth.getSession();
 
                if (error || !data.session) {
-                  console.warn('Sesión inválida o expirada:', error);
-                  get().logout();
+                  if (state.isAuthenticated) {
+                     get().logout();
+                  }
                   return;
                }
 
-               if (data.session.access_token !== get().token) {
+               if (data.session.access_token !== state.token) {
                   set({ token: data.session.access_token });
                }
 
@@ -130,8 +123,6 @@ export const useAuthStore = create<AuthState>()(
                   });
 
                   usePreferencesStore.getState().loadPreferencesFromProfile(profile.preferences);
-               } else {
-                  console.error('Error fetching profile:', error);
                }
             } catch (e) {
                console.error('Fetch profile exception:', e);
@@ -141,20 +132,20 @@ export const useAuthStore = create<AuthState>()(
          getAccessToken: async () => {
             const state = get();
 
-            if (state.user?.role === 'cashier') {
+            if (state.token) {
                return state.token;
             }
-            const { data, error } = await supabase.auth.getSession();
-
-            if (error || !data.session) {
-               get().logout();
+            if (state.user?.role === 'cashier') {
                return null;
             }
 
-            if (data.session.access_token !== state.token) {
-               set({ token: data.session.access_token });
+            const { data, error } = await supabase.auth.getSession();
+
+            if (error || !data.session) {
+               return null;
             }
 
+            set({ token: data.session.access_token });
             return data.session.access_token;
          },
 

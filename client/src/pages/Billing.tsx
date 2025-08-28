@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { HiOutlineComputerDesktop, HiOutlineBanknotes } from 'react-icons/hi2';
+import { Loader2 } from 'lucide-react';
 
 // Components
 import { InvoiceTable } from '../components/billing/InvoiceTable';
@@ -59,9 +60,8 @@ export const Billing = () => {
    const [isProcessing, setIsProcessing] = useState(false);
    const [generatedInvoiceId, setGeneratedInvoiceId] = useState<number | undefined>(undefined);
    const [errorMessage, setErrorMessage] = useState('');
-   const [openingAmount, setOpeningAmount] = useState<number | null>(
-      preferences.defaultOpeningCash || 0,
-   );
+   const [openingAmount, setOpeningAmount] = useState<number | null>(null);
+   const [shiftError, setShiftError] = useState<string | null>(null);
 
    const subtotal = useMemo(
       () => items.reduce((acc, item) => acc + item.price * item.quantity, 0),
@@ -212,7 +212,7 @@ export const Billing = () => {
    };
 
    useEffect(() => {
-      if (preferences.defaultOpeningCash > 0 && openingAmount === 0) {
+      if (preferences.defaultOpeningCash > 0 && openingAmount === null) {
          setOpeningAmount(preferences.defaultOpeningCash);
       }
    }, [preferences.defaultOpeningCash]);
@@ -261,6 +261,17 @@ export const Billing = () => {
    const finalizedChange =
       finalizedCashPayment && finalizedCashAmount > total ? finalizedCashAmount - total : 0;
 
+   if (shiftLoading && !isOpen) {
+      return (
+         <div className="flex h-full w-full items-center justify-center bg-zinc-950">
+            <div className="flex flex-col items-center gap-3">
+               <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+               <p className="text-sm text-zinc-500 font-medium">Verificando turno de caja...</p>
+            </div>
+         </div>
+      );
+   }
+
    // --- CASH SHIFT BLOCKING ---
    if (!isOpen) {
       return (
@@ -282,18 +293,36 @@ export const Billing = () => {
                   <div className="bg-zinc-950 p-1 rounded-xl border border-zinc-800">
                      <SmartNumberInput
                         value={openingAmount}
-                        onValueChange={setOpeningAmount}
+                        onValueChange={val => {
+                           setOpeningAmount(val);
+                           setShiftError(null);
+                        }}
                         variant="currency"
                         placeholder="0"
-                        className="[&>input]:text-center [&>input]:text-xl [&>input]:font-bold [&>input]:bg-transparent [&>input]:border-none [&>input]:py-3"
+                        className="[&>input]:text-center [&>input]:text-xl [&>input]:font-bold [&>input]:bg-transparent [&>input]:border-none [&>input]:py-3 [&>input]:w-full"
                      />
                   </div>
 
+                  {shiftError && (
+                     <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
+                        {shiftError}
+                     </div>
+                  )}
+
                   <Button
-                     onClick={() => openShift(openingAmount || 0)}
+                     onClick={async () => {
+                        setShiftError(null);
+                        try {
+                           await openShift(openingAmount || 0);
+                        } catch (e: any) {
+                           console.error('Falló la apertura:', e);
+                           const msg = e.message || 'Error al abrir el turno. Intente nuevamente.';
+                           setShiftError(msg);
+                        }
+                     }}
                      disabled={shiftLoading}
                      isLoading={shiftLoading}
-                     className="w-full py-3.5 text-base shadow-blue-900/20"
+                     className="w-full py-3.5 text-base shadow-blue-900/20 cursor-pointer"
                   >
                      Iniciar Turno
                   </Button>
@@ -316,7 +345,7 @@ export const Billing = () => {
             `}
             onClick={() => setIsClientSearchFocused(false)}
          />
-         {/* PAGE HEADER WITH CLIENT SEARCH */}
+         {/* HEADER */}
          <div className="flex flex-col md:flex-row md:items-end justify-between relative">
             <div className="flex items-center gap-3">
                <div className="p-3 bg-blue-500/10 rounded-xl text-blue-400">
@@ -367,7 +396,7 @@ export const Billing = () => {
          </div>
 
          <div className="flex flex-col lg:flex-row gap-4 lg:flex-1 lg:min-h-0 lg:overflow-hidden pb-2">
-            {/* 2. TABLA DE PRODUCTOS */}
+            {/* PRODUCT TABLE */}
             <div className="h-[500px] lg:h-full flex-1 flex flex-col bg-zinc-900/50 rounded-xl border border-zinc-800 shadow-sm overflow-hidden min-h-0 shrink-0">
                <div className="flex-1 relative bg-zinc-900/50 h-full min-h-0">
                   <InvoiceTable
@@ -379,7 +408,7 @@ export const Billing = () => {
                </div>
             </div>
 
-            {/* 3. RESUMEN */}
+            {/* SUMMARY */}
             <aside className="w-full lg:w-[340px] lg:shrink-0 flex flex-col h-fit lg:max-h-full lg:overflow-y-auto custom-scrollbar pr-1">
                <div className="flex flex-col md:flex-row lg:flex-col gap-4 w-full shrink-0">
                   <div className="w-full md:flex-1">
@@ -399,7 +428,7 @@ export const Billing = () => {
                   />
                </div>
 
-               {/* Leyenda de Atajos */}
+               {/* LEGEND */}
                <div className="mt-4 px-2 grid grid-cols-3 gap-2 text-xs text-zinc-600 text-center uppercase tracking-wide opacity-75 shrink-0">
                   <div>
                      <span className="font-bold text-zinc-500">C</span> Cliente
@@ -414,7 +443,7 @@ export const Billing = () => {
             </aside>
          </div>
 
-         {/* 4. MODALES */}
+         {/* MODALS */}
          <ProductSearchModal
             isOpen={modals.productSearch}
             onClose={() => toggleModal('productSearch', false)}

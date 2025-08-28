@@ -5,6 +5,7 @@ import { supabase } from '../utils/supabase';
 import { KeyRound, LogIn, Loader2 } from 'lucide-react';
 import clsx from 'clsx';
 import { FullPageLoader } from '../components/ui/FullPageLoader';
+import { useCashShiftStore } from '../store/cashShiftStore';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -67,6 +68,8 @@ export const Login = () => {
          }
 
          login(data.user, data.token);
+         await useCashShiftStore.getState().checkShiftStatus();
+         navigate('/billing', { replace: true });
       } catch (err: any) {
          setError(err.message);
       } finally {

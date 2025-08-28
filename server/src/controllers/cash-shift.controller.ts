@@ -15,7 +15,8 @@ export const openShift = async (req: Request, res: Response) => {
          .select('id')
          .eq('user_id', userId)
          .eq('status', 'open')
-         .maybeSingle();
+         .maybeSingle()
+         .setHeader('Authorization', `Bearer ${req.token}`);
 
       if (existingShift) {
          return res
@@ -31,7 +32,8 @@ export const openShift = async (req: Request, res: Response) => {
             status: 'open',
          })
          .select('id')
-         .single();
+         .single()
+         .setHeader('Authorization', `Bearer ${req.token}`);
 
       if (error) throw error;
 
@@ -56,27 +58,26 @@ export const closeShift = async (req: Request, res: Response) => {
          .select('*')
          .eq('user_id', userId)
          .eq('status', 'open')
-         .single();
+         .single()
+         .setHeader('Authorization', `Bearer ${req.token}`);
 
-      if (!shift) {
-         return res
-            .status(404)
-            .json({ error: 'No se encontró un turno abierto para este usuario' });
-      }
+      if (!shift) return res.status(404).json({ error: 'No se encontró turno abierto' });
 
       const { data: payments } = await supabase
          .from('sale_payments')
          .select('amount, sales_invoices!inner(status)')
          .eq('cash_shift_id', shift.id)
          .eq('method', 'cash')
-         .eq('sales_invoices.status', 'paid');
+         .eq('sales_invoices.status', 'paid')
+         .setHeader('Authorization', `Bearer ${req.token}`);
 
       const salesCashIn = payments?.reduce((sum, p) => sum + Number(p.amount), 0) || 0;
 
       const { data: movements } = await supabase
          .from('cash_shift_movements')
          .select('amount')
-         .eq('cash_shift_id', shift.id);
+         .eq('cash_shift_id', shift.id)
+         .setHeader('Authorization', `Bearer ${req.token}`);
 
       const manualIn =
          movements?.filter(m => m.amount > 0).reduce((sum, m) => sum + Number(m.amount), 0) || 0;
@@ -97,7 +98,8 @@ export const closeShift = async (req: Request, res: Response) => {
          })
          .eq('id', shift.id)
          .select()
-         .single();
+         .single()
+         .setHeader('Authorization', `Bearer ${req.token}`);
 
       if (updateError) throw updateError;
 
@@ -201,7 +203,7 @@ export const registerMovement = async (req: Request, res: Response) => {
          .from('cash_shift_movements')
          .insert({
             cash_shift_id,
-            amount, // Amount should be signed from frontend (positive for income, negative for expense)
+            amount,
             reason,
          })
          .select()
@@ -261,7 +263,7 @@ export const getShiftDetails = async (req: Request, res: Response) => {
       const expectedCash = openingAmount + salesCash + manualIncome - manualExpense;
 
       res.json({
-         shift,
+         ...shift,
          movements: movements || [],
          payments: payments || [],
          summary: {

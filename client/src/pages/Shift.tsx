@@ -9,47 +9,42 @@ import {
    HiOutlineClock,
    HiOutlineLockClosed,
    HiOutlineReceiptPercent,
+   HiOutlineExclamationTriangle,
 } from 'react-icons/hi2';
 import { Modal } from '../components/ui/Modal';
 import { Button } from '../components/ui/Button';
 import { formatDateTime, formatTime } from '../utils/date';
+import { Loader2 } from 'lucide-react';
 
 export const Shift = () => {
    const {
       shiftData,
       isOpen,
-      loading,
-      checkShiftStatus,
+      isFetchingDetails,
+      shiftId,
+      error,
       refreshShiftDetails,
       registerMovement,
       closeShift,
    } = useCashShiftStore();
 
-   // Form States
    const [movementAmount, setMovementAmount] = useState<number | null>(null);
    const [movementType, setMovementType] = useState<'income' | 'expense'>('expense');
    const [movementReason, setMovementReason] = useState('');
    const [isSubmittingMovement, setIsSubmittingMovement] = useState(false);
-
-   // Modal States
    const [isCloseModalOpen, setIsCloseModalOpen] = useState(false);
    const [closingAmount, setClosingAmount] = useState<number | null>(null);
    const [isClosingShift, setIsClosingShift] = useState(false);
 
    useEffect(() => {
-      checkShiftStatus();
-   }, []);
-
-   useEffect(() => {
-      if (isOpen) {
+      if (isOpen && shiftId && !shiftData) {
          refreshShiftDetails();
       }
-   }, [isOpen]);
+   }, [isOpen, shiftId, shiftData]);
 
    const handleRegisterMovement = async (e: React.FormEvent) => {
       e.preventDefault();
       if (!movementAmount || !movementReason) return;
-
       setIsSubmittingMovement(true);
       try {
          await registerMovement(movementAmount, movementType, movementReason);
@@ -78,7 +73,6 @@ export const Shift = () => {
    const activityLog = useMemo(() => {
       if (!shiftData) return [];
       const { movements, payments } = shiftData;
-
       const combined = [
          ...(movements || []).map((m: any) => ({
             id: m.id,
@@ -90,26 +84,41 @@ export const Shift = () => {
          ...(payments || []).map((p: any) => ({
             id: p.id,
             type: 'sale',
-            description: `Venta #${
-               p.sales_invoices?.invoice_number || p.sales_invoices?.id?.slice(0, 8) || 'N/A'
-            }`,
+            description: `Venta #${p.sales_invoices?.invoice_number || 'N/A'}`,
             amount: Number(p.amount),
             time: p.created_at,
          })),
       ];
-
       return combined.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
    }, [shiftData]);
 
-   if (loading && !shiftData) {
+   if (isFetchingDetails && !shiftData) {
       return (
-         <div className="flex h-full items-center justify-center text-zinc-500 animate-pulse">
-            Cargando información del turno...
+         <div className="flex h-full flex-col items-center justify-center gap-3 text-zinc-500 animate-in fade-in duration-300">
+            <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+            <span className="font-medium">Sincronizando caja...</span>
          </div>
       );
    }
 
-   if (!isOpen || !shiftData) {
+   if (error && !shiftData) {
+      return (
+         <div className="flex h-full flex-col items-center justify-center gap-4 text-zinc-500">
+            <div className="p-4 bg-red-500/10 rounded-full text-red-400">
+               <HiOutlineExclamationTriangle size={32} />
+            </div>
+            <div className="text-center">
+               <p className="text-lg font-medium text-zinc-300">Error al cargar turno</p>
+               <p className="text-sm max-w-xs mx-auto mb-4">{error}</p>
+               <Button onClick={() => refreshShiftDetails(true)} variant="secondary">
+                  Reintentar
+               </Button>
+            </div>
+         </div>
+      );
+   }
+
+   if (!isOpen || (!shiftData && !isFetchingDetails)) {
       return (
          <div className="flex flex-col items-center justify-center h-full text-zinc-500 gap-4 bg-zinc-900/20 rounded-xl border border-dashed border-zinc-800 m-4">
             <div className="p-4 bg-zinc-900 rounded-full border border-zinc-800">
@@ -123,6 +132,14 @@ export const Shift = () => {
       );
    }
 
+   if (!shiftData) {
+      return (
+         <div className="flex h-full flex-col items-center justify-center gap-3 text-zinc-500">
+            <Loader2 className="h-8 w-8 animate-spin text-zinc-600" />
+         </div>
+      );
+   }
+
    const { summary } = shiftData;
 
    return (
@@ -132,6 +149,7 @@ export const Shift = () => {
             <div>
                <h1 className="text-2xl font-bold text-white flex items-center gap-2">
                   Control de Caja
+                  {isFetchingDetails && <Loader2 className="h-4 w-4 animate-spin text-zinc-500" />}
                </h1>
                <div className="flex items-center gap-3 text-zinc-400 text-sm mt-1">
                   <div className="flex items-center gap-1.5 bg-zinc-900/50 px-2.5 py-1 rounded-md border border-zinc-800">
@@ -144,13 +162,24 @@ export const Shift = () => {
                      </span>
                   </div>
                   <span className="text-xs font-mono text-zinc-600">
-                     ID: {shiftData.id.slice(0, 8)}
+                     ID: {shiftData.id?.slice(0, 8)}
                   </span>
                </div>
             </div>
-            <Button variant="danger" onClick={() => setIsCloseModalOpen(true)}>
-               Cerrar Turno
-            </Button>
+            <div className="flex gap-2">
+               <Button
+                  variant="secondary"
+                  onClick={() => refreshShiftDetails(true)}
+                  className="h-10 w-10 p-0 flex items-center justify-center"
+               >
+                  <HiOutlineArrowTrendingUp
+                     className={`transform rotate-45 ${isFetchingDetails ? 'animate-spin' : ''}`}
+                  />
+               </Button>
+               <Button variant="danger" onClick={() => setIsCloseModalOpen(true)}>
+                  Cerrar Turno
+               </Button>
+            </div>
          </div>
 
          {/* KPIS */}
@@ -191,33 +220,26 @@ export const Shift = () => {
                      Registrar Movimiento
                   </h3>
                   <form onSubmit={handleRegisterMovement} className="flex flex-col gap-4">
-                     {/* Toggle Type */}
                      <div className="grid grid-cols-2 gap-1 p-1 bg-zinc-950 rounded-lg border border-zinc-800">
                         <button
                            type="button"
                            onClick={() => setMovementType('expense')}
-                           className={`
-                              flex items-center justify-center gap-2 py-2 rounded-md text-sm font-medium transition-all
-                              ${
-                                 movementType === 'expense'
-                                    ? 'bg-red-500/10 text-red-400 border border-red-500/20 shadow-sm'
-                                    : 'text-zinc-500 hover:text-zinc-300'
-                              }
-                           `}
+                           className={`flex items-center justify-center gap-2 py-2 rounded-md text-sm font-medium transition-all ${
+                              movementType === 'expense'
+                                 ? 'bg-red-500/10 text-red-400 border border-red-500/20 shadow-sm'
+                                 : 'text-zinc-500 hover:text-zinc-300'
+                           }`}
                         >
                            <HiOutlineArrowTrendingDown /> Salida
                         </button>
                         <button
                            type="button"
                            onClick={() => setMovementType('income')}
-                           className={`
-                              flex items-center justify-center gap-2 py-2 rounded-md text-sm font-medium transition-all
-                              ${
-                                 movementType === 'income'
-                                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-sm'
-                                    : 'text-zinc-500 hover:text-zinc-300'
-                              }
-                           `}
+                           className={`flex items-center justify-center gap-2 py-2 rounded-md text-sm font-medium transition-all ${
+                              movementType === 'income'
+                                 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-sm'
+                                 : 'text-zinc-500 hover:text-zinc-300'
+                           }`}
                         >
                            <HiOutlineArrowTrendingUp /> Ingreso
                         </button>
@@ -272,7 +294,6 @@ export const Shift = () => {
                   <h3 className="text-sm font-bold text-zinc-400 uppercase tracking-wider">
                      Actividad del Turno
                   </h3>
-                  <div className="text-xs text-zinc-500">{activityLog.length} movimientos</div>
                </div>
 
                <div className="flex-1 overflow-auto custom-scrollbar">
@@ -299,7 +320,6 @@ export const Shift = () => {
                            activityLog.map((item: any) => {
                               const isExpense = item.type === 'manual_expense';
                               const isSale = item.type === 'sale';
-
                               return (
                                  <tr
                                     key={`${item.type}-${item.id}`}
@@ -310,16 +330,13 @@ export const Shift = () => {
                                     </td>
                                     <td className="px-5 py-3.5">
                                        <span
-                                          className={`
-                                             inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border
-                                             ${
-                                                isSale
-                                                   ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
-                                                   : isExpense
-                                                   ? 'bg-red-500/10 text-red-400 border-red-500/20'
-                                                   : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                                             }
-                                          `}
+                                          className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${
+                                             isSale
+                                                ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                                                : isExpense
+                                                ? 'bg-red-500/10 text-red-400 border-red-500/20'
+                                                : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                                          }`}
                                        >
                                           {isSale ? 'Venta' : isExpense ? 'Gasto' : 'Ingreso'}
                                        </span>
@@ -363,9 +380,7 @@ export const Shift = () => {
          >
             <div className="p-6">
                <h2 className="text-xl font-bold text-white mb-6">Cerrar Turno de Caja</h2>
-
                <div className="space-y-6">
-                  {/* Resumen */}
                   <div className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden">
                      <div className="p-4 space-y-3">
                         <div className="flex justify-between text-sm">
@@ -420,13 +435,11 @@ export const Shift = () => {
                      </div>
                   </div>
 
-                  {/* Input Cierre */}
                   <div className="space-y-2">
                      <div className="flex items-center justify-between">
                         <label className="text-sm font-medium text-zinc-400">
                            Conteo de Efectivo Real
                         </label>
-                        <span className="text-xs text-zinc-500">Cuenta los billetes en caja</span>
                      </div>
                      <SmartNumberInput
                         value={closingAmount}
@@ -436,19 +449,15 @@ export const Shift = () => {
                         autoFocus
                         className="[&>input]:bg-zinc-900 [&>input]:border-zinc-700 [&>input]:h-12 [&>input]:text-lg"
                      />
-
-                     {/* Diferencia en tiempo real */}
                      {closingAmount !== null && summary?.expectedCash !== undefined && (
                         <div
-                           className={`mt-2 px-3 py-2 rounded-lg border text-sm flex justify-between items-center font-medium animate-in fade-in slide-in-from-top-1
-                              ${
-                                 closingAmount - summary.expectedCash === 0
-                                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                                    : closingAmount - summary.expectedCash > 0
-                                    ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
-                                    : 'bg-red-500/10 text-red-400 border-red-500/20'
-                              }
-                           `}
+                           className={`mt-2 px-3 py-2 rounded-lg border text-sm flex justify-between items-center font-medium ${
+                              closingAmount - summary.expectedCash === 0
+                                 ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                                 : closingAmount - summary.expectedCash > 0
+                                 ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                                 : 'bg-red-500/10 text-red-400 border-red-500/20'
+                           }`}
                         >
                            <span>
                               {closingAmount - summary.expectedCash === 0
@@ -498,13 +507,7 @@ function KpiCard({
    icon,
    className = '',
    bgClassName = 'bg-zinc-900/50 border-zinc-800',
-}: {
-   title: string;
-   value: number | undefined;
-   icon?: React.ReactNode;
-   className?: string;
-   bgClassName?: string;
-}) {
+}: any) {
    return (
       <div className={`p-4 rounded-xl border flex flex-col justify-between h-24 ${bgClassName}`}>
          <div className="flex justify-between items-start">
