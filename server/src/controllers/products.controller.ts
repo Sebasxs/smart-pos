@@ -21,7 +21,7 @@ export const getProducts = async (req: Request, res: Response) => {
             .from('products')
             .select('*')
             .order('description', { ascending: true })
-            .limit(100)
+            .limit(9999)
             .setHeader('Authorization', `Bearer ${req.token}`);
 
          data = result.data || [];

@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import { useAuthStore } from './authStore';
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -25,46 +26,54 @@ interface PreferencesState {
 
 let saveTimeout: number | null = null;
 
-export const usePreferencesStore = create<PreferencesState>((set, get) => ({
-   preferences: defaultPreferences,
+export const usePreferencesStore = create<PreferencesState>()(
+   persist(
+      (set, get) => ({
+         preferences: defaultPreferences,
 
-   setPreference: (key, value) => {
-      set(state => ({
-         preferences: { ...state.preferences, [key]: value },
-      }));
+         setPreference: (key, value) => {
+            set(state => ({
+               preferences: { ...state.preferences, [key]: value },
+            }));
 
-      if (saveTimeout) {
-         clearTimeout(saveTimeout);
-      }
+            if (saveTimeout) {
+               clearTimeout(saveTimeout);
+            }
 
-      saveTimeout = setTimeout(() => {
-         get().savePreferencesToBackend();
-      }, 1000);
-   },
+            saveTimeout = window.setTimeout(() => {
+               get().savePreferencesToBackend();
+            }, 1000);
+         },
 
-   loadPreferencesFromProfile: prefs => {
-      if (!prefs) return;
-      set(state => ({
-         preferences: { ...state.preferences, ...prefs },
-      }));
-   },
+         loadPreferencesFromProfile: prefs => {
+            if (!prefs) return;
+            set(state => ({
+               preferences: { ...state.preferences, ...prefs },
+            }));
+         },
 
-   savePreferencesToBackend: async () => {
-      try {
-         const { preferences } = get();
-         const token = await useAuthStore.getState().getAccessToken();
-         if (!token) return;
+         savePreferencesToBackend: async () => {
+            try {
+               const { preferences } = get();
+               const token = await useAuthStore.getState().getAccessToken();
+               if (!token) return;
 
-         await fetch(`${API_URL}/settings/profile/preferences`, {
-            method: 'PUT',
-            headers: {
-               'Content-Type': 'application/json',
-               Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({ preferences }),
-         });
-      } catch (error) {
-         console.error('Failed to sync preferences', error);
-      }
-   },
-}));
+               await fetch(`${API_URL}/settings/profile/preferences`, {
+                  method: 'PUT',
+                  headers: {
+                     'Content-Type': 'application/json',
+                     Authorization: `Bearer ${token}`,
+                  },
+                  body: JSON.stringify({ preferences }),
+               });
+            } catch (error) {
+               console.error('Failed to sync preferences', error);
+            }
+         },
+      }),
+      {
+         name: 'smart-pos-preferences',
+         storage: createJSONStorage(() => localStorage),
+      },
+   ),
+);
