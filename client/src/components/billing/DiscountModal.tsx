@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Modal } from '../ui/Modal';
 import { SmartNumberInput } from '../ui/SmartNumberInput';
 import { SmartNumber } from '../ui/SmartNumber';
@@ -22,6 +22,7 @@ const TypeButton = ({
    activeColor,
    borderColor,
 }: TypeButtonProps) => {
+   // Se añade focus:outline-none para evitar bordes blancos nativos al hacer click
    const activeClass = isActive
       ? `${activeColor} text-white shadow-sm ${borderColor}`
       : 'bg-transparent text-zinc-500 border-transparent hover:text-zinc-300 hover:bg-zinc-700/50';
@@ -29,7 +30,7 @@ const TypeButton = ({
    return (
       <button
          onClick={onClick}
-         className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-md text-sm font-bold transition-all cursor-pointer border ${activeClass}`}
+         className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-md text-sm font-bold transition-all cursor-pointer border focus:outline-none ${activeClass}`}
       >
          <Icon size={18} />
          <span>{label}</span>
@@ -53,14 +54,26 @@ export const DiscountModal = ({
    subtotal,
 }: DiscountModalProps) => {
    const [localDiscount, setLocalDiscount] = useState<Discount>(currentDiscount);
+   const inputRef = useRef<HTMLInputElement>(null);
 
    useEffect(() => {
       if (isOpen) {
-         setTimeout(() => {
-            setLocalDiscount(currentDiscount);
-         }, 100);
+         setLocalDiscount(currentDiscount);
       }
    }, [isOpen, currentDiscount]);
+
+   // Efecto para enfocar y seleccionar todo el texto
+   // Se ejecuta al abrir y al cambiar el tipo de descuento
+   useEffect(() => {
+      if (isOpen) {
+         setTimeout(() => {
+            if (inputRef.current) {
+               inputRef.current.focus();
+               inputRef.current.select();
+            }
+         }, 50);
+      }
+   }, [isOpen, localDiscount.type]);
 
    const handleSubmit = () => {
       onApply(localDiscount);
@@ -101,6 +114,7 @@ export const DiscountModal = ({
             <div className="mb-6">
                <div className="relative max-w-[180px] mx-auto">
                   <SmartNumberInput
+                     getInputRef={inputRef}
                      value={localDiscount.value}
                      onValueChange={v => setLocalDiscount(prev => ({ ...prev, value: v ?? 0 }))}
                      variant={isPercentage ? 'percentage' : 'currency'}
@@ -124,14 +138,14 @@ export const DiscountModal = ({
             <div className="flex gap-2 justify-center">
                <button
                   onClick={onClose}
-                  className="flex-1 py-2.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition-colors font-medium cursor-pointer text-sm"
+                  className="flex-1 py-2.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition-colors font-medium cursor-pointer text-sm focus:outline-none"
                >
                   Cancelar
                </button>
                <button
                   onClick={handleSubmit}
                   className={`
-                     flex-1 py-2.5 rounded-lg text-white transition-colors font-bold cursor-pointer text-sm shadow-lg
+                     flex-1 py-2.5 rounded-lg text-white transition-colors font-bold cursor-pointer text-sm shadow-lg focus:outline-none
                      ${
                         isPercentage
                            ? 'bg-blue-600 hover:bg-blue-500 shadow-blue-900/20'

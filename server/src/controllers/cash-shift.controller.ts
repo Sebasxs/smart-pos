@@ -243,7 +243,7 @@ export const getShiftDetails = async (req: Request, res: Response) => {
 
       const { data: payments } = await supabase
          .from('sale_payments')
-         .select('*, sales_invoices!inner(id, invoice_number)')
+         .select('*, sales_invoices!inner(id, invoice_number, prefix)')
          .eq('cash_shift_id', id)
          .eq('method', 'cash');
 

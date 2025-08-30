@@ -9,17 +9,28 @@ export const authenticatedFetch = async (url: string, options: RequestInit = {})
       throw new Error('Sesión finalizada');
    }
 
-   const headers = {
+   const getHeaders = (t: string) => ({
       ...options.headers,
-      Authorization: `Bearer ${token}`,
+      Authorization: `Bearer ${t}`,
       'Content-Type': 'application/json',
-   };
+   });
 
    try {
-      const response = await fetch(url, {
+      let response = await fetch(url, {
          ...options,
-         headers,
+         headers: getHeaders(token),
       });
+
+      // Retry logic for expired tokens
+      if (response.status === 401 || response.status === 403) {
+         const newToken = await store.getAccessToken();
+         if (newToken) {
+            response = await fetch(url, {
+               ...options,
+               headers: getHeaders(newToken),
+            });
+         }
+      }
 
       if (response.status === 401 || response.status === 403) {
          console.warn('Respuesta 401/403 detectada. Cerrando sesión...');

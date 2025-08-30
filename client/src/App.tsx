@@ -27,12 +27,14 @@ import { Profile } from './pages/Profile';
 
 // Hooks
 import { useGlobalEscapeKey } from './hooks/useGlobalEscapeKey';
+import { useGlobalStoreInitializer } from './hooks/useGlobalStoreInitializer';
 import { useAuthStore } from './store/authStore';
 import { useCashShiftStore } from './store/cashShiftStore';
 
 function ProtectedLayout({ children }: { children: React.ReactNode }) {
    const { isAuthenticated } = useAuthStore();
    const { checkShiftStatus } = useCashShiftStore();
+   const { isInitializing, error } = useGlobalStoreInitializer();
    const location = useLocation();
 
    useEffect(() => {
@@ -43,6 +45,16 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
 
    if (!isAuthenticated) {
       return <Navigate to="/login" state={{ from: location }} replace />;
+   }
+
+   // Show loading state while stores are initializing
+   if (isInitializing) {
+      return <FullPageLoader message="Cargando datos..." />;
+   }
+
+   // Show error if initialization failed (but allow app to continue)
+   if (error) {
+      console.error('Store initialization error:', error);
    }
 
    return (

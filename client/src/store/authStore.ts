@@ -132,11 +132,9 @@ export const useAuthStore = create<AuthState>()(
          getAccessToken: async () => {
             const state = get();
 
-            if (state.token) {
-               return state.token;
-            }
+            // Cashiers use custom tokens that don't refresh via Supabase
             if (state.user?.role === 'cashier') {
-               return null;
+               return state.token;
             }
 
             const { data, error } = await supabase.auth.getSession();

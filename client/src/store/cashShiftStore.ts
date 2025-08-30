@@ -33,6 +33,13 @@ export interface CashShiftData {
    payments: any[];
 }
 
+type NewSalePayload = {
+   invoiceId: string;
+   invoiceNumberFull: string;
+   cashAmount: number;
+   date: string;
+};
+
 interface CashShiftState {
    isOpen: boolean;
    shiftId: string | null;
@@ -46,6 +53,7 @@ interface CashShiftState {
    closeShift: (actualAmount: number) => Promise<void>;
    registerMovement: (amount: number, type: 'income' | 'expense', reason: string) => Promise<void>;
    refreshShiftDetails: (force?: boolean) => Promise<void>;
+   addLocalSale: (sale: NewSalePayload) => void;
 }
 
 export const useCashShiftStore = create<CashShiftState>()(
@@ -195,6 +203,43 @@ export const useCashShiftStore = create<CashShiftState>()(
             } finally {
                set({ isFetchingDetails: false });
             }
+         },
+
+         addLocalSale: ({ invoiceId, invoiceNumberFull, cashAmount, date }) => {
+            set(state => {
+               if (!state.shiftData) return {};
+
+               const [prefix, numberStr] = invoiceNumberFull.includes('-')
+                  ? invoiceNumberFull.split('-')
+                  : ['POS', invoiceNumberFull];
+
+               const newPayment = {
+                  id: crypto.randomUUID(),
+                  amount: cashAmount,
+                  method: 'cash',
+                  created_at: date,
+                  sales_invoices: {
+                     id: invoiceId,
+                     prefix: prefix,
+                     invoice_number: numberStr,
+                  },
+               };
+
+               const currentSummary = state.shiftData.summary;
+               const newSummary = {
+                  ...currentSummary,
+                  salesCash: (currentSummary.salesCash || 0) + cashAmount,
+                  expectedCash: (currentSummary.expectedCash || 0) + cashAmount,
+               };
+
+               return {
+                  shiftData: {
+                     ...state.shiftData,
+                     summary: newSummary,
+                     payments: [newPayment, ...(state.shiftData.payments || [])],
+                  },
+               };
+            });
          },
       }),
       {

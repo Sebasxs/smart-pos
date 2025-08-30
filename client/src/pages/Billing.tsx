@@ -1,6 +1,8 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { HiOutlineComputerDesktop, HiOutlineBanknotes } from 'react-icons/hi2';
 import { Loader2 } from 'lucide-react';
+import { supabase } from '../utils/supabase';
+import { useOrganizationStore } from '../store/organizationStore';
 
 // Components
 import { InvoiceTable } from '../components/billing/InvoiceTable';
@@ -25,9 +27,16 @@ import { usePreferencesStore } from '../store/usePreferencesStore';
 import { useBillingStore, type CheckoutState } from '../store/billingStore';
 import { type InvoiceItem } from '../types/billing';
 
+// Utils
+import { authenticatedFetch } from '../utils/api';
+import { useAuthStore } from '../store/authStore';
+import { TAX_REGIME_LABELS } from '../utils/constants';
+import { formatDate, formatTime } from '../utils/date';
+
 const API_URL = import.meta.env.VITE_API_URL;
 
 export const Billing = () => {
+   const { user } = useAuthStore();
    const {
       items,
       discount,
@@ -53,10 +62,12 @@ export const Billing = () => {
       error: false,
    });
 
+   const [generatedInvoiceNumber, setGeneratedInvoiceNumber] = useState<string>('');
+   const [finalizedPayments, setFinalizedPayments] = useState<any[]>([]);
    const [isClientSearchFocused, setIsClientSearchFocused] = useState(false);
    const [searchInputValue, setSearchInputValue] = useState('');
    const [createClientName, setCreateClientName] = useState('');
-   const [finalizedData, setFinalizedData] = useState<CheckoutState | null>(null);
+   const [_, setFinalizedData] = useState<CheckoutState | null>(null);
    const [isProcessing, setIsProcessing] = useState(false);
    const [generatedInvoiceId, setGeneratedInvoiceId] = useState<number | undefined>(undefined);
    const [errorMessage, setErrorMessage] = useState('');
@@ -130,8 +141,16 @@ export const Billing = () => {
       setSearchInputValue('');
    };
 
+   const { settings } = useOrganizationStore();
+
    const handlePaymentProcess = useCallback(async () => {
       if (!isPaymentValid || isProcessing) return;
+
+      if (checkoutData.customer.name && !checkoutData.customer.taxId) {
+         setErrorMessage('El cliente debe tener una identificación (NIT/CC) para facturar.');
+         toggleModal('error', true);
+         return;
+      }
 
       setIsProcessing(true);
       setErrorMessage('');
@@ -159,9 +178,8 @@ export const Billing = () => {
             total,
          };
 
-         const res = await fetch(`${API_URL}/invoices`, {
+         const res = await authenticatedFetch(`${API_URL}/invoices`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),
          });
 
@@ -181,7 +199,68 @@ export const Billing = () => {
          }
 
          setFinalizedData({ ...checkoutData });
+         setFinalizedPayments([...checkoutData.payments]);
          setGeneratedInvoiceId(responseData.invoiceId);
+         setGeneratedInvoiceNumber(responseData.invoiceNumberFull);
+
+         try {
+            // 1. Preparar datos de la empresa (Fallback si no han cargado)
+            const companyInfo = {
+               name: settings?.company_name || '---',
+               nit: settings?.tax_id || '---',
+               regime: TAX_REGIME_LABELS[settings?.tax_regime || 'not_responsible_iva'] || '---',
+               address: settings?.address
+                  ? `${settings.address}${settings.city ? `, ${settings.city}` : ''}`
+                  : '---',
+               phone: settings?.phone || '',
+               footer: settings?.invoice_footer || 'Gracias por su compra',
+            };
+
+            // 2. Preparar payload para la impresora (Estructura limpia)
+            const date = new Date();
+            const printPayload = {
+               company: companyInfo,
+               invoice: {
+                  number: responseData.invoiceNumberFull, // Usamos el que respondió el server
+                  date: formatDate(date),
+                  time: formatTime(date),
+                  cashier: user?.full_name || user?.nickname || '---',
+               },
+               customer: {
+                  name: checkoutData.customer.name,
+                  id_number: checkoutData.customer.taxId,
+                  phone: checkoutData.customer.phone,
+                  address: checkoutData.customer.address,
+               },
+               items: items.map(i => ({
+                  description: i.description,
+                  qty: i.quantity,
+                  price: i.price,
+                  total: i.quantity * i.price,
+               })),
+               totals: {
+                  subtotal: subtotal,
+                  discount: discountAmount,
+                  total: total,
+               },
+               payments: checkoutData.payments.map(p => ({
+                  method: p.method,
+                  amount: p.amount || 0,
+               })),
+            };
+
+            // 3. Enviar a la cola de impresión en Supabase
+            const { error: printError } = await supabase.from('print_jobs').insert({
+               printer_name: 'POS-80', // Puedes hacerlo dinámico si tienes varias cajas
+               status: 'pending',
+               payload: printPayload,
+            });
+
+            if (printError) console.error('Error enviando a imprimir:', printError);
+         } catch (err) {
+            console.error('Error preparando impresión:', err);
+         }
+
          toggleModal('success', true);
       } catch (error) {
          console.error(error);
@@ -209,6 +288,8 @@ export const Billing = () => {
       toggleModal('success', false);
       setFinalizedData(null);
       setGeneratedInvoiceId(undefined);
+      setGeneratedInvoiceNumber('');
+      setFinalizedPayments([]);
    };
 
    useEffect(() => {
@@ -255,11 +336,6 @@ export const Billing = () => {
       window.addEventListener('keydown', handleKeyDown);
       return () => window.removeEventListener('keydown', handleKeyDown);
    }, [modals, isPaymentValid, triggerDiscard, handlePaymentProcess, toggleModal]);
-
-   const finalizedCashPayment = finalizedData?.payments.find(p => p.method === 'cash');
-   const finalizedCashAmount = finalizedCashPayment?.amount || 0;
-   const finalizedChange =
-      finalizedCashPayment && finalizedCashAmount > total ? finalizedCashAmount - total : 0;
 
    if (shiftLoading && !isOpen) {
       return (
@@ -475,10 +551,10 @@ export const Billing = () => {
             isOpen={modals.success}
             onClose={handleFinalizeSuccess}
             total={total}
-            paymentMethod={finalizedData?.payments[0]?.method || 'cash'}
-            cashReceived={finalizedCashAmount}
-            change={Math.max(0, finalizedChange)}
+            payments={finalizedPayments}
+            invoiceNumber={generatedInvoiceNumber || 'Pendiente'}
             invoiceId={generatedInvoiceId}
+            cashierName={user?.full_name || user?.nickname || 'Cajero'}
          />
          <ErrorModal
             isOpen={modals.error}

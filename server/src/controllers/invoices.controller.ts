@@ -43,29 +43,26 @@ export const createInvoice = async (req: Request<{}, {}, CreateInvoiceBody>, res
          return res.status(401).json({ error: 'Usuario no autenticado' });
       }
 
-      // Validate payments array
       if (!payments || payments.length === 0) {
          return res.status(400).json({ error: 'Se requiere al menos un método de pago' });
       }
 
-      // Validate total of payments matches invoice total
       const paymentsTotal = payments.reduce(
          (sum, p) => PrecisionMath.add(sum, p.amount),
          PrecisionMath.toDecimal(0),
       );
 
-      const paymentsDiff = PrecisionMath.subtract(paymentsTotal, total).abs();
-      if (PrecisionMath.compare(paymentsDiff, 0.01) > 0) {
+      if (PrecisionMath.compare(paymentsTotal, total) < 0) {
          return res.status(400).json({
-            error: 'El total de los pagos no coincide con el total de la factura',
+            error: 'El pago es insuficiente para cubrir el total de la factura',
             details: {
                paymentsTotal: PrecisionMath.toNumber(paymentsTotal),
                invoiceTotal: total,
+               missing: PrecisionMath.toNumber(PrecisionMath.subtract(total, paymentsTotal)),
             },
          });
       }
 
-      // Validar que los valores estén dentro del rango permitido (DECIMAL(19,6))
       const allValues = [
          subtotal,
          discount,
@@ -82,7 +79,6 @@ export const createInvoice = async (req: Request<{}, {}, CreateInvoiceBody>, res
          }
       }
 
-      // ✅ RECALCULAR totales en el servidor (NO confiar en cliente)
       let calculatedSubtotal = PrecisionMath.toDecimal(0);
 
       for (const item of items) {
@@ -92,12 +88,11 @@ export const createInvoice = async (req: Request<{}, {}, CreateInvoiceBody>, res
 
       const calculatedTotal = PrecisionMath.subtract(calculatedSubtotal, discount);
 
-      // ✅ VALIDAR diferencias entre cliente y servidor
       const subtotalDiff = PrecisionMath.subtract(subtotal, calculatedSubtotal).abs();
       const totalDiff = PrecisionMath.subtract(total, calculatedTotal).abs();
 
-      const maxToleranceAbsolute = 0.01; // 1 centavo de tolerancia
-      const maxTolerancePercent = 0.01; // 1% de tolerancia
+      const maxToleranceAbsolute = 0.01;
+      const maxTolerancePercent = 0.01;
 
       // Rechazar si subtotal difiere más del 1%
       if (PrecisionMath.compare(subtotalDiff, maxToleranceAbsolute) > 0) {
@@ -121,7 +116,6 @@ export const createInvoice = async (req: Request<{}, {}, CreateInvoiceBody>, res
             });
          }
 
-         // Log warning para diferencias pequeñas
          console.warn(
             `Subtotal minor mismatch: Client=${subtotal}, Server=${PrecisionMath.toNumber(
                calculatedSubtotal,
@@ -151,7 +145,6 @@ export const createInvoice = async (req: Request<{}, {}, CreateInvoiceBody>, res
             });
          }
 
-         // Log warning para diferencias pequeñas
          console.warn(
             `Total minor mismatch: Client=${total}, Server=${PrecisionMath.toNumber(
                calculatedTotal,
@@ -215,11 +208,12 @@ export const createInvoice = async (req: Request<{}, {}, CreateInvoiceBody>, res
 
       if (error) throw new Error(error.message);
 
-      const result = data as { success: boolean; invoice_id: string };
+      const result = data as { success: boolean; invoice_id: string; invoice_number_full: string };
 
       res.status(201).json({
          message: 'Venta registrada correctamente',
          invoiceId: result.invoice_id,
+         invoiceNumberFull: result.invoice_number_full,
       });
    } catch (error) {
       console.error('Transaction Error:', error);

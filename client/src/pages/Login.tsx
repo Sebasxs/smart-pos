@@ -103,7 +103,7 @@ export const Login = () => {
                <div className="w-16 h-16 bg-blue-600/20 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-blue-500/20">
                   <KeyRound className="w-8 h-8 text-blue-500" />
                </div>
-               <h1 className="text-2xl font-bold text-white mb-2">Smart POS</h1>
+               <h1 className="text-2xl font-bold text-white mb-2">SmartPOS</h1>
                <p className="text-zinc-400 text-sm">Sistema de Punto de Venta Inteligente</p>
             </div>
 
@@ -247,7 +247,7 @@ export const Login = () => {
                                     fill="#EA4335"
                                  />
                               </svg>
-                              Continuar con Google
+                              Acceder con Google
                            </>
                         )}
                      </button>

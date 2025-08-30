@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useCashShiftStore } from '../store/cashShiftStore';
 import { SmartNumberInput } from '../components/ui/SmartNumberInput';
+import { useNavigate } from 'react-router-dom';
 import { SmartNumber } from '../components/ui/SmartNumber';
 import {
    HiOutlineBanknotes,
@@ -10,6 +11,8 @@ import {
    HiOutlineLockClosed,
    HiOutlineReceiptPercent,
    HiOutlineExclamationTriangle,
+   HiOutlineArrowTopRightOnSquare,
+   HiOutlineArrowPath, // Nuevo icono importado
 } from 'react-icons/hi2';
 import { Modal } from '../components/ui/Modal';
 import { Button } from '../components/ui/Button';
@@ -17,6 +20,7 @@ import { formatDateTime, formatTime } from '../utils/date';
 import { Loader2 } from 'lucide-react';
 
 export const Shift = () => {
+   const navigate = useNavigate();
    const {
       shiftData,
       isOpen,
@@ -80,14 +84,24 @@ export const Shift = () => {
             description: m.reason,
             amount: Math.abs(Number(m.amount)),
             time: m.created_at,
+            isLikable: false,
+            invoiceId: null,
          })),
-         ...(payments || []).map((p: any) => ({
-            id: p.id,
-            type: 'sale',
-            description: `Venta #${p.sales_invoices?.invoice_number || 'N/A'}`,
-            amount: Number(p.amount),
-            time: p.created_at,
-         })),
+         ...(payments || []).map((p: any) => {
+            const invoice = p.sales_invoices;
+            const invoiceNumber = invoice?.invoice_number;
+            const prefix = invoice?.prefix || 'POS';
+
+            return {
+               id: p.id,
+               type: 'sale',
+               description: invoiceNumber ? `Venta #${prefix}-${invoiceNumber}` : 'Venta',
+               amount: Number(p.amount),
+               time: p.created_at,
+               invoiceId: invoice?.id ?? null,
+               isLinkable: Boolean(invoice?.id),
+            };
+         }),
       ];
       return combined.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
    }, [shiftData]);
@@ -167,13 +181,16 @@ export const Shift = () => {
                </div>
             </div>
             <div className="flex gap-2">
+               {/* BOTÓN DE REFRESCAR ACTUALIZADO */}
                <Button
                   variant="secondary"
                   onClick={() => refreshShiftDetails(true)}
                   className="h-10 w-10 p-0 flex items-center justify-center"
+                  title="Actualizar datos"
                >
-                  <HiOutlineArrowTrendingUp
-                     className={`transform rotate-45 ${isFetchingDetails ? 'animate-spin' : ''}`}
+                  <HiOutlineArrowPath
+                     className={`${isFetchingDetails ? 'animate-spin' : ''}`}
+                     size={20}
                   />
                </Button>
                <Button variant="danger" onClick={() => setIsCloseModalOpen(true)}>
@@ -220,14 +237,15 @@ export const Shift = () => {
                      Registrar Movimiento
                   </h3>
                   <form onSubmit={handleRegisterMovement} className="flex flex-col gap-4">
+                     {/* TOGGLE CORREGIDO (Sin blink) */}
                      <div className="grid grid-cols-2 gap-1 p-1 bg-zinc-950 rounded-lg border border-zinc-800">
                         <button
                            type="button"
                            onClick={() => setMovementType('expense')}
-                           className={`flex items-center justify-center gap-2 py-2 rounded-md text-sm font-medium transition-all ${
+                           className={`flex items-center justify-center gap-2 py-2 rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-0 ${
                               movementType === 'expense'
                                  ? 'bg-red-500/10 text-red-400 border border-red-500/20 shadow-sm'
-                                 : 'text-zinc-500 hover:text-zinc-300'
+                                 : 'text-zinc-500 hover:text-zinc-300 border border-transparent'
                            }`}
                         >
                            <HiOutlineArrowTrendingDown /> Salida
@@ -235,10 +253,10 @@ export const Shift = () => {
                         <button
                            type="button"
                            onClick={() => setMovementType('income')}
-                           className={`flex items-center justify-center gap-2 py-2 rounded-md text-sm font-medium transition-all ${
+                           className={`flex items-center justify-center gap-2 py-2 rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-0 ${
                               movementType === 'income'
                                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-sm'
-                                 : 'text-zinc-500 hover:text-zinc-300'
+                                 : 'text-zinc-500 hover:text-zinc-300 border border-transparent'
                            }`}
                         >
                            <HiOutlineArrowTrendingUp /> Ingreso
@@ -341,9 +359,38 @@ export const Shift = () => {
                                           {isSale ? 'Venta' : isExpense ? 'Gasto' : 'Ingreso'}
                                        </span>
                                     </td>
-                                    <td className="px-5 py-3.5 text-zinc-300 font-medium">
-                                       {item.description}
+
+                                    <td className="px-5 py-3.5 font-medium">
+                                       {item.isLinkable && item.invoiceId ? (
+                                          <button
+                                             onClick={e => {
+                                                e.stopPropagation(); // Evita clics fantasma en la fila
+                                                navigate(`/sales?invoiceId=${item.invoiceId}`);
+                                             }}
+                                             // CLASES CLAVE: cursor-pointer y hover:underline para feedback visual claro
+                                             className="flex items-center gap-2 text-zinc-300 hover:text-blue-400 transition-colors group/link text-left cursor-pointer select-none"
+                                             title="Ver detalle de factura"
+                                          >
+                                             <span className="truncate font-medium underline decoration-transparent group-hover/link:decoration-blue-400/50 underline-offset-4 transition-all">
+                                                {item.description}
+                                             </span>
+
+                                             {/* El icono ahora es siempre visible pero tenue, y se ilumina al pasar el mouse */}
+                                             <HiOutlineArrowTopRightOnSquare
+                                                size={14}
+                                                className="text-zinc-600 group-hover/link:text-blue-400 transition-colors"
+                                             />
+                                          </button>
+                                       ) : (
+                                          // Caso: Movimiento manual o error de datos (Sin ID)
+                                          <div className="flex items-center gap-2 opacity-80 cursor-default">
+                                             <span className="text-zinc-400">
+                                                {item.description}
+                                             </span>
+                                          </div>
+                                       )}
                                     </td>
+
                                     <td className="px-5 py-3.5 text-right font-mono">
                                        <span
                                           className={

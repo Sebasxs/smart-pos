@@ -16,6 +16,7 @@ const PAYMENT_METHODS: {
    bgColor: string;
    borderColor: string;
    shadowColor: string;
+   btnClass: string;
 }[] = [
    {
       value: 'cash',
@@ -25,6 +26,8 @@ const PAYMENT_METHODS: {
       bgColor: 'bg-emerald-500/10',
       borderColor: 'border-emerald-500/50',
       shadowColor: 'shadow-[0_0_20px_-5px_rgba(16,185,129,0.2)]',
+      btnClass:
+         'text-emerald-400 bg-emerald-500/5 border-emerald-500/20 hover:bg-emerald-500/10 hover:border-emerald-500/40',
    },
    {
       value: 'bank_transfer',
@@ -34,6 +37,8 @@ const PAYMENT_METHODS: {
       bgColor: 'bg-purple-500/10',
       borderColor: 'border-purple-500/50',
       shadowColor: 'shadow-[0_0_20px_-5px_rgba(168,85,247,0.2)]',
+      btnClass:
+         'text-purple-400 bg-purple-500/5 border-purple-500/20 hover:bg-purple-500/10 hover:border-purple-500/40',
    },
    {
       value: 'account_balance',
@@ -43,6 +48,8 @@ const PAYMENT_METHODS: {
       bgColor: 'bg-blue-500/10',
       borderColor: 'border-blue-500/50',
       shadowColor: 'shadow-[0_0_20px_-5px_rgba(59,130,246,0.2)]',
+      btnClass:
+         'text-blue-400 bg-blue-500/5 border-blue-500/20 hover:bg-blue-500/10 hover:border-blue-500/40',
    },
 ];
 
@@ -51,23 +58,20 @@ export const SplitPaymentWidget = ({ total }: PaymentWidgetProps) => {
    const { payments, customer } = checkoutData;
 
    const totalPaid = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
-   const remaining = Math.max(0, total - totalPaid);
-   const isComplete = remaining === 0 && payments.length > 0;
+
+   const balance = total - totalPaid;
+   const remaining = Math.max(0, balance);
+   const change = balance < 0 ? Math.abs(balance) : 0;
 
    const handleAddPayment = (method: PaymentMethodType) => {
-      // Pre-fill with remaining balance
-      const amount = remaining > 0 ? remaining : null;
+      const amountToAdd = remaining > 0 ? remaining : 0;
 
-      // Check if account_balance and customer has sufficient balance
       if (method === 'account_balance') {
          const maxBalance = customer.accountBalance || 0;
-         if (maxBalance <= 0) {
-            // Could show toast/warning here
-            return;
-         }
-         addPayment(method, Math.min(amount || 0, maxBalance));
+         if (maxBalance <= 0) return;
+         addPayment(method, Math.min(amountToAdd, maxBalance));
       } else {
-         addPayment(method, amount);
+         addPayment(method, amountToAdd > 0 ? amountToAdd : null);
       }
    };
 
@@ -130,7 +134,6 @@ export const SplitPaymentWidget = ({ total }: PaymentWidgetProps) => {
             {/* Add Payment Buttons */}
             <div className="grid grid-cols-3 gap-2">
                {PAYMENT_METHODS.map(method => {
-                  // Disable account_balance if no balance available
                   const isDisabled =
                      method.value === 'account_balance' && (customer.accountBalance || 0) <= 0;
 
@@ -140,11 +143,11 @@ export const SplitPaymentWidget = ({ total }: PaymentWidgetProps) => {
                         onClick={() => handleAddPayment(method.value)}
                         disabled={isDisabled}
                         className={`
-                           p-2 rounded-lg border transition-all duration-200 flex items-center justify-center gap-1
+                           p-2 rounded-lg border transition-all duration-200 flex items-center justify-center gap-1.5
                            ${
                               isDisabled
                                  ? 'bg-zinc-900/50 border-zinc-800 text-zinc-700 cursor-not-allowed opacity-50'
-                                 : 'bg-zinc-900/50 border-zinc-800 text-zinc-400 hover:bg-zinc-800 hover:border-zinc-700 hover:text-zinc-300'
+                                 : method.btnClass
                            }
                         `}
                         title={
@@ -154,7 +157,7 @@ export const SplitPaymentWidget = ({ total }: PaymentWidgetProps) => {
                         }
                      >
                         <method.icon size={16} />
-                        <span className="text-xs font-medium">+</span>
+                        <span className="text-xs font-bold">+</span>
                      </button>
                   );
                })}
@@ -163,28 +166,29 @@ export const SplitPaymentWidget = ({ total }: PaymentWidgetProps) => {
             {/* Remaining/Complete Indicator */}
             <div
                className={`
-                  flex justify-between items-center px-3 py-2.5 rounded-xl border border-zinc-800/50 transition-all duration-300
+                  flex justify-between items-center px-3 py-2.5 rounded-xl border transition-all duration-300
                   ${
-                     isComplete
-                        ? 'bg-emerald-500/10 border-emerald-500/30'
-                        : remaining > 0
+                     remaining > 0
                         ? 'bg-amber-500/10 border-amber-500/30'
-                        : 'bg-zinc-900/30'
+                        : change > 0
+                        ? 'bg-blue-500/10 border-blue-500/30'
+                        : 'bg-emerald-500/10 border-emerald-500/30'
                   }
                `}
             >
                <span className="text-xs font-bold text-zinc-500 uppercase tracking-wide">
-                  {isComplete ? 'Completo' : 'Faltante'}
+                  {remaining > 0 ? 'Faltante' : change > 0 ? 'Cambio' : 'Pago Completo'}
                </span>
+
                <SmartNumber
-                  value={remaining}
+                  value={remaining > 0 ? remaining : change}
                   variant="currency"
                   className={`text-2xl font-mono font-bold ${
-                     isComplete
-                        ? 'text-emerald-400'
-                        : remaining > 0
+                     remaining > 0
                         ? 'text-amber-400'
-                        : 'text-zinc-600'
+                        : change > 0
+                        ? 'text-blue-400'
+                        : 'text-emerald-400'
                   }`}
                />
             </div>

@@ -1,30 +1,33 @@
 import { Modal } from '../ui/Modal';
 import { HiOutlineCheckCircle } from 'react-icons/hi2';
 import { TicketView } from './TicketView';
-import { useBillingStore } from '../../store/billingStore';
+import { useBillingStore, type PaymentEntry } from '../../store/billingStore';
 
 type PaymentSuccessModalProps = {
    isOpen: boolean;
    onClose: () => void;
    total: number;
-   paymentMethod: string; // More flexible to support all payment types
-   change: number;
-   cashReceived: number;
-   invoiceId?: number;
+   payments: PaymentEntry[];
+   invoiceNumber?: string;
+   invoiceId?: number | string;
+   cashierName?: string;
 };
 
 export const PaymentSuccessModal = ({
    isOpen,
    onClose,
    total,
-   paymentMethod,
-   change,
-   cashReceived,
+   payments,
+   invoiceNumber,
    invoiceId,
+   cashierName,
 }: PaymentSuccessModalProps) => {
    const { items, discount, checkoutData } = useBillingStore();
 
    const subtotal = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
+
+   const discountValue =
+      discount.type === 'fixed' ? discount.value : Math.round(subtotal * (discount.value / 100));
 
    return (
       <Modal isOpen={isOpen} onClose={onClose} className="max-w-4xl w-fit">
@@ -37,19 +40,15 @@ export const PaymentSuccessModal = ({
 
                <div className="mt-6 transform scale-90 md:scale-100 origin-top shadow-2xl">
                   <TicketView
+                     invoiceNumber={invoiceNumber}
                      invoiceId={invoiceId}
                      customer={checkoutData.customer}
                      items={items}
                      subtotal={subtotal}
-                     discount={
-                        discount.type === 'fixed'
-                           ? discount.value
-                           : Math.round(subtotal * (discount.value / 100))
-                     }
+                     discount={discountValue}
                      total={total}
-                     paymentMethod={paymentMethod}
-                     cashReceived={cashReceived}
-                     change={change}
+                     payments={payments}
+                     cashierName={cashierName}
                   />
                </div>
             </div>
@@ -62,8 +61,8 @@ export const PaymentSuccessModal = ({
 
                <h2 className="text-3xl font-bold text-white mb-2">¡Venta Exitosa!</h2>
                <p className="text-zinc-400 mb-8">
-                  La factura <strong className="text-zinc-200">#{invoiceId}</strong> se ha generado
-                  correctamente.
+                  La factura <strong className="text-zinc-200">{invoiceNumber}</strong> se ha
+                  generado correctamente.
                </p>
 
                <div className="w-full max-w-xs">

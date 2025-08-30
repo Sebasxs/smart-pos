@@ -36,6 +36,7 @@ const FormInput = ({
    placeholder,
    type = 'text',
    required = false,
+   autoFocus = false,
 }: {
    value: string;
    onChange: (val: string) => void;
@@ -43,6 +44,7 @@ const FormInput = ({
    placeholder: string;
    type?: string;
    required?: boolean;
+   autoFocus?: boolean;
 }) => (
    <div className="relative group w-full">
       <div className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none transition-colors group-focus-within:text-blue-500/80">
@@ -54,6 +56,7 @@ const FormInput = ({
          onChange={e => onChange(e.target.value)}
          placeholder={placeholder}
          required={required}
+         autoFocus={autoFocus}
          className="w-full bg-zinc-800/50 hover:bg-zinc-800 focus:bg-zinc-800 border border-zinc-800 focus:border-blue-500/50 rounded-lg py-2.5 text-sm text-zinc-200 placeholder:text-zinc-500 outline-none transition-all duration-200 pl-10 pr-3"
       />
    </div>
@@ -177,6 +180,7 @@ export const CreateCustomerModal = ({
                         icon={HiOutlineIdentification}
                         placeholder="Nombre / Razón Social"
                         required
+                        autoFocus
                      />
                   </div>
 

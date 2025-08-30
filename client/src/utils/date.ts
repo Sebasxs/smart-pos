@@ -26,41 +26,54 @@ export const formatRelativeDate = (dateString?: string | null): string => {
    return rtf.format(Math.round(diff / 365), 'years');
 };
 
-export const formatDate = (dateString?: string | null): string => {
+interface formatOptions {
+   year?: 'numeric' | '2-digit';
+   month?: 'numeric' | '2-digit' | 'long' | 'short' | 'narrow';
+   day?: 'numeric' | '2-digit';
+   hour?: 'numeric' | '2-digit';
+   minute?: 'numeric' | '2-digit';
+   hour12?: boolean;
+}
+
+export const formatDate = (dateString?: string | Date | null, options?: formatOptions): string => {
    if (!dateString) return '---';
 
-   const date = parseISO(dateString);
+   const date = dateString instanceof Date ? dateString : parseISO(dateString);
    if (isNaN(date.getTime())) return '---';
 
    return date.toLocaleDateString('es-CO', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
+      year: options?.year || 'numeric',
+      month: options?.month || 'short',
+      day: options?.day || 'numeric',
    });
 };
 
-export const formatDateTime = (dateString: string | Date | null): string => {
-   if (!dateString) return '---';
-   const date = new Date(dateString);
-   if (isNaN(date.getTime())) return '---';
-
-   return new Intl.DateTimeFormat('es-CO', {
-      day: 'numeric',
-      month: 'long',
-      hour: 'numeric',
-      minute: 'numeric',
-      hour12: true,
-   }).format(date);
-};
-
-export const formatTime = (dateString: string | Date | null): string => {
+export const formatTime = (dateString: string | Date | null, options?: formatOptions): string => {
    if (!dateString) return '--:--';
-   const date = new Date(dateString);
+   const date = dateString instanceof Date ? dateString : parseISO(dateString);
    if (isNaN(date.getTime())) return '--:--';
 
    return new Intl.DateTimeFormat('es-CO', {
-      hour: 'numeric',
-      minute: 'numeric',
-      hour12: true,
+      hour: options?.hour || 'numeric',
+      minute: options?.minute || 'numeric',
+      hour12: options?.hour12 || true,
+   }).format(date);
+};
+
+export const formatDateTime = (
+   dateString: string | Date | null,
+   options?: formatOptions,
+): string => {
+   if (!dateString) return '---';
+   const date = dateString instanceof Date ? dateString : parseISO(dateString);
+   if (isNaN(date.getTime())) return '---';
+
+   return new Intl.DateTimeFormat('es-CO', {
+      day: options?.day || 'numeric',
+      month: options?.month || 'long',
+      year: options?.year,
+      hour: options?.hour || 'numeric',
+      minute: options?.minute || 'numeric',
+      hour12: options?.hour12 || true,
    }).format(date);
 };
