@@ -56,6 +56,7 @@ interface BillingState {
    addPayment: (method: PaymentMethodType, amount?: number | null) => void;
    updatePayment: (id: string, amount: number | null) => void;
    removePayment: (id: string) => void;
+   ensureDefaultPayment: () => void;
    resetCustomer: () => void;
    resetInvoice: () => void;
 }
@@ -179,6 +180,27 @@ export const useBillingStore = create<BillingState>(set => ({
       }));
    },
 
+   ensureDefaultPayment: () => {
+      set(state => {
+         // Only add default cash payment if there are no payments active
+         if (state.checkoutData.payments.length === 0) {
+            return {
+               checkoutData: {
+                  ...state.checkoutData,
+                  payments: [
+                     {
+                        id: crypto.randomUUID(),
+                        method: 'cash',
+                        amount: null,
+                     },
+                  ],
+               },
+            };
+         }
+         return state;
+      });
+   },
+
    resetCustomer: () =>
       set(state => ({
          checkoutData: { ...state.checkoutData, customer: initialCustomer },
@@ -188,6 +210,15 @@ export const useBillingStore = create<BillingState>(set => ({
       set({
          items: [],
          discount: { value: 0, type: 'fixed' },
-         checkoutData: initialCheckoutState,
+         checkoutData: {
+            ...initialCheckoutState,
+            payments: [
+               {
+                  id: crypto.randomUUID(),
+                  method: 'cash',
+                  amount: null,
+               },
+            ],
+         },
       }),
 }));

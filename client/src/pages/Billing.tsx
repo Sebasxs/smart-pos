@@ -48,6 +48,7 @@ export const Billing = () => {
       setCheckoutData,
       resetCustomer,
       resetInvoice,
+      ensureDefaultPayment,
    } = useBillingStore();
    const { decreaseStockBatch } = useInventoryStore();
    const { updateCustomerAfterPurchase } = useCustomerStore();
@@ -297,6 +298,11 @@ export const Billing = () => {
          setOpeningAmount(preferences.defaultOpeningCash);
       }
    }, [preferences.defaultOpeningCash]);
+
+   // Ensure default cash payment is always active when there are no payment methods
+   useEffect(() => {
+      ensureDefaultPayment();
+   }, [ensureDefaultPayment]);
 
    useEffect(() => {
       const handleKeyDown = (event: KeyboardEvent) => {
