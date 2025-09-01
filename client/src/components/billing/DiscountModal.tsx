@@ -94,20 +94,20 @@ export const DiscountModal = ({
 
             <div className="bg-zinc-800 p-1 rounded-lg flex gap-1 mb-6 border border-zinc-700/50">
                <TypeButton
-                  isActive={isPercentage}
-                  onClick={() => setLocalDiscount(prev => ({ ...prev, type: 'percentage' }))}
-                  label="Porcentaje"
-                  icon={HiOutlineReceiptPercent}
-                  activeColor="bg-blue-500/20"
-                  borderColor="border-blue-500/50"
-               />
-               <TypeButton
                   isActive={!isPercentage}
                   onClick={() => setLocalDiscount(prev => ({ ...prev, type: 'fixed' }))}
                   label="Monto Fijo"
                   icon={HiOutlineCurrencyDollar}
                   activeColor="bg-green-500/20"
                   borderColor="border-green-500/50"
+               />
+               <TypeButton
+                  isActive={isPercentage}
+                  onClick={() => setLocalDiscount(prev => ({ ...prev, type: 'percentage' }))}
+                  label="Porcentaje"
+                  icon={HiOutlineReceiptPercent}
+                  activeColor="bg-blue-500/20"
+                  borderColor="border-blue-500/50"
                />
             </div>
 

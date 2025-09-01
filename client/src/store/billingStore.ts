@@ -66,7 +66,7 @@ const calculateIdealPrice = (original: number, discountPercent: number) => {
 
 export const useBillingStore = create<BillingState>(set => ({
    items: [],
-   discount: { value: 0, type: 'percentage' },
+   discount: { value: 0, type: 'fixed' },
    checkoutData: initialCheckoutState,
 
    addItem: product => {
@@ -187,7 +187,7 @@ export const useBillingStore = create<BillingState>(set => ({
    resetInvoice: () =>
       set({
          items: [],
-         discount: { value: 0, type: 'percentage' },
+         discount: { value: 0, type: 'fixed' },
          checkoutData: initialCheckoutState,
       }),
 }));
