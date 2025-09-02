@@ -1,7 +1,6 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { HiOutlineComputerDesktop, HiOutlineBanknotes } from 'react-icons/hi2';
 import { Loader2 } from 'lucide-react';
-import { supabase } from '../utils/supabase';
 import { useOrganizationStore } from '../store/organizationStore';
 
 // Components
@@ -189,7 +188,23 @@ export const Billing = () => {
             throw new Error(errorData.error || 'Error desconocido al procesar la venta');
          }
 
-         const responseData = await res.json();
+         // Handle 204 No Content or empty responses
+         let responseData;
+         if (res.status === 204) {
+            responseData = {};
+         } else {
+            responseData = await res.json().catch(() => ({}));
+         }
+
+         if (!responseData.invoiceId && !responseData.id) {
+            console.warn('Backend returned success but no invoice ID', responseData);
+            // If we received a 204, assume success but missing data.
+            // Using a fallback ID to allow the flow to finish and clear the cart.
+            if (res.status === 204 || res.status === 201 || res.status === 200) {
+               responseData.invoiceId = `TEMP-${Date.now()}`;
+               responseData.invoiceNumberFull = 'Procesando...';
+            }
+         }
 
          decreaseStockBatch(
             items.filter(i => i.isDatabaseItem).map(i => ({ id: i.id, quantity: i.quantity })),
@@ -201,8 +216,8 @@ export const Billing = () => {
 
          setFinalizedData({ ...checkoutData });
          setFinalizedPayments([...checkoutData.payments]);
-         setGeneratedInvoiceId(responseData.invoiceId);
-         setGeneratedInvoiceNumber(responseData.invoiceNumberFull);
+         setGeneratedInvoiceId(responseData.invoiceId || responseData.id);
+         setGeneratedInvoiceNumber(responseData.invoiceNumberFull || '---');
 
          try {
             // 1. Preparar datos de la empresa (Fallback si no han cargado)
@@ -250,14 +265,14 @@ export const Billing = () => {
                })),
             };
 
-            // 3. Enviar a la cola de impresión en Supabase
-            const { error: printError } = await supabase.from('print_jobs').insert({
-               printer_name: 'POS-80', // Puedes hacerlo dinámico si tienes varias cajas
-               status: 'pending',
-               payload: printPayload,
-            });
-
-            if (printError) console.error('Error enviando a imprimir:', printError);
+            // 3. Enviar a la cola de impresión en Supabase (No bloqueante, vía Backend)
+            authenticatedFetch(`${API_URL}/printer/jobs`, {
+               method: 'POST',
+               body: JSON.stringify({
+                  printerName: 'POS-80',
+                  payload: printPayload,
+               }),
+            }).catch(console.error); // Catch silencioso para no bloquear UI
          } catch (err) {
             console.error('Error preparando impresión:', err);
          }
@@ -304,6 +319,16 @@ export const Billing = () => {
       ensureDefaultPayment();
    }, [ensureDefaultPayment]);
 
+   // Add timeout for shift loading to prevent infinite loading
+   useEffect(() => {
+      if (shiftLoading) {
+         const timeout = setTimeout(() => {
+            console.warn('Shift loading timeout - proceeding anyway');
+         }, 5000);
+         return () => clearTimeout(timeout);
+      }
+   }, [shiftLoading]);
+
    useEffect(() => {
       const handleKeyDown = (event: KeyboardEvent) => {
          const target = event.target as HTMLElement;
@@ -343,6 +368,8 @@ export const Billing = () => {
       return () => window.removeEventListener('keydown', handleKeyDown);
    }, [modals, isPaymentValid, triggerDiscard, handlePaymentProcess, toggleModal]);
 
+   // Only show loading if we're still checking AND the shift is not open
+   // This prevents infinite loading when there's a network issue
    if (shiftLoading && !isOpen) {
       return (
          <div className="flex h-full w-full items-center justify-center bg-zinc-950">

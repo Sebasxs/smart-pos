@@ -18,6 +18,7 @@ interface AuthState {
    user: User | null;
    token: string | null;
    isAuthenticated: boolean;
+   isSessionChecked: boolean;
 
    login: (user: User, token: string) => void;
    logout: () => void;
@@ -59,13 +60,14 @@ export const useAuthStore = create<AuthState>()(
          user: null,
          token: null,
          isAuthenticated: false,
+         isSessionChecked: false,
 
          login: (user, token) => {
-            set({ user, token, isAuthenticated: true });
+            set({ user, token, isAuthenticated: true, isSessionChecked: true });
          },
 
          logout: async () => {
-            set({ user: null, token: null, isAuthenticated: false });
+            set({ user: null, token: null, isAuthenticated: false, isSessionChecked: true });
             localStorage.removeItem('auth-storage');
             sessionStorage.removeItem('auth-storage');
             supabase.auth.signOut().catch(console.warn);
@@ -76,26 +78,57 @@ export const useAuthStore = create<AuthState>()(
                const state = get();
 
                if (state.user?.role === 'cashier' && state.token) {
+                  set({ isSessionChecked: true });
                   return;
                }
 
-               const { data, error } = await supabase.auth.getSession();
+               // Add timeout to prevent infinite waiting
+               // We keep it reasonably short (5s) because users are waiting
+               const sessionPromise = supabase.auth.getSession();
+               const timeoutPromise = new Promise<{ data: { session: null }; error: Error }>(
+                  (_, reject) => setTimeout(() => reject(new Error('Session check timeout')), 5000),
+               );
+
+               const result = await Promise.race([
+                  sessionPromise,
+                  timeoutPromise.then(() => ({
+                     data: { session: null },
+                     error: new Error('Timeout'),
+                  })),
+               ]);
+
+               const { data, error } = result;
 
                if (error || !data.session) {
-                  if (state.isAuthenticated) {
+                  // Only logout if it's NOT a timeout error, or if we really have no session local
+                  // If it's a timeout, we keep the local state and hope for the best (to work offline or retry)
+                  const isTimeout =
+                     error?.message === 'Timeout' || error?.message === 'Session check timeout';
+
+                  if (!isTimeout && state.isAuthenticated) {
+                     console.warn('Session invalid, logging out:', error);
                      get().logout();
+                  } else if (isTimeout) {
+                     console.warn(
+                        'Session check timed out, proceeding with cached credentials if available',
+                     );
                   }
+
+                  set({ isSessionChecked: true });
                   return;
                }
 
+               // Valid session found/refreshed
                if (data.session.access_token !== state.token) {
                   set({ token: data.session.access_token });
                }
 
                await get().fetchProfile(data.session);
+               set({ isSessionChecked: true });
             } catch (error) {
                console.error('Check session fatal error:', error);
-               get().logout();
+               set({ isSessionChecked: true });
+               // Do not logout on fatal error, allow visual fail-gracefully
             }
          },
 
@@ -137,14 +170,34 @@ export const useAuthStore = create<AuthState>()(
                return state.token;
             }
 
-            const { data, error } = await supabase.auth.getSession();
+            try {
+               // Use a shorter timeout for token retrieval to keep UI snappy
+               const sessionPromise = supabase.auth.getSession();
+               const timeoutPromise = new Promise<{ data: { session: null }; error: Error }>(
+                  (_, reject) => setTimeout(() => reject(new Error('Session timeout')), 2000),
+               );
 
-            if (error || !data.session) {
-               return null;
+               const result = await Promise.race([
+                  sessionPromise,
+                  timeoutPromise.then(() => ({
+                     data: { session: null },
+                     error: new Error('Timeout'),
+                  })),
+               ]);
+
+               const { data, error } = result;
+
+               if (error || !data.session) {
+                  // Return existing token if refresh fails/timeouts to avoid breaking the request immediately
+                  return state.token;
+               }
+
+               set({ token: data.session.access_token });
+               return data.session.access_token;
+            } catch (error) {
+               console.error('getAccessToken error:', error);
+               return state.token; // Fallback to current token
             }
-
-            set({ token: data.session.access_token });
-            return data.session.access_token;
          },
 
          initializeListener: () => {

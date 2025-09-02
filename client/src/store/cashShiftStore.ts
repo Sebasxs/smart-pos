@@ -67,29 +67,48 @@ export const useCashShiftStore = create<CashShiftState>()(
          error: null,
 
          checkShiftStatus: async () => {
+            set({ loading: true });
             try {
                const token = await useAuthStore.getState().getAccessToken();
-               if (!token) return;
+               if (!token) {
+                  set({ loading: false });
+                  return;
+               }
+
+               // Add timeout to prevent infinite waiting
+               const controller = new AbortController();
+               const timeoutId = setTimeout(() => controller.abort(), 8000);
 
                const res = await fetch(`${API_URL}/cash_shifts/status`, {
                   headers: { Authorization: `Bearer ${token}` },
+                  signal: controller.signal,
                });
+
+               clearTimeout(timeoutId);
 
                if (res.ok) {
                   const data = await res.json();
                   if (data && data.isOpen) {
                      const currentId = get().shiftId;
                      if (!get().isOpen || currentId !== data.shift.id) {
-                        set({ isOpen: true, shiftId: data.shift.id });
+                        set({ isOpen: true, shiftId: data.shift.id, loading: false });
+                     } else {
+                        set({ loading: false });
                      }
                   } else {
                      if (get().isOpen) {
-                        set({ isOpen: false, shiftId: null, shiftData: null });
+                        set({ isOpen: false, shiftId: null, shiftData: null, loading: false });
+                     } else {
+                        set({ loading: false });
                      }
                   }
+               } else {
+                  set({ loading: false });
                }
-            } catch (error) {
+            } catch (error: any) {
                console.error('Error checking shift status:', error);
+               // Don't block the app, just set loading to false
+               set({ loading: false });
             }
          },
 

@@ -8,6 +8,7 @@ import customerRoutes from './routes/customers.routes';
 import authRoutes from './routes/auth.routes';
 import cashShiftRoutes from './routes/cash-shift.routes';
 import settingsRoutes from './routes/settings.routes';
+import printerRoutes from './routes/printer.routes';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -21,6 +22,7 @@ app.use('/api/customers', customerRoutes);
 app.use('/api/cash_shifts', cashShiftRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/printer', printerRoutes);
 
 app.get('/', (_, res) => {
    res.json({
