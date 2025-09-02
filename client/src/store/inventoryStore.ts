@@ -219,11 +219,14 @@ export const useInventoryStore = create<InventoryState>()(
       }),
       {
          name: 'inventory-ui-storage',
-         storage: createJSONStorage(() => sessionStorage),
+         storage: createJSONStorage(() => localStorage),
          partialize: state => ({
             search: state.search,
             activeFilter: state.activeFilter,
             sortConfig: state.sortConfig,
+            allProducts: state.allProducts,
+            products: state.products,
+            isInitialized: state.isInitialized,
          }),
       },
    ),

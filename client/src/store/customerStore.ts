@@ -285,11 +285,13 @@ export const useCustomerStore = create<CustomerState>()(
       }),
       {
          name: 'customers-ui-storage',
-         storage: createJSONStorage(() => sessionStorage),
+         storage: createJSONStorage(() => localStorage),
          partialize: state => ({
             search: state.search,
             filterStatus: state.filterStatus,
             sortConfig: state.sortConfig,
+            customers: state.customers,
+            stats: state.stats,
          }),
       },
    ),
