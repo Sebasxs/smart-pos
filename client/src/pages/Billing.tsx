@@ -47,7 +47,7 @@ export const Billing = () => {
       setCheckoutData,
       resetCustomer,
       resetInvoice,
-      ensureDefaultPayment,
+      addPayment,
    } = useBillingStore();
    const { decreaseStockBatch } = useInventoryStore();
    const { updateCustomerAfterPurchase } = useCustomerStore();
@@ -314,11 +314,6 @@ export const Billing = () => {
       }
    }, [preferences.defaultOpeningCash]);
 
-   // Ensure default cash payment is always active when there are no payment methods
-   useEffect(() => {
-      ensureDefaultPayment();
-   }, [ensureDefaultPayment]);
-
    // Add timeout for shift loading to prevent infinite loading
    useEffect(() => {
       if (shiftLoading) {
@@ -355,18 +350,48 @@ export const Billing = () => {
                   event.preventDefault();
                   triggerDiscard();
                   break;
+
+               // LÓGICA DE ENTER MODIFICADA
+               case 'Enter':
+                  event.preventDefault();
+
+                  // CASO 1: Venta lista para procesar (Pago >= Total)
+                  // Esto ocurre en el SEGUNDO Enter
+                  if (isPaymentValid) {
+                     handlePaymentProcess();
+                     return;
+                  }
+
+                  // CASO 2: Hay productos pero NO hay método de pago
+                  // Esto ocurre en el PRIMER Enter
+                  if (items.length > 0 && checkoutData.payments.length === 0) {
+                     // UX: Autocompletar con efectivo por el monto EXACTO del total
+                     // Esto habilita isPaymentValid inmediatamente para el siguiente Enter
+                     addPayment('cash', total);
+                     return;
+                  }
+                  break;
             }
          }
 
-         if (event.code === 'Enter' && !isInputFocused && isPaymentValid) {
-            event.preventDefault();
-            handlePaymentProcess();
-         }
+         // Nota: Eliminamos el bloque 'if (event.code === 'Enter' ...)' anterior
+         // porque ahora está manejado dentro del switch para mayor claridad y control.
       };
 
       window.addEventListener('keydown', handleKeyDown);
       return () => window.removeEventListener('keydown', handleKeyDown);
-   }, [modals, isPaymentValid, triggerDiscard, handlePaymentProcess, toggleModal]);
+   }, [
+      modals,
+      isPaymentValid,
+      triggerDiscard,
+      handlePaymentProcess,
+      toggleModal,
+      // Nuevas dependencias necesarias para la lógica
+      items.length,
+      checkoutData.payments.length,
+      total,
+      addPayment,
+   ]);
 
    // Only show loading if we're still checking AND the shift is not open
    // This prevents infinite loading when there's a network issue

@@ -123,6 +123,11 @@ export const SplitPaymentWidget = ({ total }: PaymentWidgetProps) => {
                               variant="currency"
                               showPrefix={true}
                               placeholder="0"
+                              onKeyDown={e => {
+                                 if (e.key === 'Enter') {
+                                    (e.target as HTMLInputElement).blur();
+                                 }
+                              }}
                               className="[\u0026\u003einput]:w-full [\u0026\u003einput]:bg-transparent [\u0026\u003einput]:text-right [\u0026\u003einput]:text-xl [\u0026\u003einput]:font-mono [\u0026\u003einput]:font-bold [\u0026\u003einput]:text-white [\u0026\u003einput]:outline-none [\u0026\u003einput]:placeholder:text-zinc-700 [\u0026\u003einput]:border-0 [\u0026\u003einput]:px-2 [\u0026\u003einput]:py-1 [\u0026\u003einput]:focus:ring-0"
                            />
                         </div>
