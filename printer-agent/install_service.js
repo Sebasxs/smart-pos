@@ -6,6 +6,7 @@ const svc = new Service({
    description: 'Servicio de impresión automática para Smart POS Web.',
    script: path.join(__dirname, 'index.js'),
    nodeOptions: ['--harmony', '--max_old_space_size=4096'],
+   workingDirectory: __dirname,
 });
 
 svc.on('install', function () {
