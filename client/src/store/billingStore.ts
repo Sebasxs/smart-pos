@@ -100,7 +100,9 @@ export const useBillingStore = create<BillingState>(set => ({
             originalPrice: originalPrice,
             discountPercentage: discountPercentage,
             quantity: 1,
-            stock: product.stock || 9999,
+            // FIX CRÍTICO: Usar ?? para aceptar 0 o negativos como stock válido.
+            // Solo usar 9999 si product.stock es undefined o null.
+            stock: product.stock ?? 9999,
             supplier: product.supplier || 'No especificado',
             isDescriptionEdited: product.isDescriptionEdited ?? !hasValidDbId,
             isPriceEdited: product.isPriceEdited ?? !hasValidDbId,

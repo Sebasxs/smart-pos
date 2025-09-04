@@ -49,10 +49,16 @@ export const QuantitySelector = ({
    };
 
    const btnBaseClass =
-      'p-2 rounded-full transition-colors focus:outline-none text-zinc-300 hover:text-zinc-900';
+      'p-1.5 rounded-full transition-colors focus:outline-none text-zinc-400 hover:text-zinc-100 active:bg-zinc-700/50';
+
+   const isOverStock = value > stock;
 
    return (
-      <div className="flex items-center justify-center gap-x-1 bg-zinc-800 rounded-full hover:bg-zinc-900 p-1 border border-zinc-700/50">
+      <div
+         className={`flex items-center justify-center gap-x-0.5 bg-zinc-800/50 rounded-lg p-0.5 border border-zinc-700/50 ${
+            isOverStock ? 'border-amber-500/30 bg-amber-500/5' : ''
+         }`}
+      >
          <button
             onMouseDown={() => startAction('dec')}
             onMouseUp={stopAction}
@@ -60,24 +66,31 @@ export const QuantitySelector = ({
             tabIndex={-1}
             disabled={value <= 1}
             className={`${btnBaseClass} ${
-               value <= 1 ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer hover:bg-red-400'
+               value <= 1
+                  ? 'opacity-30 cursor-not-allowed'
+                  : 'cursor-pointer hover:bg-red-500/20 hover:text-red-400'
             }`}
             onDragStart={e => e.preventDefault()}
          >
-            <HiOutlineMinus size={14} />
+            <HiOutlineMinus size={12} />
          </button>
 
-         <div className="w-20">
+         <div className="w-12">
             <SmartNumberInput
                value={value}
                onValueChange={v => {
                   const newValue = v ?? 1;
-                  onQuantityChange(Math.max(1, Math.min(newValue, stock)));
+                  // Permitimos superar el stock manualmente, no usamos Math.min aquí
+                  onQuantityChange(Math.max(1, newValue));
                }}
                variant="quantity"
                dianUnitCode={dianUnitCode}
                showPrefix={false}
-               className="[&>input]:w-full [&>input]:text-center [&>input]:bg-transparent [&>input]:border-0 [&>input]:text-zinc-300 [&>input]:font-semibold [&>input]:h-auto [&>input]:p-0 [&>input]:focus:ring-0"
+               className={`
+                  [&>input]:w-full [&>input]:text-center [&>input]:bg-transparent [&>input]:border-0 
+                  [&>input]:font-bold [&>input]:h-auto [&>input]:p-0 [&>input]:text-sm [&>input]:focus:ring-0
+                  ${isOverStock ? '[&>input]:text-amber-400' : '[&>input]:text-zinc-200'}
+               `}
             />
          </div>
 
@@ -86,15 +99,11 @@ export const QuantitySelector = ({
             onMouseUp={stopAction}
             onMouseLeave={stopAction}
             tabIndex={-1}
-            disabled={value >= stock}
-            className={`${btnBaseClass} ${
-               value >= stock
-                  ? 'opacity-30 cursor-not-allowed'
-                  : 'cursor-pointer hover:bg-emerald-400'
-            }`}
+            // Eliminado el disabled={value >= stock} para permitir sobreventa
+            className={`${btnBaseClass} cursor-pointer hover:bg-emerald-500/20 hover:text-emerald-400`}
             onDragStart={e => e.preventDefault()}
          >
-            <HiOutlinePlus size={14} />
+            <HiOutlinePlus size={12} />
          </button>
       </div>
    );

@@ -1,4 +1,8 @@
-import { HiOutlineTrash, HiOutlinePencilSquare } from 'react-icons/hi2';
+import {
+   HiOutlineTrash,
+   HiOutlinePencilSquare,
+   HiOutlineExclamationTriangle,
+} from 'react-icons/hi2';
 import { LucidePlus } from 'lucide-react';
 import { QuantitySelector } from '../ui/QuantitySelector';
 import { SmartNumberInput } from '../ui/SmartNumberInput';
@@ -13,7 +17,8 @@ type InvoiceItemRowProps = {
    onRemove: (id: string) => void;
 };
 
-const GRID_LAYOUT = 'grid grid-cols-[1fr_7rem_8rem_6.5rem_2rem] gap-4 items-center';
+// Layout de la grilla
+const GRID_LAYOUT = 'grid grid-cols-[1fr_7rem_6.5rem_6.5rem_2rem] gap-4 items-center';
 
 const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
    const handlePriceChange = (newPrice: number | null) => {
@@ -24,11 +29,16 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
 
    const hasInventoryDiscount = item.discountPercentage > 0;
    const isModified = item.isPriceEdited || item.isDescriptionEdited;
+   const isOverStock = item.quantity > item.stock;
 
+   // Estilos de fila
    let rowStyle = 'bg-transparent hover:bg-zinc-800/30';
    let indicatorColor = 'bg-transparent';
 
-   if (isModified) {
+   if (isOverStock) {
+      rowStyle = 'bg-amber-500/[0.02] hover:bg-amber-500/[0.05]';
+      indicatorColor = 'bg-amber-500/50';
+   } else if (isModified) {
       rowStyle = 'bg-indigo-500/[0.04] hover:bg-indigo-500/[0.08]';
       indicatorColor = 'bg-indigo-500';
    } else if (hasInventoryDiscount) {
@@ -40,32 +50,47 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
       <div
          className={`
             ${GRID_LAYOUT} 
-            group relative px-6 py-3 border-b border-zinc-800/50 transition-all duration-200
+            group relative px-6 py-2 border-b border-zinc-800/50 transition-all duration-200
             ${rowStyle}
          `}
       >
          {/* Indicador lateral */}
          <div
-            className={`absolute left-0 top-0 bottom-0 w-[2px] transition-colors duration-200 ${indicatorColor}`}
+            className={`absolute left-0 top-0 bottom-0 w-[3px] transition-colors duration-200 ${indicatorColor}`}
          />
 
          {/* 1. PRODUCTO */}
          <div className="flex flex-col min-w-0 pl-2">
-            <div className="flex items-center w-full">
+            <div className="flex items-center w-full gap-2">
                <input
                   type="text"
                   value={item.description}
                   onChange={e => onUpdate(item.id, { description: e.target.value })}
-                  className="w-full bg-transparent border-b border-transparent focus:border-indigo-500 pb-0.5 outline-none truncate transition-colors duration-200 font-bold text-[15px] tracking-tight placeholder:text-zinc-600 text-zinc-100 capitalize"
+                  className="w-full bg-transparent border-b border-transparent focus:border-indigo-500 pb-0.5 outline-none truncate transition-colors duration-200 font-medium text-[14px] tracking-wide placeholder:text-zinc-600 text-zinc-100 capitalize"
                />
+               {isOverStock && (
+                  <div
+                     title={`Stock insuficiente:  ${item.stock}`}
+                     className="text-amber-500 shrink-0 cursor-help"
+                  >
+                     <HiOutlineExclamationTriangle size={14} />
+                  </div>
+               )}
             </div>
 
-            {isModified && (
-               <div className="flex items-center mt-1">
-                  <div className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-md font-bold bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 leading-none shrink-0">
-                     <HiOutlinePencilSquare size={11} />
-                     <span>Editado</span>
-                  </div>
+            {(isModified || hasInventoryDiscount) && (
+               <div className="flex items-center gap-2 mt-0.5 h-4">
+                  {isModified && (
+                     <div className="flex items-center gap-1 text-[9px] px-1.5 py-px rounded-md font-bold bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 leading-none shrink-0">
+                        <HiOutlinePencilSquare size={10} />
+                        <span>Editado</span>
+                     </div>
+                  )}
+                  {hasInventoryDiscount && !item.isPriceEdited && (
+                     <span className="text-[9px] font-bold text-emerald-500 bg-emerald-500/10 px-1.5 rounded-sm leading-none py-0.5 border border-emerald-500/20">
+                        -{item.discountPercentage}% Oferta
+                     </span>
+                  )}
                </div>
             )}
          </div>
@@ -78,37 +103,51 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
                   onValueChange={handlePriceChange}
                   variant="currency"
                   showPrefix={false}
+                  onKeyDown={e => {
+                     if (e.key === 'Enter') {
+                        (e.target as HTMLInputElement).blur();
+                     }
+                  }}
                   className={`
-                     bg-transparent text-right py-0 border-b border-transparent focus:border-indigo-500 outline-none font-mono font-medium tracking-tight transition-colors duration-200
+                     w-full
+                     [&>input]:text-right [&>input]:bg-transparent [&>input]:py-1 [&>input]:px-0
+                     
+                     /* Reset de estilos del input base */
+                     [&>input]:h-auto [&>input]:rounded-none [&>input]:border-0 
+                     [&>input]:focus:ring-0 [&>input]:focus:ring-offset-0
+                     
+                     /* Borde inferior interactivo */
+                     [&>input]:border-b [&>input]:border-transparent 
+                     
+                     /* Tipografía */
+                     [&>input]:outline-none [&>input]:font-mono [&>input]:font-medium [&>input]:tracking-tight 
+                     [&>input]:transition-all [&>input]:duration-200
+                     
+                     /* Colores dinámicos */
                      ${
                         hasInventoryDiscount
-                           ? 'text-emerald-400 font-bold'
-                           : 'text-zinc-300 text-[15px]'
+                           ? '[&>input]:text-emerald-400 [&>input]:font-bold [&>input]:focus:border-emerald-500'
+                           : '[&>input]:text-zinc-300 [&>input]:text-[14px] [&>input]:focus:border-indigo-500'
                      }
                   `}
                />
             </div>
 
             {hasInventoryDiscount && !item.isPriceEdited && (
-               <div className="flex items-center gap-1.5 mt-0.5 justify-end w-full">
-                  <span className="text-xs text-zinc-500 line-through decoration-zinc-600 font-mono">
+               <div className="flex items-center gap-1 mt-0.5 justify-end w-full">
+                  <span className="text-[10px] text-zinc-500 line-through decoration-zinc-600 font-mono">
                      <SmartNumber value={item.originalPrice} variant="currency" />
-                  </span>
-                  <span className="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-1.5 rounded-sm leading-none py-0.5 border border-emerald-500/20">
-                     -{item.discountPercentage}%
                   </span>
                </div>
             )}
          </div>
 
-         {/* 3. CANTIDAD */}
+         {/* 3. CANTIDAD (Selector) */}
          <div className="flex justify-center w-full">
             <QuantitySelector
                value={item.quantity}
                stock={item.stock}
-               onIncrease={() =>
-                  onUpdate(item.id, { quantity: Math.min(item.quantity + 1, item.stock) })
-               }
+               onIncrease={() => onUpdate(item.id, { quantity: item.quantity + 1 })}
                onDecrease={() => onUpdate(item.id, { quantity: Math.max(1, item.quantity - 1) })}
                onQuantityChange={qty => onUpdate(item.id, { quantity: qty > 0 ? qty : 1 })}
             />
@@ -116,7 +155,7 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
 
          {/* 4. SUBTOTAL */}
          <div className="flex flex-col items-end w-full">
-            <span className="font-bold text-white tracking-tight text-[17px] font-mono tabular-nums">
+            <span className="font-bold text-white tracking-tight text-[15px] font-mono tabular-nums">
                <SmartNumber value={item.quantity * item.price} variant="currency" />
             </span>
          </div>
@@ -125,10 +164,11 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
          <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             <button
                onClick={() => onRemove(item.id)}
-               className="p-2 text-zinc-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all duration-200 cursor-pointer active:scale-95"
+               className="p-1.5 text-zinc-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all duration-200 cursor-pointer active:scale-95"
                title="Eliminar producto"
+               tabIndex={-1}
             >
-               <HiOutlineTrash size={18} />
+               <HiOutlineTrash size={16} />
             </button>
          </div>
       </div>
@@ -152,11 +192,11 @@ export const InvoiceTable = ({
       <div className="flex flex-col h-full bg-zinc-950/50 overflow-x-auto overflow-y-hidden rounded-xl custom-scrollbar">
          <div className="min-w-[640px] flex flex-col h-full">
             <div
-               className={`${GRID_LAYOUT} py-3 px-6 mb-0 text-[11px] font-bold text-zinc-500 uppercase tracking-wider border-b border-zinc-800 bg-zinc-900/50 shrink-0 select-none`}
+               className={`${GRID_LAYOUT} py-2 px-6 mb-0 text-[10px] font-bold text-zinc-500 uppercase tracking-wider border-b border-zinc-800 bg-zinc-900/50 shrink-0 select-none`}
             >
                <div className="pl-2">Producto</div>
                <div className="text-right">Valor Und.</div>
-               <div className="text-center">Cantidad</div>
+               <div className="text-center">Cant.</div>
                <div className="text-right">Subtotal</div>
                <div></div>
             </div>
@@ -180,7 +220,7 @@ export const InvoiceTable = ({
                         : 'text-zinc-500 hover:text-zinc-400'
                   }`}
                >
-                  <LucidePlus size={18} className="opacity-70 group-hover:opacity-100" />
+                  <LucidePlus size={16} className="opacity-70 group-hover:opacity-100" />
                   <span className="text-sm font-medium">Nuevo producto</span>
                   <span className="text-xs opacity-50 ml-auto">ESPACIO</span>
                </div>
