@@ -1,73 +1,70 @@
-import {
-   HiOutlineMagnifyingGlass,
-   HiOutlinePlus,
-   HiOutlineArrowPath,
-   HiOutlineXMark,
-} from 'react-icons/hi2';
+import { HiOutlineMagnifyingGlass, HiOutlinePlus, HiOutlineXMark } from 'react-icons/hi2';
 import { Button } from '../ui/Button';
+import { useEffect, useRef } from 'react';
 
 type CustomerHeaderProps = {
    search: string;
    onSearchChange: (value: string) => void;
    onAddClick: () => void;
-   onRefresh: () => void;
-   isLoading: boolean;
 };
 
-export const CustomerHeader = ({
-   search,
-   onSearchChange,
-   onAddClick,
-   onRefresh,
-   isLoading,
-}: CustomerHeaderProps) => {
+export const CustomerHeader = ({ search, onSearchChange, onAddClick }: CustomerHeaderProps) => {
+   const inputRef = useRef<HTMLInputElement>(null);
+
+   // Atajo de teclado
+   useEffect(() => {
+      const handleKeyDown = (e: KeyboardEvent) => {
+         if (
+            (e.ctrlKey && e.key === 'k') ||
+            (e.key === '/' && document.activeElement !== inputRef.current)
+         ) {
+            e.preventDefault();
+            inputRef.current?.focus();
+         }
+      };
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
+   }, []);
+
    return (
-      <div className="flex flex-col md:flex-row gap-3 w-full h-full">
-         {/* Search input */}
-         <div className="relative group w-full md:flex-[2] lg:flex-[3] h-full">
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 z-10 text-zinc-400 pointer-events-none transition-colors group-focus-within:text-blue-500">
+      <div className="flex gap-3 w-full items-center">
+         {/* Search Input */}
+         <div className="relative group flex-1 h-12">
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10 text-zinc-500 group-focus-within:text-blue-400 transition-colors pointer-events-none">
                <HiOutlineMagnifyingGlass size={20} />
             </div>
             <input
+               ref={inputRef}
                value={search}
                onChange={e => onSearchChange(e.target.value)}
-               placeholder="Buscar por nombre, NIT, email..."
-               className="w-full h-full lg:h-auto min-h-[42px] bg-zinc-900 hover:bg-zinc-800 focus:bg-zinc-800 border border-zinc-700 focus:border-blue-500/70 rounded-xl py-2 text-sm text-zinc-200 placeholder:text-zinc-400 outline-none transition-all duration-200 pl-10 pr-8"
+               placeholder="Buscar por nombre, documento o email..."
+               className="w-full h-full bg-zinc-900/50 hover:bg-zinc-900 focus:bg-zinc-900 border border-zinc-800 focus:border-blue-500/50 rounded-xl py-2 pl-11 pr-10 text-sm text-zinc-200 placeholder:text-zinc-500 outline-none transition-all duration-200 shadow-sm"
             />
-            {search && (
+            {search ? (
                <button
                   onClick={() => onSearchChange('')}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition-colors cursor-pointer"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white bg-zinc-800/50 hover:bg-zinc-700 p-1 rounded-full transition-all cursor-pointer"
                >
-                  <HiOutlineXMark size={16} />
+                  <HiOutlineXMark size={14} />
                </button>
+            ) : (
+               <div className="absolute right-4 top-1/2 -translate-y-1/2 hidden md:flex items-center gap-1 pointer-events-none opacity-50">
+                  <kbd className="bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded text-[10px] font-mono border border-zinc-700">
+                     /
+                  </kbd>
+               </div>
             )}
          </div>
 
-         {/* Actions */}
-         <div className="flex gap-2 w-full md:w-auto h-full shrink-0">
-            <Button
-               onClick={onAddClick}
-               variant="primary"
-               className="h-full lg:h-auto min-h-[42px] rounded-xl shadow-blue-900/20 px-6 w-full md:w-auto whitespace-nowrap"
-               title="Nuevo Cliente"
-            >
-               <HiOutlinePlus size={20} />
-               <span>Nuevo Cliente</span>
-            </Button>
-
-            {/* Refresh button */}
-            <button
-               onClick={onRefresh}
-               className="hidden lg:flex h-full lg:h-auto min-h-[42px] aspect-square rounded-xl border border-zinc-700 bg-zinc-900 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all cursor-pointer items-center justify-center shrink-0"
-               title="Actualizar lista"
-            >
-               <HiOutlineArrowPath
-                  size={20}
-                  className={` ${isLoading ? 'animate-spin text-blue-400' : ''}`}
-               />
-            </button>
-         </div>
+         {/* Add Button */}
+         <Button
+            onClick={onAddClick}
+            variant="primary"
+            className="h-12 px-6 rounded-xl shadow-lg shadow-blue-900/20 whitespace-nowrap text-sm font-semibold shrink-0"
+         >
+            <HiOutlinePlus size={20} />
+            <span className="hidden sm:inline">Nuevo Cliente</span>
+         </Button>
       </div>
    );
 };

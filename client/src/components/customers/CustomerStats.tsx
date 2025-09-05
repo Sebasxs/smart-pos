@@ -10,167 +10,115 @@ type CustomerStatsProps = {
    onToggleFilter: (filter: 'all' | 'active' | 'new') => void;
 };
 
-type StatCardProps = {
-   label: string;
-   value: string | number;
-   icon: React.ElementType;
-   colorInfo: {
-      text: string;
-      bg: string;
-      border: string;
-      iconBg: string;
-      shadow: string;
-   };
-   isActive?: boolean;
-   onClick?: () => void;
-   className?: string;
-   children?: React.ReactNode;
-};
-
-const StatCard = ({
+// Componente interno de Tarjeta (Reutilizando el estilo de Inventory)
+const StatFilterCard = ({
    label,
-   value,
+   mainValue,
+   subValue,
    icon: Icon,
-   colorInfo,
-   isActive = false,
+   isActive,
    onClick,
-   className = '',
-   children,
-}: StatCardProps) => {
-   const baseStyle =
-      'relative overflow-hidden border-2 rounded-xl p-2 flex items-center gap-3 transition-all duration-200 text-left';
-
-   const effectiveColors = isActive
-      ? colorInfo
-      : {
-           text: 'text-zinc-500',
-           bg: 'bg-zinc-500',
-           border: 'border-zinc-800',
-           iconBg: 'bg-zinc-800',
-           shadow: 'shadow-none',
-        };
-
-   const activeStyle = isActive
-      ? `bg-zinc-800 ${effectiveColors.border} ${effectiveColors.shadow}`
-      : `bg-zinc-900/50 hover:bg-zinc-800 ${effectiveColors.border}`;
-
-   const cursorClass = onClick ? 'cursor-pointer active:scale-[0.98]' : 'cursor-default';
-
+   colorClass,
+   activeBorderClass,
+   activeBgClass,
+}: {
+   label: string;
+   mainValue: React.ReactNode;
+   subValue?: React.ReactNode;
+   icon: React.ElementType;
+   isActive: boolean;
+   onClick: () => void;
+   colorClass: string;
+   activeBorderClass: string;
+   activeBgClass: string;
+}) => {
    return (
       <button
          onClick={onClick}
-         className={`${baseStyle} ${cursorClass} ${activeStyle} ${className}`}
+         className={`
+            relative flex flex-col justify-between p-4 rounded-xl border transition-all duration-200 text-left group w-full
+            ${
+               isActive
+                  ? `${activeBgClass} ${activeBorderClass} shadow-lg ring-1 ring-inset ring-white/5`
+                  : 'bg-zinc-900/40 border-zinc-800 hover:bg-zinc-900/80 hover:border-zinc-700'
+            }
+         `}
       >
-         <div
-            className={`absolute inset-0 opacity-[0.03] pointer-events-none ${effectiveColors.bg}`}
-         />
-
-         <div
-            className={`m-1 w-22 self-stretch rounded-lg hidden sm:flex items-center justify-center border border-white/5 ${effectiveColors.iconBg} ${effectiveColors.text}`}
-         >
-            <Icon size={48} />
-         </div>
-
-         <div className="min-w-0 flex-1 relative z-10 pl-1 md:pl-0">
-            <p
-               className={`text-[11px] font-bold uppercase tracking-wider mb-0.5 ${effectiveColors.text}`}
+         <div className="flex justify-between items-start w-full mb-2">
+            <span
+               className={`text-[11px] font-bold uppercase tracking-wider ${
+                  isActive ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-400'
+               }`}
             >
                {label}
-            </p>
-            <p
-               className={`text-xl font-mono font-bold tracking-tight text-white`}
-               title={String(value)}
-            >
-               {value}
-            </p>
-            {children}
+            </span>
+            <Icon
+               size={18}
+               className={`${
+                  isActive ? 'text-white opacity-100' : colorClass
+               } transition-opacity duration-200`}
+            />
+         </div>
+
+         <div className="flex items-end justify-between w-full">
+            <div className={`text-2xl font-mono font-bold tracking-tight text-white`}>
+               {mainValue}
+            </div>
+            {subValue && <div className="text-xs font-medium opacity-80 mb-1">{subValue}</div>}
          </div>
       </button>
    );
 };
 
 export const CustomerStats = ({ stats, activeFilter, onToggleFilter }: CustomerStatsProps) => {
+   const activePercentage =
+      stats.totalCustomers > 0
+         ? Math.round((stats.activeCustomers / stats.totalCustomers) * 100)
+         : 0;
+
+   const newPercentage =
+      stats.totalCustomers > 0 ? Math.round((stats.newCustomers / stats.totalCustomers) * 100) : 0;
+
    return (
-      <div className="flex items-stretch gap-3 shrink-0 w-full lg:w-auto overflow-x-auto md:flex-wrap">
-         {/* 1. TOTAL CUSTOMERS */}
-         <StatCard
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 w-full">
+         {/* 1. TODOS */}
+         <StatFilterCard
             label="Total Clientes"
-            value={stats.totalCustomers}
             icon={HiOutlineUsers}
-            colorInfo={{
-               text: 'text-purple-400',
-               bg: 'bg-purple-500',
-               iconBg: 'bg-purple-500/20',
-               border: 'border-purple-500/50',
-               shadow: 'shadow-[0_0_15px_-3px_rgba(99,102,241,0.15)]',
-            }}
+            mainValue={stats.totalCustomers}
+            subValue={<span className="text-indigo-300">Registrados</span>}
             isActive={activeFilter === 'all'}
             onClick={() => onToggleFilter('all')}
-            className="flex-1 min-w-0 md:min-w-[140px]"
-         >
-            <div className="mt-1 pt-1 border-t border-white/10">
-               <p className="text-[10px] text-zinc-400 font-medium tracking-wide uppercase">
-                  Registrados
-               </p>
-               <p className="text-xs font-mono text-purple-300">100%</p>
-            </div>
-         </StatCard>
+            colorClass="text-indigo-500 opacity-60"
+            activeBgClass="bg-gradient-to-br from-indigo-500/20 to-indigo-600/5"
+            activeBorderClass="border-indigo-500/50"
+         />
 
-         {/* 2. ACTIVE CUSTOMERS */}
-         <StatCard
-            label="Activos"
-            value={stats.activeCustomers}
+         {/* 2. ACTIVOS (Compraron recientemente) */}
+         <StatFilterCard
+            label="Clientes Activos"
             icon={HiOutlineUserGroup}
-            colorInfo={{
-               text: 'text-emerald-400',
-               bg: 'bg-emerald-500',
-               iconBg: 'bg-emerald-500/20',
-               border: 'border-emerald-500/50',
-               shadow: 'shadow-[0_0_15px_-3px_rgba(16,185,129,0.15)]',
-            }}
+            mainValue={stats.activeCustomers}
+            subValue={<span className="text-emerald-300">{activePercentage}% del total</span>}
             isActive={activeFilter === 'active'}
             onClick={() => onToggleFilter('active')}
-            className="flex-1 min-w-0 md:min-w-[140px]"
-         >
-            <div className="mt-1 pt-1 border-t border-white/10">
-               <p className="text-[10px] text-zinc-400 font-medium tracking-wide uppercase">
-                  Compraron algo en el último mes
-               </p>
-               <p className="text-xs font-mono text-emerald-300">
-                  {stats.totalCustomers > 0
-                     ? `${Math.round((stats.activeCustomers / stats.totalCustomers) * 100)}%`
-                     : '0%'}
-               </p>
-            </div>
-         </StatCard>
+            colorClass="text-emerald-500 opacity-60"
+            activeBgClass="bg-gradient-to-br from-emerald-500/20 to-emerald-600/5"
+            activeBorderClass="border-emerald-500/50"
+         />
 
-         {/* 3. NEW CUSTOMERS */}
-         <StatCard
-            label="Nuevos"
-            value={stats.newCustomers}
+         {/* 3. NUEVOS (Este mes) */}
+         <StatFilterCard
+            label="Nuevos (Mes)"
             icon={HiOutlineUserPlus}
-            colorInfo={{
-               text: 'text-blue-400',
-               bg: 'bg-blue-500',
-               iconBg: 'bg-blue-500/20',
-               border: 'border-blue-500/50',
-               shadow: 'shadow-[0_0_15px_-3px_rgba(59,130,246,0.15)]',
-            }}
+            mainValue={stats.newCustomers}
+            subValue={<span className="text-cyan-300">+{newPercentage}% Crecimiento</span>}
             isActive={activeFilter === 'new'}
             onClick={() => onToggleFilter('new')}
-            className="flex-1 min-w-0 md:min-w-[140px]"
-         >
-            <div className="mt-1 pt-1 border-t border-white/10">
-               <p className="text-[10px] text-zinc-400 font-medium tracking-wide uppercase">
-                  Recién registrados
-               </p>
-               <p className="text-xs font-mono text-blue-300">
-                  {stats.totalCustomers > 0
-                     ? `${Math.round((stats.newCustomers / stats.totalCustomers) * 100)}%`
-                     : '0%'}
-               </p>
-            </div>
-         </StatCard>
+            colorClass="text-cyan-500 opacity-60"
+            activeBgClass="bg-gradient-to-br from-cyan-500/20 to-cyan-600/5"
+            activeBorderClass="border-cyan-500/50"
+         />
       </div>
    );
 };
