@@ -37,6 +37,7 @@ export const Inventory = () => {
 
    const PULL_THRESHOLD = 80;
 
+   // Pull to refresh logic
    useEffect(() => {
       const container = containerRef.current;
       if (!container) return;
@@ -50,10 +51,8 @@ export const Inventory = () => {
 
       const handleTouchMove = (e: TouchEvent) => {
          if (!isPulling || isRefreshing) return;
-
          const currentY = e.touches[0].clientY;
          const distance = currentY - touchStartY.current;
-
          if (distance > 0 && container.scrollTop === 0) {
             e.preventDefault();
             const resistedDistance = Math.min(distance * 0.5, PULL_THRESHOLD * 1.5);
@@ -63,9 +62,7 @@ export const Inventory = () => {
 
       const handleTouchEnd = async () => {
          if (!isPulling) return;
-
          setIsPulling(false);
-
          if (pullDistance >= PULL_THRESHOLD) {
             setIsRefreshing(true);
             await refresh();
@@ -117,16 +114,12 @@ export const Inventory = () => {
    return (
       <div
          ref={containerRef}
-         className="flex flex-col h-full max-h-screen overflow-auto gap-4"
-         style={{
-            transform: isPulling ? `translateY(${pullDistance}px)` : undefined,
-            transition: isPulling ? 'none' : 'transform 0.3s ease-out',
-         }}
+         className="flex flex-col h-full max-h-screen overflow-hidden relative"
       >
          {/* Pull-to-refresh indicator */}
          {showPullIndicator && (
             <div
-               className="fixed top-0 left-0 right-0 flex justify-center items-center z-50 pointer-events-none"
+               className="absolute top-4 left-0 right-0 flex justify-center items-center z-50 pointer-events-none"
                style={{
                   transform: `translateY(${Math.max(pullDistance - 40, 0)}px)`,
                   opacity: pullProgress,
@@ -149,48 +142,66 @@ export const Inventory = () => {
             </div>
          )}
 
-         {/* PAGE HEADER */}
-         <div className="flex items-center gap-3 mb-6">
-            <div className="p-3 bg-teal-500/10 rounded-xl text-teal-400">
-               <HiOutlineArchiveBox size={24} />
-            </div>
-            <div>
-               <h1 className="text-2xl font-bold text-white">Catálogo</h1>
-               <p className="text-zinc-400">Gestión de productos</p>
-            </div>
-         </div>
-
-         <div className="shrink-0 bg-zinc-900/50 border border-zinc-800 rounded-xl shadow-sm p-3">
-            <div className="flex flex-col lg:flex-col items-start lg:items-stretch gap-4 justify-between">
-               <div className="w-full lg:w-auto shrink-0">
-                  <InventoryHeader
-                     search={search}
-                     onSearchChange={setSearch}
-                     onAddClick={handleAddClick}
-                     onRefresh={refresh}
-                     isLoading={isLoading}
-                  />
+         {/* CONTENT WRAPPER */}
+         <div
+            className="flex flex-col h-full gap-4 transition-transform duration-300 ease-out p-1"
+            style={{ transform: isPulling ? `translateY(${pullDistance}px)` : undefined }}
+         >
+            {/* 1. HEADER ROW: Title + Refresh */}
+            <div className="flex items-center justify-between shrink-0 mb-1">
+               <div className="flex items-center gap-3">
+                  <div className="p-2.5 bg-teal-500/10 rounded-xl text-teal-400 border border-teal-500/20">
+                     <HiOutlineArchiveBox size={22} />
+                  </div>
+                  <div>
+                     <h1 className="text-xl font-bold text-white leading-tight">Inventario</h1>
+                     <p className="text-xs text-zinc-400 font-medium">Gestión de productos</p>
+                  </div>
                </div>
 
-               <div className="w-full lg:w-auto flex-1">
-                  <InventoryStats
-                     stats={stats}
-                     activeFilter={activeFilter}
-                     onToggleFilter={toggleFilter}
-                  />
-               </div>
+               <button
+                  onClick={() => refresh()}
+                  className={`
+                     p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all cursor-pointer border border-transparent hover:border-zinc-700
+                     ${isLoading ? 'animate-spin text-blue-400' : ''}
+                  `}
+                  title="Actualizar lista"
+               >
+                  <HiOutlineArrowPath size={20} />
+               </button>
+            </div>
+
+            {/* 2. STATS / FILTER ROW */}
+            <div className="shrink-0">
+               <InventoryStats
+                  stats={stats}
+                  activeFilter={activeFilter}
+                  onToggleFilter={toggleFilter}
+               />
+            </div>
+
+            {/* 3. TOOLBAR ROW */}
+            <div className="shrink-0">
+               <InventoryHeader
+                  search={search}
+                  onSearchChange={setSearch}
+                  onAddClick={handleAddClick}
+               />
+            </div>
+
+            {/* 4. TABLE AREA (Filling remaining space) */}
+            <div className="flex-1 min-h-0 bg-zinc-900/30 border border-zinc-800 rounded-xl overflow-hidden shadow-sm relative">
+               {/* La tabla se mantiene intacta, solo envuelta en el nuevo contenedor */}
+               <InventoryList
+                  products={products}
+                  isLoading={isLoading}
+                  onEdit={handleEditClick}
+                  onDelete={handleDeleteClick}
+               />
             </div>
          </div>
 
-         <div className="flex-1 min-h-0">
-            <InventoryList
-               products={products}
-               isLoading={isLoading}
-               onEdit={handleEditClick}
-               onDelete={handleDeleteClick}
-            />
-         </div>
-
+         {/* MODALS */}
          <ProductModal
             isOpen={productModalOpen}
             onClose={() => setProductModalOpen(false)}
