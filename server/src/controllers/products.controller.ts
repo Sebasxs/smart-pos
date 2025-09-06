@@ -71,7 +71,7 @@ export const getSuppliersList = async (req: Request, res: Response) => {
 
 export const createProduct = async (req: Request, res: Response) => {
    try {
-      const { description, price, cost, stock, discountPercentage, supplierId, sku } = req.body;
+      const { description, price, cost, stock, discountPercentage, sku } = req.body;
 
       const { data, error } = await supabase
          .from('products')
@@ -81,7 +81,6 @@ export const createProduct = async (req: Request, res: Response) => {
             cost,
             stock,
             discount_percentage: discountPercentage,
-            supplier_id: supplierId || null,
             sku,
          })
          .select()
@@ -100,7 +99,7 @@ export const createProduct = async (req: Request, res: Response) => {
 export const updateProduct = async (req: Request, res: Response) => {
    try {
       const { id } = req.params;
-      const { description, price, cost, stock, discountPercentage, supplierId, sku } = req.body;
+      const { description, price, cost, stock, discountPercentage, sku } = req.body;
 
       const { data, error } = await supabase
          .from('products')
@@ -110,7 +109,6 @@ export const updateProduct = async (req: Request, res: Response) => {
             cost,
             stock,
             discount_percentage: discountPercentage,
-            supplier_id: supplierId || null,
             sku,
          })
          .eq('id', id)
