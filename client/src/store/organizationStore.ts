@@ -34,7 +34,7 @@ export const useOrganizationStore = create<OrganizationState>()(
             set({ isLoading: true });
             try {
                const token = await useAuthStore.getState().getAccessToken();
-               const res = await fetch(`${API_URL}/settings/organization`, {
+               const res = await fetch(`${API_URL}/api/settings/organization`, {
                   headers: { Authorization: `Bearer ${token}` },
                });
 
@@ -52,7 +52,7 @@ export const useOrganizationStore = create<OrganizationState>()(
          updateSettings: async data => {
             try {
                const token = await useAuthStore.getState().getAccessToken();
-               const res = await fetch(`${API_URL}/settings/organization`, {
+               const res = await fetch(`${API_URL}/api/settings/organization`, {
                   method: 'PUT',
                   headers: {
                      'Content-Type': 'application/json',

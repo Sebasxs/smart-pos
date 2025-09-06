@@ -28,7 +28,7 @@ export const useInventory = () => {
 
    const deleteProduct = async (id: string) => {
       try {
-         const res = await fetch(`${API_URL}/products/${id}`, { method: 'DELETE' });
+         const res = await fetch(`${API_URL}/api/products/${id}`, { method: 'DELETE' });
          if (!res.ok) throw new Error('Error eliminando');
 
          deleteProductOptimistic(id);

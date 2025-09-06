@@ -55,7 +55,7 @@ export const Login = () => {
       setError(null);
 
       try {
-         const response = await fetch(`${API_URL}/api/auth/login/cashier`, {
+         const response = await fetch(`${API_URL}/api/api/auth/login/cashier`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ nickname, pin }),

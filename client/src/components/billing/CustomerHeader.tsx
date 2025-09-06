@@ -80,7 +80,9 @@ export const CustomerHeader = () => {
       });
    };
 
-   const hasCustomerData = Object.values(customer).some(val => val.trim() !== '');
+   const hasCustomerData = Object.values(customer).some(
+      val => typeof val === 'string' && val.trim() !== '',
+   );
 
    return (
       <div className="flex flex-col bg-zinc-900/50 border border-zinc-800 rounded-xl shadow-sm">

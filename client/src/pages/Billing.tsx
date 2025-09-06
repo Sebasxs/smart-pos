@@ -178,7 +178,7 @@ export const Billing = () => {
             total,
          };
 
-         const res = await authenticatedFetch(`${API_URL}/invoices`, {
+         const res = await authenticatedFetch(`${API_URL}/api/invoices`, {
             method: 'POST',
             body: JSON.stringify(payload),
          });
@@ -266,7 +266,7 @@ export const Billing = () => {
             };
 
             // 3. Enviar a la cola de impresión en Supabase (No bloqueante, vía Backend)
-            authenticatedFetch(`${API_URL}/printer/jobs`, {
+            authenticatedFetch(`${API_URL}/api/printer/jobs`, {
                method: 'POST',
                body: JSON.stringify({
                   printerName: 'POS-80',

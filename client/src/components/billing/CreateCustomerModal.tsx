@@ -99,7 +99,7 @@ export const CreateCustomerModal = ({
       setError('');
 
       try {
-         const res = await fetch(`${API_URL}/customers`, {
+         const res = await fetch(`${API_URL}/api/customers`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
             body: JSON.stringify({

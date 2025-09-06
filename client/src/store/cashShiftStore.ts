@@ -79,7 +79,7 @@ export const useCashShiftStore = create<CashShiftState>()(
                const controller = new AbortController();
                const timeoutId = setTimeout(() => controller.abort(), 8000);
 
-               const res = await fetch(`${API_URL}/cash_shifts/status`, {
+               const res = await fetch(`${API_URL}/api/cash_shifts/status`, {
                   headers: { Authorization: `Bearer ${token}` },
                   signal: controller.signal,
                });
@@ -116,7 +116,7 @@ export const useCashShiftStore = create<CashShiftState>()(
             set({ loading: true, error: null });
             try {
                const token = await useAuthStore.getState().getAccessToken();
-               const res = await fetch(`${API_URL}/cash_shifts/open`, {
+               const res = await fetch(`${API_URL}/api/cash_shifts/open`, {
                   method: 'POST',
                   headers: {
                      'Content-Type': 'application/json',
@@ -142,7 +142,7 @@ export const useCashShiftStore = create<CashShiftState>()(
             try {
                const token = await useAuthStore.getState().getAccessToken();
 
-               const res = await fetch(`${API_URL}/cash_shifts/close`, {
+               const res = await fetch(`${API_URL}/api/cash_shifts/close`, {
                   method: 'POST',
                   headers: {
                      'Content-Type': 'application/json',
@@ -167,7 +167,7 @@ export const useCashShiftStore = create<CashShiftState>()(
                const token = await useAuthStore.getState().getAccessToken();
                const finalAmount = type === 'income' ? Math.abs(amount) : -Math.abs(amount);
 
-               const res = await fetch(`${API_URL}/cash_shifts/movements`, {
+               const res = await fetch(`${API_URL}/api/cash_shifts/movements`, {
                   method: 'POST',
                   headers: {
                      'Content-Type': 'application/json',
@@ -202,7 +202,7 @@ export const useCashShiftStore = create<CashShiftState>()(
 
                if (!token) throw new Error('No hay sesión activa');
 
-               const res = await fetch(`${API_URL}/cash_shifts/${shiftId}/details`, {
+               const res = await fetch(`${API_URL}/api/cash_shifts/${shiftId}/details`, {
                   headers: { Authorization: `Bearer ${token as string}` },
                });
 

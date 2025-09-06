@@ -58,7 +58,7 @@ export const usePreferencesStore = create<PreferencesState>()(
                const token = await useAuthStore.getState().getAccessToken();
                if (!token) return;
 
-               await fetch(`${API_URL}/settings/profile/preferences`, {
+               await fetch(`${API_URL}/api/settings/profile/preferences`, {
                   method: 'PUT',
                   headers: {
                      'Content-Type': 'application/json',

@@ -54,7 +54,7 @@ const useProductSearch = (isOpen: boolean) => {
          setError('');
          try {
             const res = await fetch(
-               `${API_URL}/products?search=${encodeURIComponent(searchTerm)}`,
+               `${API_URL}/api/products?search=${encodeURIComponent(searchTerm)}`,
                {
                   headers: {
                      Authorization: `Bearer ${token}`,

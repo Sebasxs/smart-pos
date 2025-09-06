@@ -67,7 +67,7 @@ export const ClientCombobox = ({
          setIsLoading(true);
          try {
             const res = await fetch(
-               `${API_URL}/customers/search?search=${encodeURIComponent(value)}`,
+               `${API_URL}/api/customers/search?search=${encodeURIComponent(value)}`,
                {
                   headers: {
                      Authorization: `Bearer ${token}`,

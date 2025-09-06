@@ -145,7 +145,7 @@ export const useCustomerStore = create<CustomerState>()(
             set({ isLoading: true });
 
             try {
-               const res = await fetch(`${API_URL}/customers`, {
+               const res = await fetch(`${API_URL}/api/customers`, {
                   headers: {
                      Authorization: `Bearer ${token}`,
                   },
@@ -185,7 +185,7 @@ export const useCustomerStore = create<CustomerState>()(
          createCustomer: async customer => {
             const token = await useAuthStore.getState().getAccessToken();
             try {
-               const res = await fetch(`${API_URL}/customers`, {
+               const res = await fetch(`${API_URL}/api/customers`, {
                   method: 'POST',
                   headers: {
                      'Content-Type': 'application/json',
@@ -205,7 +205,7 @@ export const useCustomerStore = create<CustomerState>()(
          updateCustomer: async (id, customer) => {
             const token = await useAuthStore.getState().getAccessToken();
             try {
-               const res = await fetch(`${API_URL}/customers/${id}`, {
+               const res = await fetch(`${API_URL}/api/customers/${id}`, {
                   method: 'PUT',
                   headers: {
                      'Content-Type': 'application/json',
@@ -225,7 +225,7 @@ export const useCustomerStore = create<CustomerState>()(
          deleteCustomer: async id => {
             const token = await useAuthStore.getState().getAccessToken();
             try {
-               const res = await fetch(`${API_URL}/customers/${id}`, {
+               const res = await fetch(`${API_URL}/api/customers/${id}`, {
                   method: 'DELETE',
                   headers: {
                      Authorization: `Bearer ${token}`,

@@ -57,7 +57,7 @@ export const useInventoryStore = create<InventoryState>()(
             try {
                const token = await useAuthStore.getState().getAccessToken();
 
-               const res = await fetch(`${API_URL}/products`, {
+               const res = await fetch(`${API_URL}/api/products`, {
                   headers: {
                      Authorization: `Bearer ${token}`,
                   },
@@ -141,7 +141,7 @@ export const useInventoryStore = create<InventoryState>()(
          createProduct: async data => {
             const token = await useAuthStore.getState().getAccessToken();
             try {
-               const res = await fetch(`${API_URL}/products`, {
+               const res = await fetch(`${API_URL}/api/products`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                   body: JSON.stringify(data),
@@ -158,7 +158,7 @@ export const useInventoryStore = create<InventoryState>()(
          updateProduct: async (id, data) => {
             const token = await useAuthStore.getState().getAccessToken();
             try {
-               const res = await fetch(`${API_URL}/products/${id}`, {
+               const res = await fetch(`${API_URL}/api/products/${id}`, {
                   method: 'PUT',
                   headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                   body: JSON.stringify(data),

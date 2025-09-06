@@ -52,7 +52,7 @@ export const CustomerAutocomplete = ({
          setIsLoading(true);
          try {
             const res = await fetch(
-               `${API_URL}/customers/search?search=${encodeURIComponent(value)}`,
+               `${API_URL}/api/customers/search?search=${encodeURIComponent(value)}`,
             );
             if (res.ok) {
                const data = await res.json();
