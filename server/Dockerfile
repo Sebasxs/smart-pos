@@ -14,7 +14,6 @@ RUN pnpm install --prod --frozen-lockfile
 COPY --from=builder /app/dist ./dist
 
 ENV NODE_ENV=production
-ENV NODE_OPTIONS="--experimental-specifier-resolution=node --no-warnings"
 ENV PORT=8080
 EXPOSE 8080
 
