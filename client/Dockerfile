@@ -7,9 +7,9 @@ ENV VITE_API_URL=$VITE_API_URL
 RUN if [ -z "$VITE_API_URL" ]; then echo "ERROR: VITE_API_URL no está definida"; exit 1; fi
 
 COPY package.json pnpm-lock.yaml* package-lock.json* ./
-RUN npm install
+RUN pnpm i -g pnpm && pnpm install --frozen-lockfile
 COPY . .
-RUN npm run build
+RUN pnpm run build
 
 FROM nginx:alpine
 COPY --from=builder /app/dist /usr/share/nginx/html
