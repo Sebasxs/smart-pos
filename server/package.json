@@ -6,13 +6,13 @@
    "type": "module",
    "scripts": {
       "dev": "tsx watch src/index.ts",
-      "build": "tsc",
+      "build": "esbuild src/index.ts --bundle --platform=node --target=node20 --outfile=dist/index.js --format=esm --packages=external",
       "start": "NODE_ENV=production node dist/index.js"
    },
    "keywords": [],
    "author": "sebasxs",
    "license": "ISC",
-   "packageManager": "pnpm@10.23.0",
+   "packageManager": "pnpm@10.25.0",
    "dependencies": {
       "@supabase/supabase-js": "^2.83.0",
       "cors": "^2.8.5",
@@ -25,6 +25,7 @@
       "@types/express": "^5.0.5",
       "@types/jsonwebtoken": "^9.0.10",
       "@types/node": "^24.10.1",
+      "esbuild": "^0.27.1",
       "tsx": "^4.20.6",
       "typescript": "^5.9.3"
    }
