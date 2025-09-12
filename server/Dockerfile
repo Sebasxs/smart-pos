@@ -13,7 +13,7 @@ COPY package.json pnpm-lock.yaml* ./
 RUN pnpm install --prod --frozen-lockfile
 COPY --from=builder /app/dist ./dist
 
-ENV NODE_ENV=prod
+ENV NODE_ENV=production
 ENV PORT=8080
 EXPOSE 8080
 
