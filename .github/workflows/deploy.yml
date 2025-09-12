@@ -30,12 +30,21 @@ jobs:
               if [[ $GITHUB_REF == 'refs/heads/main' ]]; then
                 echo "ENV_NAME=PROD" >> $GITHUB_ENV
                 echo "GCP_PROJECT_ID=${{ secrets.PROD_GCP_PROJECT_ID }}" >> $GITHUB_ENV
-                echo "GCP_SA_KEY=${{ secrets.PROD_GCP_SA_KEY }}" >> $GITHUB_ENV
+                
+                echo "GCP_SA_KEY<<EOF" >> $GITHUB_ENV
+                echo "${{ secrets.PROD_GCP_SA_KEY }}" >> $GITHUB_ENV
+                echo "EOF" >> $GITHUB_ENV
+                
                 echo "RUNNER_SA=app-runner@audiovideo-pos.iam.gserviceaccount.com" >> $GITHUB_ENV
+                
               elif [[ $GITHUB_REF == 'refs/heads/demo' ]]; then
                 echo "ENV_NAME=DEMO" >> $GITHUB_ENV
                 echo "GCP_PROJECT_ID=${{ secrets.DEV_GCP_PROJECT_ID }}" >> $GITHUB_ENV
-                echo "GCP_SA_KEY=${{ secrets.DEV_GCP_SA_KEY }}" >> $GITHUB_ENV
+                
+                echo "GCP_SA_KEY<<EOF" >> $GITHUB_ENV
+                echo "${{ secrets.DEV_GCP_SA_KEY }}" >> $GITHUB_ENV
+                echo "EOF" >> $GITHUB_ENV
+                
                 echo "RUNNER_SA=app-runner@smartpos-1.iam.gserviceaccount.com" >> $GITHUB_ENV
               fi
 
