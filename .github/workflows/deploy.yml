@@ -30,7 +30,6 @@ jobs:
               if [[ $GITHUB_REF == 'refs/heads/main' ]]; then
                 echo "ENV_NAME=PROD" >> $GITHUB_ENV
                 echo "GCP_PROJECT_ID=${{ secrets.PROD_GCP_PROJECT_ID }}" >> $GITHUB_ENV
-                echo "GCP_SA_KEY=${{ secrets.PROD_GCP_SA_KEY }}" >> $GITHUB_ENV
                 echo "RUNNER_SA=app-runner@audiovideo-pos.iam.gserviceaccount.com" >> $GITHUB_ENV
                 
                 echo "SUPABASE_URL_VAL=${{ secrets.PROD_VITE_SUPABASE_URL }}" >> $GITHUB_ENV
@@ -39,7 +38,6 @@ jobs:
               elif [[ $GITHUB_REF == 'refs/heads/demo' ]]; then
                 echo "ENV_NAME=DEMO" >> $GITHUB_ENV
                 echo "GCP_PROJECT_ID=${{ secrets.DEV_GCP_PROJECT_ID }}" >> $GITHUB_ENV
-                echo "GCP_SA_KEY=${{ secrets.DEV_GCP_SA_KEY }}" >> $GITHUB_ENV
                 echo "RUNNER_SA=app-runner@smartpos-1.iam.gserviceaccount.com" >> $GITHUB_ENV
                 
                 echo "SUPABASE_URL_VAL=${{ secrets.DEV_VITE_SUPABASE_URL }}" >> $GITHUB_ENV
@@ -122,8 +120,6 @@ jobs:
               push: true
               build-args: |
                  VITE_API_URL=${{ env.DETECTED_API_URL }}
-                 VITE_SUPABASE_URL=${{ env.SUPABASE_URL_VAL }}
-                 VITE_SUPABASE_ANON_KEY=${{ env.SUPABASE_KEY_VAL }}
               tags: |
                  ${{ env.REGISTRY_HOST }}/${{ env.GCP_PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/client:latest
                  ${{ env.REGISTRY_HOST }}/${{ env.GCP_PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/client:${{ github.sha }}
