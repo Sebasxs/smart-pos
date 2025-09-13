@@ -120,6 +120,8 @@ jobs:
               push: true
               build-args: |
                  VITE_API_URL=${{ env.DETECTED_API_URL }}
+                 VITE_SUPABASE_URL=${{ env.SUPABASE_URL_VAL }}
+                 VITE_SUPABASE_ANON_KEY=${{ env.SUPABASE_KEY_VAL }}
               tags: |
                  ${{ env.REGISTRY_HOST }}/${{ env.GCP_PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/client:latest
                  ${{ env.REGISTRY_HOST }}/${{ env.GCP_PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/client:${{ github.sha }}
