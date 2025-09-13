@@ -1,4 +1,4 @@
-import './config/env.js';
+import './config/env';
 import express from 'express';
 import cors from 'cors';
 
