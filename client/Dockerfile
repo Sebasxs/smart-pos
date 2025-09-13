@@ -4,7 +4,16 @@ WORKDIR /app
 ARG VITE_API_URL
 ENV VITE_API_URL=$VITE_API_URL
 
-RUN if [ -z "$VITE_API_URL" ]; then echo "ERROR: VITE_API_URL no está definida"; exit 1; fi
+ARG VITE_SUPABASE_URL
+ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
+
+ARG VITE_SUPABASE_ANON_KEY
+ENV VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY
+
+RUN if [ -z "$VITE_API_URL" ] || [ -z "$VITE_SUPABASE_URL" ] || [ -z "$VITE_SUPABASE_ANON_KEY" ]; then \
+    echo "ERROR: Faltan variables de entorno requeridas para el build"; \
+    exit 1; \
+    fi
 
 RUN npm i -g pnpm
 COPY package.json pnpm-lock.yaml* package-lock.json* ./
