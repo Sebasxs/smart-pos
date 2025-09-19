@@ -1,5 +1,6 @@
 import { type ReactNode, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
+import { cn } from '../../utils/cn';
 
 type ModalProps = {
    isOpen: boolean;
@@ -39,27 +40,27 @@ export const Modal = ({
    const contentAnimation =
       variant === 'search'
          ? 'animate-in fade-in slide-in-from-top-4 duration-200'
-         : 'animate-in zoom-in-95 duration-200';
-
-   const widthClass =
-      variant === 'center' ? 'w-fit min-w-[300px] rounded-3xl' : 'w-full max-w-2xl rounded-3xl';
+         : 'animate-in zoom-in-95 fade-in duration-200';
 
    return createPortal(
       <div
          ref={overlayRef}
-         className="fixed inset-0 z-50 flex justify-center bg-black/60 backdrop-blur-sm p-4 transition-all items-center"
+         className={cn(
+            'fixed inset-0 z-50 flex justify-center bg-black/60 backdrop-blur-sm p-4 transition-all',
+            'items-start md:items-center pt-12 md:pt-4',
+         )}
          onMouseDown={e => {
             if (e.target === overlayRef.current) onClose();
          }}
       >
          <div
-            className={`
-               bg-zinc-950 border border-zinc-800 shadow-2xl shadow-black/80 
-               max-h-[85vh] overflow-hidden
-               ${widthClass}
-               ${contentAnimation}
-               ${className}
-            `}
+            className={cn(
+               'bg-zinc-950 border border-zinc-800 shadow-2xl shadow-black/80 rounded-3xl overflow-hidden flex flex-col',
+               variant === 'center' ? 'w-full md:w-fit md:min-w-[300px]' : 'w-full max-w-2xl',
+               'max-h-[85vh]',
+               contentAnimation,
+               className,
+            )}
             onMouseDown={e => e.stopPropagation()}
          >
             {children}
