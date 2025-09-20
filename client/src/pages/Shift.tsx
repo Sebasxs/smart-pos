@@ -470,7 +470,7 @@ export const Shift = () => {
                            </span>
                         </div>
                      </div>
-                     <div className="px-4 py-3 bg-zinc-950 border-t border-zinc-800 flex justify-between items-center">
+                     <div className="px-4 py-3 bg-zinc-950 border-t border-zinc-800 flex justify-between items-center gap-6">
                         <span className="text-sm font-bold text-zinc-300 uppercase tracking-wide">
                            Efectivo Esperado
                         </span>
@@ -495,6 +495,12 @@ export const Shift = () => {
                         placeholder="0"
                         autoFocus
                         className="[&>input]:bg-zinc-900 [&>input]:border-zinc-700 [&>input]:h-12 [&>input]:text-lg"
+                        onKeyDown={e => {
+                           if (e.key === 'Enter' && closingAmount !== null && !isClosingShift) {
+                              e.preventDefault();
+                              handleCloseShift();
+                           }
+                        }}
                      />
                      {closingAmount !== null && summary?.expectedCash !== undefined && (
                         <div
