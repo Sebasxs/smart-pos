@@ -18,6 +18,7 @@ import { type PaymentEntry, useBillingStore } from '../../store/billingStore';
 import { SmartNumber } from '../ui/SmartNumber';
 import { cn } from '../../utils/cn';
 import { Input } from '../ui/Input';
+import { usePrinter } from '../../hooks/usePrinter';
 
 type PaymentSuccessModalProps = {
    isOpen: boolean;
@@ -42,6 +43,7 @@ export const PaymentSuccessModal = ({
    invoiceId,
    cashierName,
 }: PaymentSuccessModalProps) => {
+   const { printInvoice } = usePrinter();
    const { items, discount, checkoutData } = useBillingStore();
    const { customer } = checkoutData;
 
@@ -67,6 +69,7 @@ export const PaymentSuccessModal = ({
 
    const [isSending, setIsSending] = useState(false);
    const [sentSuccess, setSentSuccess] = useState(false);
+   const [isPrinting, setIsPrinting] = useState(false);
 
    const [activeTab, setActiveTab] = useState<'summary' | 'ticket'>('summary');
 
@@ -91,6 +94,7 @@ export const PaymentSuccessModal = ({
          setExpandedAction(null);
          setSentSuccess(false);
          setActiveTab('summary');
+         setIsPrinting(false);
 
          setTimeout(() => primaryButtonRef.current?.focus(), 50);
       }
@@ -144,8 +148,36 @@ export const PaymentSuccessModal = ({
       }, 2000);
    };
 
-   const handlePrint = () => {
-      window.print();
+   const handlePrint = async () => {
+      if (isPrinting) return;
+      setIsPrinting(true);
+      await printInvoice({
+         invoiceNumber: invoiceNumber || '---',
+         date: new Date(),
+         cashierName: cashierName || '---',
+         customer: {
+            name: customer.name,
+            id_number: customer.taxId,
+            phone: customer.phone,
+            address: customer.address,
+         },
+         items: items.map(i => ({
+            description: i.description,
+            qty: i.quantity,
+            price: i.price,
+            total: i.quantity * i.price,
+         })),
+         totals: {
+            subtotal,
+            discount: discountValue,
+            total,
+         },
+         payments: payments.map(p => ({
+            method: p.method,
+            amount: p.amount || 0,
+         })),
+      });
+      setIsPrinting(false);
    };
 
    return (
@@ -259,25 +291,32 @@ export const PaymentSuccessModal = ({
                   {/* PRINT COPY */}
                   <button
                      onClick={handlePrint}
-                     className="w-full flex items-center justify-between p-3.5 bg-zinc-900/40 hover:bg-zinc-900 border border-zinc-800 hover:border-zinc-700 rounded-xl transition-all group cursor-pointer text-left"
+                     disabled={isPrinting}
+                     className="w-full flex items-center justify-between p-3.5 bg-zinc-900/40 hover:bg-zinc-900 border border-zinc-800 hover:border-zinc-700 rounded-xl transition-all group cursor-pointer text-left disabled:opacity-50 disabled:cursor-wait"
                   >
                      <div className="flex items-center gap-3">
                         <div className="p-2 bg-zinc-800 text-zinc-400 rounded-lg group-hover:text-purple-400 group-hover:bg-purple-500/10 transition-colors">
-                           <HiOutlinePrinter size={20} />
+                           {isPrinting ? (
+                              <div className="w-5 h-5 border-2 border-purple-500/30 border-t-purple-500 rounded-full animate-spin" />
+                           ) : (
+                              <HiOutlinePrinter size={20} />
+                           )}
                         </div>
                         <div className="flex flex-col">
                            <span className="text-zinc-300 font-medium group-hover:text-white transition-colors text-sm">
-                              Imprimir Copia
+                              {isPrinting ? 'Enviando a impresora...' : 'Imprimir Copia'}
                            </span>
                            <span className="text-zinc-500 text-[12px]">
                               Generar tirilla térmica
                            </span>
                         </div>
                      </div>
-                     <HiOutlineArrowRight
-                        size={16}
-                        className="text-zinc-600 group-hover:text-zinc-400"
-                     />
+                     {!isPrinting && (
+                        <HiOutlineArrowRight
+                           size={16}
+                           className="text-zinc-600 group-hover:text-zinc-400"
+                        />
+                     )}
                   </button>
 
                   {/* SEND BY EMAIL */}

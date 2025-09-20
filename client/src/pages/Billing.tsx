@@ -1,7 +1,6 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { HiOutlineComputerDesktop, HiOutlineBanknotes } from 'react-icons/hi2';
 import { Loader2 } from 'lucide-react';
-import { useOrganizationStore } from '../store/organizationStore';
 
 // Components
 import { InvoiceTable } from '../components/billing/InvoiceTable';
@@ -29,13 +28,13 @@ import { type InvoiceItem } from '../types/billing';
 // Utils
 import { authenticatedFetch } from '../utils/api';
 import { useAuthStore } from '../store/authStore';
-import { TAX_REGIME_LABELS } from '../utils/constants';
-import { formatDate, formatTime } from '../utils/date';
+import { usePrinter } from '../hooks/usePrinter';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 export const Billing = () => {
    const { user } = useAuthStore();
+   const { printInvoice } = usePrinter();
    const {
       items,
       discount,
@@ -142,8 +141,6 @@ export const Billing = () => {
       setSearchInputValue('');
    };
 
-   const { settings } = useOrganizationStore();
-
    const handlePaymentProcess = useCallback(async () => {
       if (!isPaymentValid || isProcessing) return;
 
@@ -218,26 +215,10 @@ export const Billing = () => {
          setGeneratedInvoiceNumber(responseData.invoiceNumberFull || '---');
 
          try {
-            const companyInfo = {
-               name: settings?.company_name || '---',
-               nit: settings?.tax_id || '---',
-               regime: TAX_REGIME_LABELS[settings?.tax_regime || 'not_responsible_iva'] || '---',
-               address: settings?.address
-                  ? `${settings.address}${settings.city ? `, ${settings.city}` : ''}`
-                  : '---',
-               phone: settings?.phone || '',
-               footer: settings?.invoice_footer || 'Gracias por su compra',
-            };
-
-            const date = new Date();
-            const printPayload = {
-               company: companyInfo,
-               invoice: {
-                  number: responseData.invoiceNumberFull,
-                  date: formatDate(date),
-                  time: formatTime(date),
-                  cashier: user?.full_name || user?.nickname || '---',
-               },
+            await printInvoice({
+               invoiceNumber: responseData.invoiceNumberFull,
+               date: new Date(),
+               cashierName: user?.full_name || user?.nickname || '---',
                customer: {
                   name: checkoutData.customer.name,
                   id_number: checkoutData.customer.taxId,
@@ -259,15 +240,7 @@ export const Billing = () => {
                   method: p.method,
                   amount: p.amount || 0,
                })),
-            };
-
-            authenticatedFetch(`${API_URL}/api/printer/jobs`, {
-               method: 'POST',
-               body: JSON.stringify({
-                  printerName: 'POS-80',
-                  payload: printPayload,
-               }),
-            }).catch(console.error);
+            });
          } catch (err) {
             console.error('Error preparando impresión:', err);
          }
@@ -291,6 +264,8 @@ export const Billing = () => {
       toggleModal,
       decreaseStockBatch,
       updateCustomerAfterPurchase,
+      printInvoice,
+      user,
    ]);
 
    const handleFinalizeSuccess = () => {
