@@ -17,7 +17,7 @@ import {
 import { Modal } from '../components/ui/Modal';
 import { Button } from '../components/ui/Button';
 import { formatDateTime, formatTime } from '../utils/date';
-import { Loader2 } from 'lucide-react';
+import { CgSpinner } from 'react-icons/cg';
 
 export const Shift = () => {
    const navigate = useNavigate();
@@ -109,7 +109,7 @@ export const Shift = () => {
    if (isFetchingDetails && !shiftData) {
       return (
          <div className="flex h-full flex-col items-center justify-center gap-3 text-zinc-500 animate-in fade-in duration-300">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+            <CgSpinner className="h-8 w-8 animate-spin text-blue-500" />
             <span className="font-medium">Sincronizando caja...</span>
          </div>
       );
@@ -149,7 +149,7 @@ export const Shift = () => {
    if (!shiftData) {
       return (
          <div className="flex h-full flex-col items-center justify-center gap-3 text-zinc-500">
-            <Loader2 className="h-8 w-8 animate-spin text-zinc-600" />
+            <CgSpinner className="h-8 w-8 animate-spin text-zinc-600" />
          </div>
       );
    }
@@ -163,7 +163,9 @@ export const Shift = () => {
             <div>
                <h1 className="text-2xl font-bold text-white flex items-center gap-2">
                   Control de Caja
-                  {isFetchingDetails && <Loader2 className="h-4 w-4 animate-spin text-zinc-500" />}
+                  {isFetchingDetails && (
+                     <CgSpinner className="h-4 w-4 animate-spin text-zinc-500" />
+                  )}
                </h1>
                <div className="flex items-center gap-3 text-zinc-400 text-sm mt-1">
                   <div className="flex items-center gap-1.5 bg-zinc-900/50 px-2.5 py-1 rounded-md border border-zinc-800">

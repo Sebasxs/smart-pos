@@ -2,7 +2,12 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { supabase } from '../utils/supabase';
-import { KeyRound, LogIn, Loader2, AlertCircle } from 'lucide-react';
+import {
+   HiOutlineKey,
+   HiOutlineArrowRightOnRectangle,
+   HiOutlineExclamationCircle,
+} from 'react-icons/hi2';
+import { CgSpinner } from 'react-icons/cg';
 import clsx from 'clsx';
 import { FullPageLoader } from '../components/ui/FullPageLoader';
 import { useCashShiftStore } from '../store/cashShiftStore';
@@ -112,7 +117,7 @@ export const Login = () => {
             {/* Header */}
             <div className="p-6 pb-4 text-center border-b border-zinc-800">
                <div className="w-16 h-16 bg-blue-600/20 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-blue-500/20 shadow-lg shadow-blue-900/20">
-                  <KeyRound className="w-8 h-8 text-blue-500" />
+                  <HiOutlineKey className="w-8 h-8 text-blue-500" />
                </div>
                <h1 className="text-2xl font-bold text-white mb-2 tracking-tight">SmartPOS</h1>
                <p className="text-zinc-400 text-sm">Punto de Venta Inteligente</p>
@@ -158,7 +163,7 @@ export const Login = () => {
             <div className="p-6">
                {error && (
                   <div className="mb-6 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs flex gap-2 items-start animate-in fade-in slide-in-from-top-2">
-                     <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                     <HiOutlineExclamationCircle className="w-4 h-4 shrink-0 mt-0.5" />
                      <span className="leading-relaxed font-medium">{error}</span>
                   </div>
                )}
@@ -213,10 +218,10 @@ export const Login = () => {
                         className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-medium py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 mt-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-900/20 active:scale-[0.98]"
                      >
                         {loading ? (
-                           <Loader2 className="w-5 h-5 animate-spin" />
+                           <CgSpinner className="w-5 h-5 animate-spin" />
                         ) : (
                            <>
-                              <LogIn className="w-5 h-5" />
+                              <HiOutlineArrowRightOnRectangle className="w-5 h-5" />
                               <span>Iniciar Sesión</span>
                            </>
                         )}
@@ -234,7 +239,7 @@ export const Login = () => {
                         className="w-full bg-white hover:bg-zinc-100 text-zinc-900 font-medium py-3.5 rounded-xl transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-white/5 active:scale-[0.98]"
                      >
                         {loading ? (
-                           <Loader2 className="w-5 h-5 animate-spin text-zinc-600" />
+                           <CgSpinner className="w-5 h-5 animate-spin text-zinc-600" />
                         ) : (
                            <>
                               <svg className="w-5 h-5" viewBox="0 0 24 24">

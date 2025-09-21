@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { HiOutlineComputerDesktop, HiOutlineBanknotes } from 'react-icons/hi2';
-import { Loader2 } from 'lucide-react';
+import { CgSpinner } from 'react-icons/cg';
 
 // Components
 import { InvoiceTable } from '../components/billing/InvoiceTable';
@@ -368,7 +368,7 @@ export const Billing = () => {
       return (
          <div className="flex h-full w-full items-center justify-center bg-zinc-950">
             <div className="flex flex-col items-center gap-3">
-               <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+               <CgSpinner className="h-8 w-8 animate-spin text-blue-500" />
                <p className="text-sm text-zinc-500 font-medium">Verificando turno de caja...</p>
             </div>
          </div>

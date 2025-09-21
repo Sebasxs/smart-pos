@@ -2,8 +2,8 @@ import {
    HiOutlineTrash,
    HiOutlinePencilSquare,
    HiOutlineExclamationTriangle,
+   HiOutlinePlus,
 } from 'react-icons/hi2';
-import { LucidePlus } from 'lucide-react';
 import { QuantitySelector } from '../ui/QuantitySelector';
 import { SmartNumberInput } from '../ui/SmartNumberInput';
 import { SmartNumber } from '../ui/SmartNumber';
@@ -254,8 +254,8 @@ export const InvoiceTable = ({
                               font-medium text-sm
                            `}
                         >
-                           <LucidePlus
-                              size={18}
+                           <HiOutlinePlus
+                              size={16}
                               className="group-hover:scale-110 transition-transform"
                            />
                            <span>Nuevo producto</span>
