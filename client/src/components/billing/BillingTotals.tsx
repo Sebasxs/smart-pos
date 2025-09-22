@@ -57,7 +57,7 @@ export const BillingTotals = ({
                <div className="flex justify-between items-center text-sm">
                   <button
                      onClick={onOpenDiscount}
-                     className="flex items-center gap-1.5 text-blue-400 hover:text-blue-300 transition-colors text-xs font-bold uppercase tracking-wide group"
+                     className="flex items-center gap-1.5 text-blue-400 hover:text-blue-300 transition-colors text-xs font-bold uppercase tracking-wide group cursor-pointer"
                   >
                      <HiOutlineTag />
                      <span className="border-b border-blue-500/30 group-hover:border-blue-400">
@@ -96,17 +96,20 @@ export const BillingTotals = ({
                   onClick={onProcessPayment}
                   disabled={!isPaymentValid || isProcessing}
                   isLoading={isProcessing}
-                  className="w-full py-4 text-lg shadow-blue-900/20"
+                  variant={isPaymentValid ? 'primary' : 'disabled'}
+                  className="w-full py-4 text-lg shadow-blue-900/20 mt-5"
                >
                   {!isProcessing && (
                      <>
                         <span>Confirmar Venta</span>
-                        <HiOutlineCheckCircle
-                           className={`transition-colors ${
-                              isPaymentValid ? 'text-blue-200' : 'text-zinc-600'
-                           }`}
-                           size={24}
-                        />
+                        {isPaymentValid && (
+                           <HiOutlineCheckCircle
+                              className={`transition-colors ${
+                                 isPaymentValid ? 'text-blue-200' : 'text-zinc-600'
+                              }`}
+                              size={24}
+                           />
+                        )}
                      </>
                   )}
                </Button>
