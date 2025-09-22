@@ -194,15 +194,22 @@ export const ProductSearchModal = ({
                   <HiOutlineSearch size={22} />
                )}
             </div>
-            <input
-               ref={inputRef}
-               type="text"
-               placeholder="Buscar productos..."
-               value={searchTerm}
-               onChange={e => setSearchTerm(e.target.value)}
-               className="flex-1 bg-transparent text-lg text-white placeholder:text-zinc-600 outline-none font-medium"
-               autoComplete="off"
-            />
+            <div className="flex-1 flex flex-col justify-center">
+               <input
+                  ref={inputRef}
+                  type="text"
+                  placeholder="Buscar productos..."
+                  value={searchTerm}
+                  onChange={e => setSearchTerm(e.target.value)}
+                  className="w-full bg-transparent text-lg text-white placeholder:text-zinc-600 outline-none font-medium"
+                  autoComplete="off"
+               />
+               {isLoading && (
+                  <span className="text-[12px] text-sky-500 font-medium animate-pulse -mt-1">
+                     Buscando...
+                  </span>
+               )}
+            </div>
             <div className="hidden sm:flex gap-2 text-[10px] font-mono text-zinc-600 uppercase tracking-wide">
                <span className="flex items-center gap-1 bg-zinc-900 px-2 py-1 rounded border border-zinc-800">
                   <kbd>↑</kbd> <kbd>↓</kbd> Navegar
@@ -261,11 +268,11 @@ export const ProductSearchModal = ({
                               {/* Icono */}
                               <div
                                  className={`
-                                    w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300
+                                    w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300 border
                                     ${
                                        isSelected
-                                          ? 'bg-purple-500 text-white shadow-md shadow-purple-500/30 scale-105'
-                                          : 'bg-zinc-900 text-zinc-500 border border-zinc-800'
+                                          ? 'bg-purple-500 text-white border-purple-400 shadow-md shadow-purple-500/30 scale-105'
+                                          : 'bg-zinc-900 text-zinc-500 border-zinc-800'
                                     }
                                  `}
                               >
@@ -378,7 +385,8 @@ export const ProductSearchModal = ({
                            <span className="font-medium text-sm">Agregar Manualmente</span>
                         </button>
                         <div className="mt-3 text-[10px] text-zinc-600">
-                           O presiona <kbd className="font-sans font-bold text-zinc-500">Enter</kbd>
+                           o presiona{' '}
+                           <kbd className="font-sans font-bold text-zinc-500 pl-0.5">ENTER</kbd>
                         </div>
                      </div>
                   ) : (
