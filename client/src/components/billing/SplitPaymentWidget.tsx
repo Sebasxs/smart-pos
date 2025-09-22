@@ -31,7 +31,7 @@ const PAYMENT_METHODS: {
    },
    {
       value: 'bank_transfer',
-      label: 'Transferencia',
+      label: 'Transfer.',
       icon: HiOutlineCreditCard,
       color: 'text-purple-400',
       bgColor: 'bg-purple-500/10',
@@ -42,7 +42,7 @@ const PAYMENT_METHODS: {
    },
    {
       value: 'account_balance',
-      label: 'Saldo a Favor',
+      label: 'Saldo',
       icon: HiOutlineWallet,
       color: 'text-blue-400',
       bgColor: 'bg-blue-500/10',
@@ -88,7 +88,50 @@ export const SplitPaymentWidget = ({ total }: PaymentWidgetProps) => {
          </div>
 
          <div className="p-4 flex flex-col gap-4">
-            {/* Payment Entries */}
+            {/* Add Payment Buttons - ABOVE */}
+            <div className="grid grid-cols-3 gap-2">
+               {PAYMENT_METHODS.map(method => {
+                  const alreadyHasMethod = payments.some(p => p.method === method.value);
+                  const isDisabled =
+                     (method.value === 'account_balance' && (customer.accountBalance || 0) <= 0) ||
+                     alreadyHasMethod;
+
+                  return (
+                     <button
+                        key={method.value}
+                        onClick={() => handleAddPayment(method.value)}
+                        disabled={isDisabled}
+                        className={`
+                           p-2.5 rounded-lg border transition-all duration-300 flex items-center justify-center
+                           relative overflow-hidden group
+                           ${
+                              isDisabled
+                                 ? 'bg-zinc-800/20 border-zinc-800/50 text-zinc-600 cursor-not-allowed'
+                                 : `${method.btnClass} cursor-pointer`
+                           }
+                        `}
+                        title={
+                           alreadyHasMethod
+                              ? `${method.label} ya está agregado`
+                              : method.value === 'account_balance' &&
+                                (customer.accountBalance || 0) <= 0
+                              ? 'Cliente no tiene saldo disponible'
+                              : `Agregar ${method.label}`
+                        }
+                     >
+                        <span
+                           className={`text-[10px] uppercase font-bold tracking-wider transition-opacity duration-300 ${
+                              isDisabled ? 'opacity-40' : 'opacity-100'
+                           }`}
+                        >
+                           {method.label}
+                        </span>
+                     </button>
+                  );
+               })}
+            </div>
+
+            {/* Payment Entries - BELOW */}
             {payments.length > 0 && (
                <div className="space-y-2">
                   {payments.map(payment => {
@@ -100,7 +143,7 @@ export const SplitPaymentWidget = ({ total }: PaymentWidgetProps) => {
                      return (
                         <div
                            key={payment.id}
-                           className={`p-3 rounded-lg border ${info.borderColor} ${info.bgColor} flex flex-col gap-2`}
+                           className={`p-3 rounded-lg border animate-in fade-in slide-in-from-top-2 duration-300 ${info.borderColor} ${info.bgColor} flex flex-col gap-2`}
                         >
                            <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
@@ -136,38 +179,6 @@ export const SplitPaymentWidget = ({ total }: PaymentWidgetProps) => {
                </div>
             )}
 
-            {/* Add Payment Buttons */}
-            <div className="grid grid-cols-3 gap-2">
-               {PAYMENT_METHODS.map(method => {
-                  const isDisabled =
-                     method.value === 'account_balance' && (customer.accountBalance || 0) <= 0;
-
-                  return (
-                     <button
-                        key={method.value}
-                        onClick={() => handleAddPayment(method.value)}
-                        disabled={isDisabled}
-                        className={`
-                           p-2 rounded-lg border transition-all duration-200 flex items-center justify-center gap-1.5
-                           ${
-                              isDisabled
-                                 ? 'bg-zinc-900/50 border-zinc-800 text-zinc-700 cursor-not-allowed opacity-50'
-                                 : method.btnClass
-                           }
-                        `}
-                        title={
-                           isDisabled
-                              ? 'Cliente no tiene saldo disponible'
-                              : `Agregar ${method.label}`
-                        }
-                     >
-                        <method.icon size={16} />
-                        <span className="text-xs font-bold">+</span>
-                     </button>
-                  );
-               })}
-            </div>
-
             {/* Remaining/Complete Indicator */}
             <div
                className={`
@@ -176,12 +187,12 @@ export const SplitPaymentWidget = ({ total }: PaymentWidgetProps) => {
                      remaining > 0
                         ? 'bg-amber-500/10 border-amber-500/30'
                         : change > 0
-                        ? 'bg-blue-500/10 border-blue-500/30'
-                        : 'bg-emerald-500/10 border-emerald-500/30'
+                        ? 'bg-emerald-500/10 border-emerald-500/30'
+                        : 'bg-zinc-500/10 border-zinc-500/30'
                   }
                `}
             >
-               <span className="text-xs font-bold text-zinc-500 uppercase tracking-wide">
+               <span className="text-xs font-bold text-zinc-400 uppercase tracking-wide">
                   {remaining > 0 ? 'Faltante' : change > 0 ? 'Cambio' : 'Pago Completo'}
                </span>
 
@@ -192,8 +203,8 @@ export const SplitPaymentWidget = ({ total }: PaymentWidgetProps) => {
                      remaining > 0
                         ? 'text-amber-400'
                         : change > 0
-                        ? 'text-blue-400'
-                        : 'text-emerald-400'
+                        ? 'text-emerald-400'
+                        : 'text-zinc-400'
                   }`}
                />
             </div>
