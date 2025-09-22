@@ -40,21 +40,21 @@ const navigation: NavigationConfig = [
       path: '/chat',
       icon: <HiOutlineSparkles size={22} />,
       hoverColor: 'hover:bg-purple-500/10 hover:text-purple-400',
-      activeColor: 'bg-purple-500/10 text-purple-400 ring-purple-500/20',
+      activeColor: 'bg-purple-500/10 text-zinc-200 ring-purple-500/20',
    },
    {
       name: 'Facturar',
       path: '/billing',
       icon: <HiOutlineComputerDesktop size={22} />,
       hoverColor: 'hover:bg-blue-500/10 hover:text-blue-400',
-      activeColor: 'bg-blue-500/10 text-blue-400 ring-blue-500/20',
+      activeColor: 'bg-blue-500/10 text-zinc-200 ring-blue-500/20',
    },
    {
       name: 'Turno Caja',
       path: '/shift',
       icon: <HiOutlineLockOpen size={22} />,
       hoverColor: 'hover:bg-green-500/10 hover:text-green-400',
-      activeColor: 'bg-green-500/10 text-green-400 ring-green-500/20',
+      activeColor: 'bg-green-500/10 text-zinc-200 ring-green-500/20',
    },
 
    // Operations
@@ -95,7 +95,7 @@ const SidebarItem = ({ item, variant }: { item: NavItem; variant: 'mobile' | 'de
    <NavLink
       to={item.path}
       className={({ isActive }) => `
-         group flex items-center h-11 mx-2 rounded-xl transition-all duration-200 overflow-hidden shrink-0 relative
+         group flex items-center h-11 mx-2 rounded-xl transition-all duration-100 overflow-hidden shrink-0 relative
          ${
             isActive
                ? item.activeColor || 'bg-zinc-800 text-white shadow-sm ring-1 ring-zinc-700/50'
@@ -110,7 +110,7 @@ const SidebarItem = ({ item, variant }: { item: NavItem; variant: 'mobile' | 'de
       <div className="whitespace-nowrap overflow-hidden w-full">
          <span
             className={`
-            text-sm font-medium tracking-wide pr-4 block transition-opacity duration-300
+            text-sm font-medium tracking-wide pr-4 block transition-opacity duration-100
             ${
                variant === 'desktop'
                   ? 'opacity-0 w-0 xl:w-auto xl:opacity-100'
@@ -149,19 +149,17 @@ const SidebarGroup = ({
    const handleToggle = () => setOpenGroupName(isExpanded ? null : group.name);
 
    const handleOpenOnHover = () => {
-      if (!isXlScreen) {
-         if (buttonRef.current) {
-            const rect = buttonRef.current.getBoundingClientRect();
-            setPopoverCoords({ top: rect.top, left: rect.right + 8 });
-         }
-         setOpenGroupName(group.name);
+      if (isXlScreen) return;
+      if (buttonRef.current) {
+         const rect = buttonRef.current.getBoundingClientRect();
+         setPopoverCoords({ top: rect.top, left: rect.right + 8 });
       }
+      setOpenGroupName(group.name);
    };
 
    const handleCloseOnLeave = () => {
-      if (!isXlScreen) {
-         setOpenGroupName(null);
-      }
+      if (!isXlScreen) return;
+      setOpenGroupName(null);
    };
 
    useEffect(() => {
@@ -200,7 +198,7 @@ const SidebarGroup = ({
          <button
             ref={buttonRef}
             onClick={handleToggle}
-            className={`flex items-center h-11 rounded-xl transition-colors duration-200 w-full relative cursor-pointer ${
+            className={`flex items-center h-11 rounded-xl transition-colors duration-100 w-full relative cursor-pointer ${
                isActiveGroup || isExpanded
                   ? 'text-zinc-200 bg-zinc-900/50'
                   : 'text-zinc-500 hover:bg-zinc-900 hover:text-zinc-200'
@@ -215,7 +213,7 @@ const SidebarGroup = ({
             </div>
             <div className="whitespace-nowrap overflow-hidden flex-1 flex items-center justify-between pr-3">
                <span
-                  className={`text-sm font-medium tracking-wide transition-opacity duration-300 ${
+                  className={`text-sm font-medium tracking-wide transition-opacity duration-100 ${
                      variant === 'desktop'
                         ? 'opacity-0 w-0 xl:w-auto xl:opacity-100'
                         : 'opacity-100 w-auto'
@@ -224,7 +222,7 @@ const SidebarGroup = ({
                   {group.name}
                </span>
                <div
-                  className={`transition-transform duration-200 ${
+                  className={`transition-transform duration-100 ${
                      variant === 'desktop'
                         ? 'opacity-0 w-0 xl:w-auto xl:opacity-100'
                         : 'opacity-100 w-auto'
@@ -236,7 +234,7 @@ const SidebarGroup = ({
          </button>
 
          <div
-            className={`overflow-hidden transition-all duration-300 ease-in-out flex flex-col gap-1 ${
+            className={`overflow-hidden transition-all duration-100 ease-in-out flex flex-col gap-1 ${
                isExpanded ? 'max-h-[500px] opacity-100 mt-1' : 'max-h-0 opacity-0'
             } ${variant === 'desktop' ? 'xl:block hidden' : 'block'}`}
          >
@@ -245,7 +243,7 @@ const SidebarGroup = ({
                   key={item.path}
                   to={item.path}
                   className={({ isActive }) =>
-                     `flex items-center h-10 px-3 ml-[40px] rounded-lg transition-all duration-200 ${
+                     `flex items-center h-10 px-3 ml-[40px] rounded-lg transition-all duration-100 ${
                         isActive
                            ? 'text-blue-400 bg-blue-500/10 font-medium'
                            : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800'
@@ -285,7 +283,7 @@ const SidebarGroup = ({
                            to={item.path}
                            onClick={() => setOpenGroupName(null)}
                            className={({ isActive }) =>
-                              `flex items-center h-10 px-3 rounded-lg transition-all duration-200 ${
+                              `flex items-center h-10 px-3 rounded-lg transition-all duration-100 ${
                                  isActive
                                     ? 'text-blue-400 bg-blue-500/10 font-medium'
                                     : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800'
@@ -337,13 +335,16 @@ const SidebarContent = ({ variant }: { variant: 'mobile' | 'desktop' }) => {
                   <Logo showText={false} />
                </div>
                <span
-                  className={`font-bold text-lg text-zinc-400 tracking-tight whitespace-nowrap overflow-hidden transition-all duration-300 ${
+                  className={`font-bold whitespace-nowrap overflow-hidden transition-all duration-300 ${
                      variant === 'desktop'
                         ? 'w-0 opacity-0 xl:w-auto xl:opacity-100'
                         : 'w-auto opacity-100'
                   }`}
                >
-                  SmartPOS
+                  <span className="text-[22px] text-zinc-400 tracking-tight ">CoPOS</span>
+                  <span className="h-fit w-fit pl-2 pr-1 border rounded-sm bg-zinc-500/10 text-zinc-400 border-zinc-500/40 uppercase font-mono text-[11px] tracking-wider ml-1">
+                     app
+                  </span>
                </span>
             </a>
          </div>
@@ -391,7 +392,7 @@ const SidebarContent = ({ variant }: { variant: 'mobile' | 'desktop' }) => {
                      </div>
                      <div className="whitespace-nowrap overflow-hidden w-full">
                         <span
-                           className={`text-sm font-medium tracking-wide pr-4 block transition-opacity duration-300 ${
+                           className={`text-sm font-medium tracking-wide pr-4 block transition-opacity duration-100 ${
                               variant === 'desktop'
                                  ? 'opacity-0 w-0 xl:w-auto xl:opacity-100'
                                  : 'opacity-100 w-auto'
@@ -404,7 +405,7 @@ const SidebarContent = ({ variant }: { variant: 'mobile' | 'desktop' }) => {
                   <NavLink
                      to="/settings"
                      className={({ isActive }) =>
-                        `group flex items-center h-10 mx-0 mt-1 rounded-xl transition-all duration-200 overflow-hidden shrink-0 relative ${
+                        `group flex items-center h-10 mx-0 mt-1 rounded-xl transition-all duration-100 overflow-hidden shrink-0 relative ${
                            isActive
                               ? 'bg-zinc-800 text-white shadow-sm ring-1 ring-zinc-700/50'
                               : 'text-zinc-500 hover:bg-zinc-900 hover:text-zinc-200'
@@ -417,7 +418,7 @@ const SidebarContent = ({ variant }: { variant: 'mobile' | 'desktop' }) => {
                      </div>
                      <div className="whitespace-nowrap overflow-hidden w-full">
                         <span
-                           className={`text-sm font-medium tracking-wide pr-4 block transition-opacity duration-300 ${
+                           className={`text-sm font-medium tracking-wide pr-4 block transition-opacity duration-100 ${
                               variant === 'desktop'
                                  ? 'opacity-0 w-0 xl:w-auto xl:opacity-100'
                                  : 'opacity-100 w-auto'
@@ -432,7 +433,7 @@ const SidebarContent = ({ variant }: { variant: 'mobile' | 'desktop' }) => {
             <div className="p-2 border-t border-zinc-900">
                <button
                   onClick={() => navigate('/profile')}
-                  className="flex items-center rounded-xl transition-all duration-300 h-14 w-full hover:bg-zinc-900 group/user text-left cursor-pointer"
+                  className="flex items-center rounded-xl transition-all duration-100 h-14 w-full hover:bg-zinc-900 group/user text-left cursor-pointer"
                >
                   <div className="w-[56px] min-w-[56px] flex items-center justify-center shrink-0">
                      {user?.avatar_url ? (
@@ -448,7 +449,7 @@ const SidebarContent = ({ variant }: { variant: 'mobile' | 'desktop' }) => {
                      )}
                   </div>
                   <div
-                     className={`flex flex-col overflow-hidden whitespace-nowrap transition-all duration-300 flex-1 ${
+                     className={`flex flex-col overflow-hidden whitespace-nowrap transition-all duration-100 flex-1 ${
                         variant === 'desktop'
                            ? 'w-0 opacity-0 xl:w-auto xl:opacity-100'
                            : 'w-auto opacity-100'
@@ -469,33 +470,155 @@ const SidebarContent = ({ variant }: { variant: 'mobile' | 'desktop' }) => {
 };
 
 export const Sidebar = () => {
-   const { isMobileMenuOpen, closeMobileMenu } = useUIStore();
+   const { isMobileMenuOpen, closeMobileMenu, toggleMobileMenu } = useUIStore();
    const location = useLocation();
+
+   const overlayRef = useRef<HTMLDivElement>(null);
+   const sidebarRef = useRef<HTMLElement>(null);
+   const startX = useRef<number>(0);
+   const currentX = useRef<number>(0);
+   const isDragging = useRef<boolean>(false);
+   const SIDEBAR_WIDTH = 256;
 
    useEffect(() => {
       closeMobileMenu();
    }, [location.pathname, closeMobileMenu]);
 
+   useEffect(() => {
+      const handleTouchMove = (e: TouchEvent) => {
+         if (!isDragging.current) return;
+
+         if (e.cancelable) e.preventDefault();
+
+         const touch = e.touches[0];
+         currentX.current = touch.clientX;
+         const deltaX = currentX.current - startX.current;
+
+         let newTranslateX = isMobileMenuOpen ? deltaX : deltaX - SIDEBAR_WIDTH;
+         newTranslateX = Math.max(-SIDEBAR_WIDTH, Math.min(0, newTranslateX));
+
+         const opacity = 1 - Math.abs(newTranslateX) / SIDEBAR_WIDTH;
+
+         if (sidebarRef.current) {
+            sidebarRef.current.style.translate = '0px';
+            sidebarRef.current.style.transform = `translateX(${newTranslateX}px)`;
+         }
+         if (overlayRef.current) {
+            overlayRef.current.style.opacity = opacity.toFixed(2);
+            overlayRef.current.style.pointerEvents = 'auto';
+         }
+      };
+
+      const handleTouchEnd = () => {
+         if (!isDragging.current) return;
+
+         document.removeEventListener('touchmove', handleTouchMove);
+         document.removeEventListener('touchend', handleTouchEnd);
+
+         isDragging.current = false;
+
+         if (sidebarRef.current)
+            sidebarRef.current.style.transition = 'transform 300ms cubic-bezier(0.4, 0, 0.2, 1)';
+         if (overlayRef.current)
+            overlayRef.current.style.transition = 'opacity 300ms cubic-bezier(0.4, 0, 0.2, 1)';
+
+         const deltaX = currentX.current - startX.current;
+         const threshold = SIDEBAR_WIDTH * 0.3;
+
+         if (isMobileMenuOpen) {
+            if (deltaX < -threshold) {
+               closeMobileMenu();
+            } else {
+               if (sidebarRef.current) {
+                  sidebarRef.current.style.translate = '0px';
+                  sidebarRef.current.style.transform = 'translateX(0)';
+               }
+               if (overlayRef.current) {
+                  overlayRef.current.style.opacity = '1';
+                  overlayRef.current.style.pointerEvents = 'auto';
+               }
+            }
+         } else {
+            if (deltaX > threshold) {
+               toggleMobileMenu();
+            } else {
+               if (sidebarRef.current) {
+                  sidebarRef.current.style.translate = '0px';
+                  sidebarRef.current.style.transform = 'translateX(-100%)';
+               }
+               if (overlayRef.current) {
+                  overlayRef.current.style.opacity = '0';
+                  overlayRef.current.style.pointerEvents = 'none';
+               }
+            }
+         }
+      };
+
+      const handleTouchStart = (e: TouchEvent) => {
+         const touch = e.touches[0];
+         const x = touch.clientX;
+
+         const isEdgeSwipe = !isMobileMenuOpen && x < 30;
+         const isClosingSwipe = isMobileMenuOpen;
+
+         if (isEdgeSwipe || isClosingSwipe) {
+            startX.current = x;
+            currentX.current = x;
+            isDragging.current = true;
+
+            if (sidebarRef.current) {
+               sidebarRef.current.style.transition = 'none';
+               sidebarRef.current.style.translate = '0px';
+            }
+            if (overlayRef.current) overlayRef.current.style.transition = 'none';
+
+            document.addEventListener('touchmove', handleTouchMove, { passive: false });
+            document.addEventListener('touchend', handleTouchEnd);
+         }
+      };
+
+      document.addEventListener('touchstart', handleTouchStart, { passive: true });
+
+      return () => {
+         document.removeEventListener('touchstart', handleTouchStart);
+         document.removeEventListener('touchmove', handleTouchMove);
+         document.removeEventListener('touchend', handleTouchEnd);
+      };
+   }, [isMobileMenuOpen, closeMobileMenu, toggleMobileMenu]);
+
+   useEffect(() => {
+      if (sidebarRef.current) {
+         sidebarRef.current.style.transition = 'transform 300ms cubic-bezier(0.4, 0, 0.2, 1)';
+         sidebarRef.current.style.translate = '0px';
+         sidebarRef.current.style.transform = isMobileMenuOpen
+            ? 'translateX(0)'
+            : 'translateX(-100%)';
+      }
+      if (overlayRef.current) {
+         overlayRef.current.style.transition = 'opacity 300ms cubic-bezier(0.4, 0, 0.2, 1)';
+         overlayRef.current.style.opacity = isMobileMenuOpen ? '1' : '0';
+         overlayRef.current.style.pointerEvents = isMobileMenuOpen ? 'auto' : 'none';
+      }
+   }, [isMobileMenuOpen]);
+
    return (
       <>
          <div className="md:hidden">
             <div
-               className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity duration-300 ${
-                  isMobileMenuOpen
-                     ? 'opacity-100 pointer-events-auto'
-                     : 'opacity-0 pointer-events-none'
-               }`}
+               ref={overlayRef}
+               className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[90] opacity-0 pointer-events-none"
                onClick={closeMobileMenu}
+               aria-hidden="true"
             />
             <aside
-               className={`fixed inset-y-0 left-0 z-50 w-64 border-r border-zinc-800 transition-transform duration-300 ease-in-out will-change-transform ${
-                  isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
-               }`}
+               ref={sidebarRef}
+               className="fixed inset-y-0 left-0 z-[100] w-64 border-r border-zinc-800 -translate-x-full bg-zinc-950 shadow-2xl"
             >
                <SidebarContent variant="mobile" />
             </aside>
          </div>
-         <aside className="hidden md:flex flex-col shrink-0 h-screen sticky top-0 border-r border-zinc-800 transition-[width] duration-300 ease-in-out md:w-[72px] xl:w-64 z-30 bg-zinc-950">
+
+         <aside className="hidden md:flex flex-col shrink-0 h-screen sticky top-0 border-r border-zinc-800 transition-[width] duration-100 ease-in-out md:w-[72px] xl:w-64 z-30 bg-zinc-950">
             <div className="w-full h-full">
                <SidebarContent variant="desktop" />
             </div>
