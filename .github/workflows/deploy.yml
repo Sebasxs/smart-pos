@@ -92,6 +92,10 @@ jobs:
                 --platform managed \
                 --allow-unauthenticated \
                 --service-account ${{ env.RUNNER_SA }} \
+                --max-instances 2 \
+                --concurrency 80 \
+                --cpu 1 \
+                --memory 512Mi \
                 --set-env-vars NODE_ENV=production \
                 --set-secrets="SUPABASE_URL=SUPABASE_URL:latest,SUPABASE_KEY=SUPABASE_KEY:latest,SUPABASE_JWT_SECRET=SUPABASE_JWT_SECRET:latest" \
                 --quiet
@@ -137,4 +141,8 @@ jobs:
                 --platform managed \
                 --allow-unauthenticated \
                 --service-account ${{ env.RUNNER_SA }} \
+                --max-instances 1 \
+                --concurrency 100 \
+                --cpu 0.5 \
+                --memory 256Mi \
                 --quiet
