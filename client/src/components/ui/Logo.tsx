@@ -23,7 +23,7 @@ export const Logo = ({
                ${iconClassName}
             `}
          >
-            AV
+            CP
          </div>
 
          {/* Texto de Marca */}

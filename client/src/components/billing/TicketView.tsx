@@ -199,7 +199,7 @@ export const TicketView = ({
 
             <div className="border-b border-black border-dashed my-2" />
 
-            <p className="mb-4">Sistema: sebasxs.com/smartpos</p>
+            <p className="mb-4">Sistema: www.copos.app</p>
          </div>
       </div>
    );

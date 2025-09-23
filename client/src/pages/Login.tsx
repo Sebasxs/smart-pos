@@ -119,7 +119,7 @@ export const Login = () => {
                <div className="w-16 h-16 bg-blue-600/20 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-blue-500/20 shadow-lg shadow-blue-900/20">
                   <HiOutlineKey className="w-8 h-8 text-blue-500" />
                </div>
-               <h1 className="text-2xl font-bold text-white mb-2 tracking-tight">SmartPOS</h1>
+               <h1 className="text-2xl font-bold text-white mb-2 tracking-tight">CoPOS</h1>
                <p className="text-zinc-400 text-sm">Punto de Venta Inteligente</p>
             </div>
 
