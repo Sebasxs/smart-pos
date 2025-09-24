@@ -1,11 +1,6 @@
-import { type ReactNode, useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
-   HiOutlineSparkles,
-   HiOutlineComputerDesktop,
-   HiOutlineLockOpen,
-   HiOutlineDocumentText,
-   HiOutlineArchiveBox,
    HiOutlineUsers,
    HiOutlineCog6Tooth,
    HiOutlineUserCircle,
@@ -15,81 +10,8 @@ import { useUIStore } from '../../store/uiStore';
 import { useAuthStore } from '../../store/authStore';
 import { Logo } from '../ui/Logo';
 import { createPortal } from 'react-dom';
-
-// Types
-type NavItem = {
-   name: string;
-   path: string;
-   icon?: ReactNode;
-   hoverColor?: string;
-   activeColor?: string;
-};
-
-type NavGroup = {
-   name: string;
-   icon: ReactNode;
-   items: NavItem[];
-};
-
-type NavigationConfig = (NavItem | NavGroup)[];
-
-const navigation: NavigationConfig = [
-   // Fixed Items
-   {
-      name: 'IA Assistant',
-      path: '/chat',
-      icon: <HiOutlineSparkles size={22} />,
-      hoverColor: 'hover:bg-purple-500/10 hover:text-purple-400',
-      activeColor: 'bg-purple-500/10 text-zinc-200 ring-purple-500/20',
-   },
-   {
-      name: 'Facturar',
-      path: '/billing',
-      icon: <HiOutlineComputerDesktop size={22} />,
-      hoverColor: 'hover:bg-blue-500/10 hover:text-blue-400',
-      activeColor: 'bg-blue-500/10 text-zinc-200 ring-blue-500/20',
-   },
-   {
-      name: 'Turno Caja',
-      path: '/shift',
-      icon: <HiOutlineLockOpen size={22} />,
-      hoverColor: 'hover:bg-green-500/10 hover:text-green-400',
-      activeColor: 'bg-green-500/10 text-zinc-200 ring-green-500/20',
-   },
-
-   // Operations
-   {
-      name: 'Operaciones',
-      icon: <HiOutlineDocumentText size={22} />,
-      items: [
-         { name: 'Historial Ventas', path: '/sales' },
-         { name: 'Devoluciones', path: '/credit-notes' },
-         { name: 'Garantías', path: '/warranties' },
-      ],
-   },
-
-   // Logistics
-   {
-      name: 'Logística',
-      icon: <HiOutlineArchiveBox size={22} />,
-      items: [
-         { name: 'Catálogo', path: '/inventory' },
-         { name: 'Compras', path: '/purchases' },
-         { name: 'Ajustes', path: '/adjustments' },
-         { name: 'Kardex', path: '/kardex' },
-      ],
-   },
-
-   // Directory
-   {
-      name: 'Directorio',
-      icon: <HiOutlineUsers size={22} />,
-      items: [
-         { name: 'Clientes', path: '/customers' },
-         { name: 'Proveedores', path: '/suppliers' },
-      ],
-   },
-];
+import { NAVIGATION_CONFIG, type NavItem, type NavGroup } from '../../config/navigation';
+import { useSwipeGesture } from '../../hooks/useSwipeGesture';
 
 const SidebarItem = ({ item, variant }: { item: NavItem; variant: 'mobile' | 'desktop' }) => (
    <NavLink
@@ -109,14 +31,11 @@ const SidebarItem = ({ item, variant }: { item: NavItem; variant: 'mobile' | 'de
       </div>
       <div className="whitespace-nowrap overflow-hidden w-full">
          <span
-            className={`
-            text-sm font-medium tracking-wide pr-4 block transition-opacity duration-100
-            ${
+            className={`text-sm font-medium tracking-wide pr-4 block transition-opacity duration-100 ${
                variant === 'desktop'
                   ? 'opacity-0 w-0 xl:w-auto xl:opacity-100'
                   : 'opacity-100 w-auto'
-            }
-         `}
+            }`}
          >
             {item.name}
          </span>
@@ -140,14 +59,11 @@ const SidebarGroup = ({
    const location = useLocation();
    const isExpanded = openGroupName === group.name;
    const isActiveGroup = group.items.some(item => item.path === location.pathname);
-
    const buttonRef = useRef<HTMLButtonElement>(null);
    const popoverRef = useRef<HTMLDivElement>(null);
-
    const [popoverCoords, setPopoverCoords] = useState<{ top: number; left: number } | null>(null);
 
    const handleToggle = () => setOpenGroupName(isExpanded ? null : group.name);
-
    const handleOpenOnHover = () => {
       if (isXlScreen) return;
       if (buttonRef.current) {
@@ -156,10 +72,8 @@ const SidebarGroup = ({
       }
       setOpenGroupName(group.name);
    };
-
    const handleCloseOnLeave = () => {
-      if (!isXlScreen) return;
-      setOpenGroupName(null);
+      if (!isXlScreen) setOpenGroupName(null);
    };
 
    useEffect(() => {
@@ -167,7 +81,6 @@ const SidebarGroup = ({
          setPopoverCoords(null);
          return;
       }
-
       const handleKeyDown = (e: KeyboardEvent) => e.key === 'Escape' && setOpenGroupName(null);
       const handleClickOutside = (e: MouseEvent) => {
          if (
@@ -179,10 +92,8 @@ const SidebarGroup = ({
             setOpenGroupName(null);
          }
       };
-
       document.addEventListener('keydown', handleKeyDown);
       document.addEventListener('mousedown', handleClickOutside);
-
       return () => {
          document.removeEventListener('keydown', handleKeyDown);
          document.removeEventListener('mousedown', handleClickOutside);
@@ -232,7 +143,6 @@ const SidebarGroup = ({
                </div>
             </div>
          </button>
-
          <div
             className={`overflow-hidden transition-all duration-100 ease-in-out flex flex-col gap-1 ${
                isExpanded ? 'max-h-[500px] opacity-100 mt-1' : 'max-h-0 opacity-0'
@@ -254,7 +164,6 @@ const SidebarGroup = ({
                </NavLink>
             ))}
          </div>
-
          {variant === 'desktop' &&
             isExpanded &&
             popoverCoords &&
@@ -304,7 +213,6 @@ const SidebarGroup = ({
 const SidebarContent = ({ variant }: { variant: 'mobile' | 'desktop' }) => {
    const { user } = useAuthStore();
    const navigate = useNavigate();
-   const { user: currentUser } = useAuthStore();
    const [openGroupName, setOpenGroupName] = useState<string | null>(null);
    const [isXlScreen, setIsXlScreen] = useState(window.innerWidth >= 1280);
 
@@ -315,17 +223,16 @@ const SidebarContent = ({ variant }: { variant: 'mobile' | 'desktop' }) => {
       return () => mediaQuery.removeEventListener('change', handleResize);
    }, []);
 
-   const getDisplayRole = () => {
-      if (user?.job_title) return user.job_title;
-      return user?.role === 'super_admin'
+   const getDisplayRole = () =>
+      user?.job_title
+         ? user.job_title
+         : user?.role === 'super_admin'
          ? 'Propietario'
          : user?.role === 'admin'
          ? 'Administrador'
          : 'Asesor comercial';
-   };
-
-   const fixedItems = navigation.filter(item => !('items' in item)) as NavItem[];
-   const groupItems = navigation.filter(item => 'items' in item) as NavGroup[];
+   const fixedItems = NAVIGATION_CONFIG.filter(item => !('items' in item)) as NavItem[];
+   const groupItems = NAVIGATION_CONFIG.filter(item => 'items' in item) as NavGroup[];
 
    return (
       <div className="flex flex-col h-full w-full bg-zinc-950">
@@ -348,7 +255,6 @@ const SidebarContent = ({ variant }: { variant: 'mobile' | 'desktop' }) => {
                </span>
             </a>
          </div>
-
          <div
             className="flex flex-col flex-grow overflow-y-auto overflow-x-hidden custom-scrollbar py-4"
             onMouseLeave={() => !isXlScreen && setOpenGroupName(null)}
@@ -372,9 +278,8 @@ const SidebarContent = ({ variant }: { variant: 'mobile' | 'desktop' }) => {
                ))}
             </nav>
          </div>
-
          <div className="mt-auto shrink-0 overflow-hidden">
-            {currentUser?.role !== 'cashier' && (
+            {user?.role !== 'cashier' && (
                <div className="px-2 pb-2 border-t border-zinc-900 pt-2">
                   <NavLink
                      to="/users"
@@ -473,133 +378,15 @@ export const Sidebar = () => {
    const { isMobileMenuOpen, closeMobileMenu, toggleMobileMenu } = useUIStore();
    const location = useLocation();
 
-   const overlayRef = useRef<HTMLDivElement>(null);
-   const sidebarRef = useRef<HTMLElement>(null);
-   const startX = useRef<number>(0);
-   const currentX = useRef<number>(0);
-   const isDragging = useRef<boolean>(false);
-   const SIDEBAR_WIDTH = 256;
+   const { overlayRef, sidebarRef } = useSwipeGesture({
+      isOpen: isMobileMenuOpen,
+      onClose: closeMobileMenu,
+      onOpen: toggleMobileMenu,
+   });
 
    useEffect(() => {
       closeMobileMenu();
    }, [location.pathname, closeMobileMenu]);
-
-   useEffect(() => {
-      const handleTouchMove = (e: TouchEvent) => {
-         if (!isDragging.current) return;
-
-         if (e.cancelable) e.preventDefault();
-
-         const touch = e.touches[0];
-         currentX.current = touch.clientX;
-         const deltaX = currentX.current - startX.current;
-
-         let newTranslateX = isMobileMenuOpen ? deltaX : deltaX - SIDEBAR_WIDTH;
-         newTranslateX = Math.max(-SIDEBAR_WIDTH, Math.min(0, newTranslateX));
-
-         const opacity = 1 - Math.abs(newTranslateX) / SIDEBAR_WIDTH;
-
-         if (sidebarRef.current) {
-            sidebarRef.current.style.translate = '0px';
-            sidebarRef.current.style.transform = `translateX(${newTranslateX}px)`;
-         }
-         if (overlayRef.current) {
-            overlayRef.current.style.opacity = opacity.toFixed(2);
-            overlayRef.current.style.pointerEvents = 'auto';
-         }
-      };
-
-      const handleTouchEnd = () => {
-         if (!isDragging.current) return;
-
-         document.removeEventListener('touchmove', handleTouchMove);
-         document.removeEventListener('touchend', handleTouchEnd);
-
-         isDragging.current = false;
-
-         if (sidebarRef.current)
-            sidebarRef.current.style.transition = 'transform 300ms cubic-bezier(0.4, 0, 0.2, 1)';
-         if (overlayRef.current)
-            overlayRef.current.style.transition = 'opacity 300ms cubic-bezier(0.4, 0, 0.2, 1)';
-
-         const deltaX = currentX.current - startX.current;
-         const threshold = SIDEBAR_WIDTH * 0.3;
-
-         if (isMobileMenuOpen) {
-            if (deltaX < -threshold) {
-               closeMobileMenu();
-            } else {
-               if (sidebarRef.current) {
-                  sidebarRef.current.style.translate = '0px';
-                  sidebarRef.current.style.transform = 'translateX(0)';
-               }
-               if (overlayRef.current) {
-                  overlayRef.current.style.opacity = '1';
-                  overlayRef.current.style.pointerEvents = 'auto';
-               }
-            }
-         } else {
-            if (deltaX > threshold) {
-               toggleMobileMenu();
-            } else {
-               if (sidebarRef.current) {
-                  sidebarRef.current.style.translate = '0px';
-                  sidebarRef.current.style.transform = 'translateX(-100%)';
-               }
-               if (overlayRef.current) {
-                  overlayRef.current.style.opacity = '0';
-                  overlayRef.current.style.pointerEvents = 'none';
-               }
-            }
-         }
-      };
-
-      const handleTouchStart = (e: TouchEvent) => {
-         const touch = e.touches[0];
-         const x = touch.clientX;
-
-         const isEdgeSwipe = !isMobileMenuOpen && x < 30;
-         const isClosingSwipe = isMobileMenuOpen;
-
-         if (isEdgeSwipe || isClosingSwipe) {
-            startX.current = x;
-            currentX.current = x;
-            isDragging.current = true;
-
-            if (sidebarRef.current) {
-               sidebarRef.current.style.transition = 'none';
-               sidebarRef.current.style.translate = '0px';
-            }
-            if (overlayRef.current) overlayRef.current.style.transition = 'none';
-
-            document.addEventListener('touchmove', handleTouchMove, { passive: false });
-            document.addEventListener('touchend', handleTouchEnd);
-         }
-      };
-
-      document.addEventListener('touchstart', handleTouchStart, { passive: true });
-
-      return () => {
-         document.removeEventListener('touchstart', handleTouchStart);
-         document.removeEventListener('touchmove', handleTouchMove);
-         document.removeEventListener('touchend', handleTouchEnd);
-      };
-   }, [isMobileMenuOpen, closeMobileMenu, toggleMobileMenu]);
-
-   useEffect(() => {
-      if (sidebarRef.current) {
-         sidebarRef.current.style.transition = 'transform 300ms cubic-bezier(0.4, 0, 0.2, 1)';
-         sidebarRef.current.style.translate = '0px';
-         sidebarRef.current.style.transform = isMobileMenuOpen
-            ? 'translateX(0)'
-            : 'translateX(-100%)';
-      }
-      if (overlayRef.current) {
-         overlayRef.current.style.transition = 'opacity 300ms cubic-bezier(0.4, 0, 0.2, 1)';
-         overlayRef.current.style.opacity = isMobileMenuOpen ? '1' : '0';
-         overlayRef.current.style.pointerEvents = isMobileMenuOpen ? 'auto' : 'none';
-      }
-   }, [isMobileMenuOpen]);
 
    return (
       <>
@@ -617,7 +404,6 @@ export const Sidebar = () => {
                <SidebarContent variant="mobile" />
             </aside>
          </div>
-
          <aside className="hidden md:flex flex-col shrink-0 h-screen sticky top-0 border-r border-zinc-800 transition-[width] duration-100 ease-in-out md:w-[72px] xl:w-64 z-30 bg-zinc-950">
             <div className="w-full h-full">
                <SidebarContent variant="desktop" />

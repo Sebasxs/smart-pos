@@ -19,6 +19,7 @@ import { SmartNumber } from '../ui/SmartNumber';
 import { cn } from '../../utils/cn';
 import { Input } from '../ui/Input';
 import { usePrinter } from '../../hooks/usePrinter';
+import { useInvoiceSharing } from '../../hooks/useInvoiceSharing';
 
 type PaymentSuccessModalProps = {
    isOpen: boolean;
@@ -32,8 +33,6 @@ type PaymentSuccessModalProps = {
 
 const TICKET_BASE_WIDTH = 350;
 
-type ActionType = 'email' | 'whatsapp' | null;
-
 export const PaymentSuccessModal = ({
    isOpen,
    onClose,
@@ -46,7 +45,16 @@ export const PaymentSuccessModal = ({
    const { printInvoice } = usePrinter();
    const { items, discount, checkoutData } = useBillingStore();
    const { customer } = checkoutData;
+   const {
+      expandedAction,
+      isSending,
+      sentSuccess,
+      toggleAction,
+      sendInvoice,
+      reset: resetSharing,
+   } = useInvoiceSharing();
 
+   // Calculations
    const subtotal = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
    const discountValue =
       discount.type === 'fixed' ? discount.value : Math.round(subtotal * (discount.value / 100));
@@ -54,99 +62,54 @@ export const PaymentSuccessModal = ({
    const change = Math.max(0, totalPaid - total);
    const isCashPayment = payments.some(p => p.method === 'cash');
 
+   // State & Refs
    const containerRef = useRef<HTMLDivElement>(null);
    const primaryButtonRef = useRef<HTMLButtonElement>(null);
-
    const emailInputRef = useRef<HTMLInputElement>(null);
    const phoneInputRef = useRef<HTMLInputElement>(null);
 
    const [scale, setScale] = useState(1);
-
    const [emailInput, setEmailInput] = useState('');
    const [phoneInput, setPhoneInput] = useState('');
-
-   const [expandedAction, setExpandedAction] = useState<ActionType>(null);
-
-   const [isSending, setIsSending] = useState(false);
-   const [sentSuccess, setSentSuccess] = useState(false);
    const [isPrinting, setIsPrinting] = useState(false);
-
    const [activeTab, setActiveTab] = useState<'summary' | 'ticket'>('summary');
 
-   const isValidEmail = (email: string) => {
-      if (!email.trim()) return false;
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-      return emailRegex.test(email);
-   };
-
-   const isValidPhone = (phone: string) => {
-      if (!phone.trim()) return false;
-      if (/\D/.test(phone)) return false;
-      const digitsOnly = phone.replace(/\D/g, '');
-      return digitsOnly.length === 10;
-   };
-
+   // Reset on Open
    useEffect(() => {
       if (isOpen) {
          setEmailInput(customer.email || '');
          setPhoneInput(customer.phone || '');
-
-         setExpandedAction(null);
-         setSentSuccess(false);
+         resetSharing();
          setActiveTab('summary');
          setIsPrinting(false);
-
          setTimeout(() => primaryButtonRef.current?.focus(), 50);
       }
    }, [isOpen, customer]);
 
+   // Focus Logic for Sharing
+   useEffect(() => {
+      if (expandedAction === 'email') setTimeout(() => emailInputRef.current?.focus(), 100);
+      if (expandedAction === 'whatsapp') setTimeout(() => phoneInputRef.current?.focus(), 100);
+   }, [expandedAction]);
+
+   // Auto Scale Ticket
    const calculateScale = () => {
       if (containerRef.current) {
          const { clientWidth } = containerRef.current;
          if (clientWidth === 0) return;
          const paddingX = window.innerWidth < 768 ? 32 : 48;
          const availableWidth = clientWidth - paddingX;
-         const newScale = Math.min(1, availableWidth / TICKET_BASE_WIDTH);
-         setScale(newScale);
+         setScale(Math.min(1, availableWidth / TICKET_BASE_WIDTH));
       }
    };
 
    useLayoutEffect(() => {
-      if (!isOpen || !containerRef.current) return;
-      const observer = new ResizeObserver(() => window.requestAnimationFrame(calculateScale));
-      observer.observe(containerRef.current);
+      if (!isOpen) return;
+      const observer = new ResizeObserver(() => requestAnimationFrame(calculateScale));
+      if (containerRef.current) observer.observe(containerRef.current);
       calculateScale();
       return () => observer.disconnect();
    }, [isOpen, activeTab]);
-
-   const handleToggleAction = (action: ActionType) => {
-      if (expandedAction === action) {
-         setExpandedAction(null);
-      } else {
-         setExpandedAction(action);
-         setSentSuccess(false);
-         setTimeout(() => {
-            if (action === 'email') emailInputRef.current?.focus();
-            if (action === 'whatsapp') phoneInputRef.current?.focus();
-         }, 100);
-      }
-   };
-
-   const handleSend = async () => {
-      const valueToSend = expandedAction === 'email' ? emailInput : phoneInput;
-      if (!valueToSend) return;
-
-      setIsSending(true);
-      await new Promise(r => setTimeout(r, 800));
-
-      setIsSending(false);
-      setSentSuccess(true);
-
-      setTimeout(() => {
-         setSentSuccess(false);
-         setExpandedAction(null);
-      }, 2000);
-   };
 
    const handlePrint = async () => {
       if (isPrinting) return;
@@ -167,18 +130,14 @@ export const PaymentSuccessModal = ({
             price: i.price,
             total: i.quantity * i.price,
          })),
-         totals: {
-            subtotal,
-            discount: discountValue,
-            total,
-         },
-         payments: payments.map(p => ({
-            method: p.method,
-            amount: p.amount || 0,
-         })),
+         totals: { subtotal, discount: discountValue, total },
+         payments: payments.map(p => ({ method: p.method, amount: p.amount || 0 })),
       });
       setIsPrinting(false);
    };
+
+   const isValidEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e.trim());
+   const isValidPhone = (p: string) => p.replace(/\D/g, '').length === 10;
 
    return (
       <Modal
@@ -204,7 +163,6 @@ export const PaymentSuccessModal = ({
                <HiOutlinePrinter size={14} />
                <span>VISTA PREVIA</span>
             </div>
-
             <div className="flex-1 overflow-y-auto custom-scrollbar relative" ref={containerRef}>
                <div className="min-h-full flex flex-col items-center justify-center py-8 px-4 w-full">
                   <div
@@ -231,14 +189,13 @@ export const PaymentSuccessModal = ({
             </div>
          </div>
 
-         {/* SUMMARY */}
+         {/* SUMMARY & ACTIONS */}
          <div
             className={cn(
                'flex-1 flex-col bg-zinc-950 relative min-h-0',
                activeTab === 'summary' ? 'flex' : 'hidden md:flex',
             )}
          >
-            {/* HEADER */}
             <div className="pt-6 px-6 md:pt-8 md:px-8 flex justify-between items-start shrink-0 gap-10">
                <div>
                   <h2 className="text-3xl md:text-4xl font-black text-white tracking-tight mb-1">
@@ -253,9 +210,7 @@ export const PaymentSuccessModal = ({
                </div>
             </div>
 
-            {/* SCROLLABLE CONTENT */}
             <div className="flex-1 overflow-y-auto px-6 md:px-8 py-6 custom-scrollbar flex flex-col justify-between">
-               {/* Payment */}
                <div className="mb-8">
                   {isCashPayment && change > 0 ? (
                      <div className="bg-zinc-900 border border-zinc-800 p-5 rounded-2xl relative overflow-hidden">
@@ -282,17 +237,15 @@ export const PaymentSuccessModal = ({
                   )}
                </div>
 
-               {/* QUICK ACTIONS */}
                <div className="flex flex-col gap-3">
                   <h3 className="text-zinc-500 text-xs font-bold uppercase tracking-wider ml-1 mb-1">
                      Acciones Rápidas
                   </h3>
 
-                  {/* PRINT COPY */}
                   <button
                      onClick={handlePrint}
                      disabled={isPrinting}
-                     className="w-full flex items-center justify-between p-3.5 bg-zinc-900/40 hover:bg-zinc-900 border border-zinc-800 hover:border-zinc-700 rounded-xl transition-all group cursor-pointer text-left disabled:opacity-50 disabled:cursor-wait"
+                     className="w-full flex items-center justify-between p-3.5 bg-zinc-900/40 hover:bg-zinc-900 border border-zinc-800 hover:border-zinc-700 rounded-xl transition-all group cursor-pointer text-left disabled:opacity-50"
                   >
                      <div className="flex items-center gap-3">
                         <div className="p-2 bg-zinc-800 text-zinc-400 rounded-lg group-hover:text-purple-400 group-hover:bg-purple-500/10 transition-colors">
@@ -304,7 +257,7 @@ export const PaymentSuccessModal = ({
                         </div>
                         <div className="flex flex-col">
                            <span className="text-zinc-300 font-medium group-hover:text-white transition-colors text-sm">
-                              {isPrinting ? 'Enviando a impresora...' : 'Imprimir Copia'}
+                              {isPrinting ? 'Imprimiendo...' : 'Imprimir Copia'}
                            </span>
                            <span className="text-zinc-500 text-[12px]">
                               Generar tirilla térmica
@@ -319,7 +272,7 @@ export const PaymentSuccessModal = ({
                      )}
                   </button>
 
-                  {/* SEND BY EMAIL */}
+                  {/* Email Action */}
                   <div
                      className={cn(
                         'flex flex-col bg-zinc-900/40 border border-zinc-800 rounded-xl transition-all overflow-hidden group',
@@ -329,7 +282,7 @@ export const PaymentSuccessModal = ({
                      )}
                   >
                      <button
-                        onClick={() => handleToggleAction('email')}
+                        onClick={() => toggleAction('email')}
                         className="w-full flex items-center justify-between p-3.5 cursor-pointer text-left outline-none"
                      >
                         <div className="flex items-center gap-3">
@@ -365,7 +318,6 @@ export const PaymentSuccessModal = ({
                            )}
                         />
                      </button>
-
                      {expandedAction === 'email' && (
                         <div className="px-3.5 pb-3.5 pt-0 animate-in fade-in slide-in-from-top-2 duration-200">
                            <div className="flex gap-4">
@@ -374,23 +326,22 @@ export const PaymentSuccessModal = ({
                                     ref={emailInputRef}
                                     value={emailInput}
                                     type="email"
-                                    inputMode="email"
                                     onChange={e => setEmailInput(e.target.value)}
                                     placeholder="cliente@correo.com"
                                     className="h-10 bg-zinc-950 border-zinc-800 focus:border-zinc-500/50 text-sm"
-                                    onKeyDown={e => e.key === 'Enter' && handleSend()}
+                                    onKeyDown={e => e.key === 'Enter' && sendInvoice(emailInput)}
                                  />
                               </div>
                               <button
-                                 onClick={handleSend}
+                                 onClick={() => sendInvoice(emailInput)}
                                  disabled={!isValidEmail(emailInput) || isSending}
                                  className={cn(
                                     'h-10 w-12 rounded-lg flex items-center justify-center transition-all shrink-0',
                                     sentSuccess
-                                       ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/20'
+                                       ? 'bg-emerald-600 text-white'
                                        : !isValidEmail(emailInput)
-                                       ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed opacity-50 grayscale'
-                                       : 'bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-900/20 cursor-pointer',
+                                       ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed opacity-50'
+                                       : 'bg-blue-600 hover:bg-blue-500 text-white shadow-lg',
                                  )}
                               >
                                  {isSending ? (
@@ -398,7 +349,7 @@ export const PaymentSuccessModal = ({
                                  ) : sentSuccess ? (
                                     <HiCheckCircle size={20} />
                                  ) : (
-                                    <HiPaperAirplane className="rotate-0" size={18} />
+                                    <HiPaperAirplane size={18} />
                                  )}
                               </button>
                            </div>
@@ -406,7 +357,7 @@ export const PaymentSuccessModal = ({
                      )}
                   </div>
 
-                  {/* SEND BY WHATSAPP */}
+                  {/* WhatsApp Action */}
                   <div
                      className={cn(
                         'flex flex-col bg-zinc-900/40 border border-zinc-800 rounded-xl transition-all overflow-hidden group',
@@ -416,7 +367,7 @@ export const PaymentSuccessModal = ({
                      )}
                   >
                      <button
-                        onClick={() => handleToggleAction('whatsapp')}
+                        onClick={() => toggleAction('whatsapp')}
                         className="w-full flex items-center justify-between p-3.5 cursor-pointer text-left outline-none"
                      >
                         <div className="flex items-center gap-3">
@@ -454,7 +405,6 @@ export const PaymentSuccessModal = ({
                            )}
                         />
                      </button>
-
                      {expandedAction === 'whatsapp' && (
                         <div className="px-3.5 pb-3.5 pt-0 animate-in fade-in slide-in-from-top-2 duration-200">
                            <div className="flex gap-4">
@@ -463,24 +413,23 @@ export const PaymentSuccessModal = ({
                                     ref={phoneInputRef}
                                     value={phoneInput}
                                     type="tel"
-                                    inputMode="numeric"
                                     onChange={e => setPhoneInput(e.target.value)}
                                     placeholder="300 123 4567"
                                     prefix="+57"
                                     className="h-10 bg-zinc-950 border-zinc-800 focus:border-zinc-500/50 text-sm"
-                                    onKeyDown={e => e.key === 'Enter' && handleSend()}
+                                    onKeyDown={e => e.key === 'Enter' && sendInvoice(phoneInput)}
                                  />
                               </div>
                               <button
-                                 onClick={handleSend}
+                                 onClick={() => sendInvoice(phoneInput)}
                                  disabled={!isValidPhone(phoneInput) || isSending}
                                  className={cn(
                                     'h-10 w-12 rounded-lg flex items-center justify-center transition-all shrink-0',
                                     sentSuccess
-                                       ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/20'
+                                       ? 'bg-emerald-600 text-white'
                                        : !isValidPhone(phoneInput)
-                                       ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed opacity-50 grayscale'
-                                       : 'bg-green-600 hover:bg-green-500 text-white shadow-lg shadow-green-900/20 cursor-pointer',
+                                       ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed opacity-50'
+                                       : 'bg-green-600 hover:bg-green-500 text-white shadow-lg',
                                  )}
                               >
                                  {isSending ? (
@@ -488,7 +437,7 @@ export const PaymentSuccessModal = ({
                                  ) : sentSuccess ? (
                                     <HiCheckCircle size={20} />
                                  ) : (
-                                    <HiPaperAirplane className="rotate-0" size={18} />
+                                    <HiPaperAirplane size={18} />
                                  )}
                               </button>
                            </div>
@@ -511,9 +460,8 @@ export const PaymentSuccessModal = ({
             </div>
          </div>
 
-         {/* MOBILE FOOTER */}
+         {/* MOBILE FOOTER NAV */}
          <div className="md:hidden flex flex-col shrink-0 p-5 bg-zinc-950/95 backdrop-blur-md border-t border-zinc-800 z-50 pb-8">
-            {/* NEW SALE BUTTON */}
             {activeTab === 'summary' && (
                <>
                   <button
@@ -524,21 +472,17 @@ export const PaymentSuccessModal = ({
                      <span>Nueva Venta</span>
                      <HiOutlineArrowRight size={20} />
                   </button>
-
-                  {/* SEPARATOR */}
                   <div className="w-full h-px bg-zinc-800 my-4" />
                </>
             )}
-
-            {/* TOGGLE NAVIGATION */}
             <div className="flex bg-zinc-900 p-1.5 rounded-xl border border-zinc-800 shadow-lg">
                <button
                   onClick={() => setActiveTab('summary')}
                   className={cn(
-                     'flex-1 py-3 text-xs font-bold uppercase tracking-wide rounded-lg transition-colors duration-200 flex items-center justify-center gap-2 focus:outline-none focus:ring-0 cursor-pointer border',
+                     'flex-1 py-3 text-xs font-bold uppercase tracking-wide rounded-lg transition-colors flex items-center justify-center gap-2 border',
                      activeTab === 'summary'
                         ? 'bg-zinc-800 text-white border-zinc-700 shadow-sm'
-                        : 'text-zinc-500 hover:text-zinc-300 border-transparent',
+                        : 'text-zinc-500 border-transparent',
                   )}
                >
                   <HiOutlineDocumentText size={18} /> Resumen
@@ -546,10 +490,10 @@ export const PaymentSuccessModal = ({
                <button
                   onClick={() => setActiveTab('ticket')}
                   className={cn(
-                     'flex-1 py-3 text-xs font-bold uppercase tracking-wide rounded-lg transition-colors duration-200 flex items-center justify-center gap-2 focus:outline-none focus:ring-0 cursor-pointer border',
+                     'flex-1 py-3 text-xs font-bold uppercase tracking-wide rounded-lg transition-colors flex items-center justify-center gap-2 border',
                      activeTab === 'ticket'
                         ? 'bg-zinc-800 text-white border-zinc-700 shadow-sm'
-                        : 'text-zinc-500 hover:text-zinc-300 border-transparent',
+                        : 'text-zinc-500 border-transparent',
                   )}
                >
                   <HiOutlineTicket size={18} /> Factura

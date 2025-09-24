@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, startTransition } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
    HiOutlinePlus,
    HiOutlineIdentification,
@@ -11,6 +11,7 @@ import { Modal } from '../ui/Modal';
 import { SmartNumber } from '../ui/SmartNumber';
 import { useAuthStore } from '../../store/authStore';
 import { cn } from '../../utils/cn';
+import { useListNavigation } from '../../hooks/useListNavigation';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -33,20 +34,46 @@ type CustomerSearchModalProps = {
    onRequestCreate: (name: string) => void;
 };
 
-const useClientSearch = (isOpen: boolean) => {
+export const CustomerSearchModal = ({
+   isOpen,
+   onClose,
+   onSelectClient,
+   onRequestCreate,
+}: CustomerSearchModalProps) => {
    const { token } = useAuthStore();
    const [searchTerm, setSearchTerm] = useState('');
    const [results, setResults] = useState<CustomerResult[]>([]);
    const [isLoading, setIsLoading] = useState(false);
    const [error, setError] = useState('');
+   const inputRef = useRef<HTMLInputElement>(null);
 
+   const hasCreateOption = searchTerm.trim() !== '';
+
+   // Navigation Hook
+   const { selectedIndex, setSelectedIndex, listRef, itemsRef, handleKeyDown } = useListNavigation({
+      items: results,
+      customActionCount: hasCreateOption ? 1 : 0,
+      onSelect: (client, isCustom) => {
+         if (client) {
+            onSelectClient(client);
+            onClose();
+         } else if (isCustom) {
+            onRequestCreate(searchTerm);
+            onClose();
+         }
+      },
+   });
+
+   // Search Logic
    useEffect(() => {
       if (!isOpen) {
          setSearchTerm('');
          setResults([]);
          setError('');
          setIsLoading(false);
+         return;
       }
+      setTimeout(() => inputRef.current?.focus(), 50);
    }, [isOpen]);
 
    useEffect(() => {
@@ -63,11 +90,7 @@ const useClientSearch = (isOpen: boolean) => {
          try {
             const res = await fetch(
                `${API_URL}/api/customers/search?search=${encodeURIComponent(searchTerm)}`,
-               {
-                  headers: {
-                     Authorization: `Bearer ${token}`,
-                  },
-               },
+               { headers: { Authorization: `Bearer ${token}` } },
             );
             if (!res.ok) throw new Error('Error buscando');
             const data = await res.json();
@@ -84,86 +107,12 @@ const useClientSearch = (isOpen: boolean) => {
       return () => clearTimeout(timeoutId);
    }, [searchTerm, isOpen, token]);
 
-   return { searchTerm, setSearchTerm, results, isLoading, error };
-};
-
-export const CustomerSearchModal = ({
-   isOpen,
-   onClose,
-   onSelectClient,
-   onRequestCreate,
-}: CustomerSearchModalProps) => {
-   const { searchTerm, setSearchTerm, results, isLoading, error } = useClientSearch(isOpen);
-   const [selectedIndex, setSelectedIndex] = useState(0);
-
-   const listRef = useRef<HTMLDivElement>(null);
-   const itemsRef = useRef<(HTMLDivElement | null)[]>([]);
-   const inputRef = useRef<HTMLInputElement>(null);
-
-   useEffect(() => {
-      if (isOpen) setTimeout(() => inputRef.current?.focus(), 50);
-   }, [isOpen]);
-
-   useEffect(() => {
-      startTransition(() => setSelectedIndex(0));
-      if (listRef.current) {
-         listRef.current.scrollTo({ top: 0 });
-      }
-   }, [results]);
-
-   useEffect(() => {
-      if (isOpen && (results.length > 0 || searchTerm.trim() !== '')) {
-         const currentItem = itemsRef.current[selectedIndex];
-         if (currentItem) {
-            currentItem.scrollIntoView({
-               block: 'nearest',
-               behavior: 'smooth',
-            });
-         }
-      }
-   }, [selectedIndex, isOpen, results.length, searchTerm]);
-
-   const handleSelect = useCallback(
-      (client: CustomerResult) => {
-         onSelectClient(client);
-         onClose();
-      },
-      [onSelectClient, onClose],
-   );
-
-   const handleCreate = useCallback(() => {
-      onRequestCreate(searchTerm);
-      onClose();
-   }, [onRequestCreate, searchTerm, onClose]);
-
+   // Attach Key Listener
    useEffect(() => {
       if (!isOpen) return;
-
-      const handleKeyDown = (e: KeyboardEvent) => {
-         const hasCreateOption = searchTerm.trim() !== '';
-         const total = results.length + (hasCreateOption ? 1 : 0);
-
-         if (total === 0) return;
-
-         if (e.key === 'ArrowDown') {
-            e.preventDefault();
-            setSelectedIndex(prev => (prev + 1) % total);
-         } else if (e.key === 'ArrowUp') {
-            e.preventDefault();
-            setSelectedIndex(prev => (prev - 1 + total) % total);
-         } else if (e.key === 'Enter') {
-            e.preventDefault();
-            if (selectedIndex === results.length && hasCreateOption) {
-               handleCreate();
-            } else if (results[selectedIndex]) {
-               handleSelect(results[selectedIndex]);
-            }
-         }
-      };
-
       window.addEventListener('keydown', handleKeyDown);
       return () => window.removeEventListener('keydown', handleKeyDown);
-   }, [isOpen, results, selectedIndex, handleSelect, handleCreate, searchTerm]);
+   }, [isOpen, handleKeyDown]);
 
    return (
       <Modal
@@ -192,7 +141,6 @@ export const CustomerSearchModal = ({
                   autoComplete="off"
                />
             </div>
-
             {isLoading && (
                <span className="hidden sm:flex gap-2 text-md text-sky-500 font-medium animate-pulse pr-2">
                   Buscando...
@@ -213,14 +161,16 @@ export const CustomerSearchModal = ({
                <div className="flex flex-col gap-1.5">
                   {results.map((client, index) => {
                      const isSelected = index === selectedIndex;
-
                      return (
                         <div
                            key={client.id}
                            ref={el => {
                               itemsRef.current[index] = el;
                            }}
-                           onClick={() => handleSelect(client)}
+                           onClick={() => {
+                              onSelectClient(client);
+                              onClose();
+                           }}
                            onMouseEnter={() => setSelectedIndex(index)}
                            className={cn(
                               'group relative flex items-center justify-between px-4 py-3 rounded-xl cursor-pointer transition-all border',
@@ -229,14 +179,10 @@ export const CustomerSearchModal = ({
                                  : 'bg-transparent border-transparent hover:bg-zinc-900/50 hover:border-zinc-800',
                            )}
                         >
-                           {/* Lateral indicator */}
                            {isSelected && (
                               <div className="absolute left-0 top-3 bottom-3 w-1 bg-blue-500 rounded-r-full shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
                            )}
-
-                           {/* INFO */}
                            <div className="flex items-center gap-4 overflow-hidden flex-1 min-w-0">
-                              {/* Avatar */}
                               <div
                                  className={cn(
                                     'w-14 h-14 rounded-full flex items-center justify-center shrink-0 transition-all duration-100 font-bold text-xl border-2',
@@ -247,9 +193,7 @@ export const CustomerSearchModal = ({
                               >
                                  {client.name.charAt(0).toUpperCase()}
                               </div>
-
                               <div className="flex flex-col truncate flex-1 min-w-0 gap-0.5">
-                                 {/* Name */}
                                  <span
                                     className={cn(
                                        'text-base font-bold truncate leading-tight transition-colors',
@@ -258,8 +202,6 @@ export const CustomerSearchModal = ({
                                  >
                                     {client.name}
                                  </span>
-
-                                 {/* Email */}
                                  <div
                                     className={cn(
                                        'flex items-center gap-1.5 text-sm truncate transition-colors',
@@ -271,8 +213,6 @@ export const CustomerSearchModal = ({
                                        {client.email || 'Sin correo electrónico'}
                                     </span>
                                  </div>
-
-                                 {/* Technical info */}
                                  <div className="flex items-center gap-x-4 gap-y-1 text-xs font-medium flex-wrap">
                                     <span
                                        className={cn(
@@ -280,10 +220,8 @@ export const CustomerSearchModal = ({
                                           isSelected ? 'text-blue-100/60' : 'text-zinc-500',
                                        )}
                                     >
-                                       <HiOutlineIdentification size={13} />
-                                       {client.tax_id}
+                                       <HiOutlineIdentification size={13} /> {client.tax_id}
                                     </span>
-
                                     {client.city && (
                                        <span
                                           className={cn(
@@ -291,15 +229,12 @@ export const CustomerSearchModal = ({
                                              isSelected ? 'text-blue-100/60' : 'text-zinc-500',
                                           )}
                                        >
-                                          <HiOutlineMapPin size={13} />
-                                          {client.city}
+                                          <HiOutlineMapPin size={13} /> {client.city}
                                        </span>
                                     )}
                                  </div>
                               </div>
                            </div>
-
-                           {/* Balance */}
                            {client.account_balance !== 0 && (
                               <div className="flex flex-col items-end gap-1 shrink-0 pl-4 border-l border-zinc-800/50">
                                  <span
@@ -331,12 +266,15 @@ export const CustomerSearchModal = ({
                      );
                   })}
 
-                  {searchTerm.trim() !== '' && (
+                  {hasCreateOption && (
                      <div
                         ref={el => {
                            itemsRef.current[results.length] = el;
                         }}
-                        onClick={handleCreate}
+                        onClick={() => {
+                           onRequestCreate(searchTerm);
+                           onClose();
+                        }}
                         onMouseEnter={() => setSelectedIndex(results.length)}
                         className={cn(
                            'mt-2 flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-all border border-dashed',
@@ -365,7 +303,6 @@ export const CustomerSearchModal = ({
                   )}
                </div>
             ) : (
-               /* EMPTY STATE */
                <div className="h-full flex flex-col items-center justify-center text-center p-8 animate-in fade-in duration-500">
                   <div className="flex flex-col items-center opacity-40 hover:opacity-80 transition-opacity duration-500">
                      <div className="w-20 h-20 bg-terraform-gradient rounded-3xl flex items-center justify-center mb-5 border border-zinc-800 shadow-2xl -rotate-3">

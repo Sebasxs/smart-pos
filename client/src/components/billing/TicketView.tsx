@@ -170,7 +170,7 @@ export const TicketView = ({
                </div>
             ))}
 
-            <div className="flex justify-between font-bold mt-1 pt-1 border-t border-dotted border-gray-400">
+            <div className="flex justify-between font-bold mt-1 pt-1 border-t border-dotted border-gray-600">
                <span>CAMBIO:</span>
                <span>{formatCurrency(change)}</span>
             </div>
@@ -199,7 +199,7 @@ export const TicketView = ({
 
             <div className="border-b border-black border-dashed my-2" />
 
-            <p className="mb-4">Sistema: www.copos.app</p>
+            <p className="mb-4">Sistema - www.COPOS.app</p>
          </div>
       </div>
    );

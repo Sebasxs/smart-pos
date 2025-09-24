@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, startTransition } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
    HiOutlineSearch,
    HiOutlineExclamationCircle,
@@ -12,6 +12,7 @@ import { CgSpinner } from 'react-icons/cg';
 import { Modal } from '../ui/Modal';
 import { SmartNumber } from '../ui/SmartNumber';
 import { useAuthStore } from '../../store/authStore';
+import { useListNavigation } from '../../hooks/useListNavigation';
 
 // Types
 import { type InvoiceItem } from '../../types/billing';
@@ -24,20 +25,64 @@ type ProductSearchModalProps = {
    onSelectProduct: (product: Partial<InvoiceItem>) => void;
 };
 
-const useProductSearch = (isOpen: boolean) => {
+// Extracted Helper
+const getStockStatus = (stock: number = 0) => {
+   if (stock <= 0) {
+      return {
+         label: 'Agotado',
+         classes: 'bg-red-500/10 text-red-400 border-red-500/20',
+         icon: <HiOutlineXCircle className="w-3 h-3" />,
+      };
+   }
+   if (stock <= 3) {
+      return {
+         label: 'Stock Bajo',
+         classes: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+         icon: <HiOutlineExclamationCircle className="w-3 h-3" />,
+      };
+   }
+   return {
+      label: 'Disponible',
+      classes: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+      icon: <HiOutlineCheckCircle className="w-3 h-3" />,
+   };
+};
+
+export const ProductSearchModal = ({
+   isOpen,
+   onClose,
+   onSelectProduct,
+}: ProductSearchModalProps) => {
    const { token } = useAuthStore();
    const [searchTerm, setSearchTerm] = useState('');
-   const [results, setResults] = useState<Partial<InvoiceItem & { sku?: string }>[]>([]);
+   const [results, setResults] = useState<any[]>([]);
    const [isLoading, setIsLoading] = useState(false);
    const [error, setError] = useState('');
+   const inputRef = useRef<HTMLInputElement>(null);
 
+   // Navigation Hook
+   const { selectedIndex, setSelectedIndex, listRef, itemsRef, handleKeyDown } = useListNavigation({
+      items: results,
+      customActionCount: 0,
+      onSelect: (product, isCustom) => {
+         if (product) {
+            handleSelect(product);
+         } else if (isCustom || (searchTerm.trim() !== '' && results.length === 0)) {
+            // Fallback logic for manual add if implemented
+         }
+      },
+   });
+
+   // Search Logic
    useEffect(() => {
       if (!isOpen) {
          setSearchTerm('');
          setResults([]);
          setError('');
          setIsLoading(false);
+         return;
       }
+      setTimeout(() => inputRef.current?.focus(), 50);
    }, [isOpen]);
 
    useEffect(() => {
@@ -54,11 +99,7 @@ const useProductSearch = (isOpen: boolean) => {
          try {
             const res = await fetch(
                `${API_URL}/api/products?search=${encodeURIComponent(searchTerm)}`,
-               {
-                  headers: {
-                     Authorization: `Bearer ${token}`,
-                  },
-               },
+               { headers: { Authorization: `Bearer ${token}` } },
             );
             if (!res.ok) throw new Error('Error buscando');
             const data = await res.json();
@@ -75,104 +116,33 @@ const useProductSearch = (isOpen: boolean) => {
       return () => clearTimeout(timeoutId);
    }, [searchTerm, isOpen, token]);
 
-   return { searchTerm, setSearchTerm, results, isLoading, error };
-};
-
-export const ProductSearchModal = ({
-   isOpen,
-   onClose,
-   onSelectProduct,
-}: ProductSearchModalProps) => {
-   const { searchTerm, setSearchTerm, results, isLoading, error } = useProductSearch(isOpen);
-   const [selectedIndex, setSelectedIndex] = useState(0);
-
-   const listRef = useRef<HTMLDivElement>(null);
-   const itemsRef = useRef<(HTMLDivElement | null)[]>([]);
-   const inputRef = useRef<HTMLInputElement>(null);
-
-   useEffect(() => {
-      if (isOpen) setTimeout(() => inputRef.current?.focus(), 50);
-   }, [isOpen]);
-
-   useEffect(() => {
-      startTransition(() => setSelectedIndex(0));
-      if (listRef.current) {
-         listRef.current.scrollTo({ top: 0 });
-      }
-   }, [results]);
-
-   useEffect(() => {
-      if (isOpen && results.length > 0) {
-         const currentItem = itemsRef.current[selectedIndex];
-         if (currentItem) {
-            currentItem.scrollIntoView({
-               block: 'nearest',
-               behavior: 'smooth',
-            });
-         }
-      }
-   }, [selectedIndex, isOpen, results.length]);
-
-   const handleSelect = useCallback(
-      (product: Partial<InvoiceItem>) => {
-         onSelectProduct({ ...product, originalPrice: product.price });
-         onClose();
-      },
-      [onSelectProduct, onClose],
-   );
-
+   // Attach Key Listener
    useEffect(() => {
       if (!isOpen) return;
 
-      const handleKeyDown = (e: KeyboardEvent) => {
-         const total = results.length;
-
-         if (e.key === 'ArrowDown') {
+      const onKeyDown = (e: KeyboardEvent) => {
+         // Special case: Enter on empty results -> Manual Add
+         if (e.key === 'Enter' && results.length === 0 && searchTerm.trim() !== '') {
             e.preventDefault();
-            setSelectedIndex(prev => (prev + 1) % total);
-         } else if (e.key === 'ArrowUp') {
-            e.preventDefault();
-            setSelectedIndex(prev => (prev - 1 + total) % total);
-         } else if (e.key === 'Enter') {
-            e.preventDefault();
-            if (results[selectedIndex]) {
-               handleSelect(results[selectedIndex]);
-            } else if (searchTerm.trim() !== '') {
-               handleSelect({
-                  id: '',
-                  description: searchTerm,
-                  price: 0,
-                  stock: 9999,
-                  discountPercentage: 0,
-               });
-            }
+            handleSelect({
+               id: '',
+               description: searchTerm,
+               price: 0,
+               stock: 9999,
+               discountPercentage: 0,
+            });
+            return;
          }
+         handleKeyDown(e);
       };
 
-      window.addEventListener('keydown', handleKeyDown);
-      return () => window.removeEventListener('keydown', handleKeyDown);
-   }, [isOpen, results, selectedIndex, handleSelect, searchTerm]);
+      window.addEventListener('keydown', onKeyDown);
+      return () => window.removeEventListener('keydown', onKeyDown);
+   }, [isOpen, results, searchTerm, handleKeyDown]);
 
-   const getStockStatus = (stock: number = 0) => {
-      if (stock <= 0) {
-         return {
-            label: 'Agotado',
-            classes: 'bg-red-500/10 text-red-400 border-red-500/20',
-            icon: <HiOutlineXCircle className="w-3 h-3" />,
-         };
-      }
-      if (stock <= 3) {
-         return {
-            label: 'Stock Bajo',
-            classes: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-            icon: <HiOutlineExclamationCircle className="w-3 h-3" />,
-         };
-      }
-      return {
-         label: 'Disponible',
-         classes: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-         icon: <HiOutlineCheckCircle className="w-3 h-3" />,
-      };
+   const handleSelect = (product: Partial<InvoiceItem>) => {
+      onSelectProduct({ ...product, originalPrice: product.price });
+      onClose();
    };
 
    return (
@@ -204,7 +174,7 @@ export const ProductSearchModal = ({
             </div>
 
             {isLoading && (
-               <span className="hidden sm:flex gap-2 text-sky-500 font-medium animate-pulse pr-2">
+               <span className="hidden sm:flex gap-2 text-md text-sky-500 font-medium animate-pulse pr-2">
                   Buscando...
                </span>
             )}
@@ -221,14 +191,13 @@ export const ProductSearchModal = ({
                </div>
             ) : results.length > 0 ? (
                <div className="flex flex-col gap-1.5">
-                  {results.map((product: any, index) => {
+                  {results.map((product, index) => {
                      const isSelected = index === selectedIndex;
                      const discount = product.discountPercentage || 0;
                      const finalPrice =
                         discount > 0
                            ? (product.price || 0) * (1 - discount / 100)
                            : product.price || 0;
-
                      const stockStatus = getStockStatus(product.stock);
 
                      return (
@@ -239,38 +208,27 @@ export const ProductSearchModal = ({
                            }}
                            onClick={() => handleSelect(product)}
                            onMouseEnter={() => setSelectedIndex(index)}
-                           className={`
-                              group relative flex items-center justify-between px-4 py-3 rounded-xl cursor-pointer transition-all border
-                              ${
-                                 isSelected
-                                    ? 'bg-zinc-900 border-purple-500/50 shadow-lg shadow-purple-900/10 z-10'
-                                    : 'bg-transparent border-transparent hover:bg-zinc-900/50 hover:border-zinc-800'
-                              }
-                           `}
+                           className={`group relative flex items-center justify-between px-4 py-3 rounded-xl cursor-pointer transition-all border ${
+                              isSelected
+                                 ? 'bg-zinc-900 border-purple-500/50 shadow-lg shadow-purple-900/10 z-10'
+                                 : 'bg-transparent border-transparent hover:bg-zinc-900/50 hover:border-zinc-800'
+                           }`}
                         >
-                           {/* Lateral indicator */}
                            {isSelected && (
                               <div className="absolute left-0 top-3 bottom-3 w-1 bg-purple-500 rounded-r-full shadow-[0_0_10px_rgba(168,85,247,0.5)]" />
                            )}
 
-                           {/* LEFT */}
                            <div className="flex items-center gap-4 overflow-hidden flex-1">
-                              {/* Icon */}
                               <div
-                                 className={`
-                                    w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300 border
-                                    ${
-                                       isSelected
-                                          ? 'bg-purple-500 text-white border-purple-400 shadow-md shadow-purple-500/30 scale-105'
-                                          : 'bg-zinc-900 text-zinc-500 border-zinc-800'
-                                    }
-                                 `}
+                                 className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300 border ${
+                                    isSelected
+                                       ? 'bg-purple-500 text-white border-purple-400 shadow-md shadow-purple-500/30 scale-105'
+                                       : 'bg-zinc-900 text-zinc-500 border-zinc-800'
+                                 }`}
                               >
                                  <HiOutlineCube size={20} />
                               </div>
-
                               <div className="flex flex-col truncate pr-4 gap-1">
-                                 {/* Name + Discount */}
                                  <div className="flex items-center gap-2">
                                     <span
                                        className={`text-[15px] font-semibold truncate leading-tight ${
@@ -285,25 +243,17 @@ export const ProductSearchModal = ({
                                        </span>
                                     )}
                                  </div>
-
-                                 {/* Badge */}
                                  <div className="flex">
                                     <span
-                                       className={`
-                                          flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold border tracking-wide uppercase
-                                          ${stockStatus.classes}
-                                       `}
+                                       className={`flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold border tracking-wide uppercase ${stockStatus.classes}`}
                                     >
-                                       {stockStatus.icon}
-                                       {stockStatus.label}
+                                       {stockStatus.icon} {stockStatus.label}
                                     </span>
                                  </div>
                               </div>
                            </div>
 
-                           {/* RIGHT */}
                            <div className="flex flex-col items-end gap-0.5 shrink-0 pl-4">
-                              {/* Original */}
                               {discount > 0 && (
                                  <span className="text-[10px] text-zinc-500 line-through decoration-zinc-600">
                                     <SmartNumber
@@ -313,8 +263,6 @@ export const ProductSearchModal = ({
                                     />
                                  </span>
                               )}
-
-                              {/* Final price */}
                               <SmartNumber
                                  value={finalPrice}
                                  variant="currency"
@@ -323,17 +271,12 @@ export const ProductSearchModal = ({
                                     isSelected ? 'text-purple-300' : 'text-zinc-200'
                                  }`}
                               />
-
-                              {/* Stock */}
                               <span
-                                 className={`
-                                    text-[11px] font-mono mt-1
-                                    ${
-                                       product.stock <= 0
-                                          ? 'text-red-400 font-medium'
-                                          : 'text-zinc-500'
-                                    }
-                                 `}
+                                 className={`text-[11px] font-mono mt-1 ${
+                                    product.stock <= 0
+                                       ? 'text-red-400 font-medium'
+                                       : 'text-zinc-500'
+                                 }`}
                               >
                                  Stock: {product.stock}
                               </span>
@@ -343,7 +286,6 @@ export const ProductSearchModal = ({
                   })}
                </div>
             ) : (
-               /* EMPTY STATE */
                <div className="h-full flex flex-col items-center justify-center text-center p-8 animate-in fade-in duration-500">
                   {searchTerm ? (
                      <div className="flex flex-col items-center pb-3 max-w-[280px]">
@@ -356,7 +298,6 @@ export const ProductSearchModal = ({
                         <p className="text-zinc-500 text-sm mb-6 leading-relaxed">
                            El producto no está en inventario. ¿Deseas agregarlo como ítem manual?
                         </p>
-
                         <button
                            onClick={() =>
                               handleSelect({
