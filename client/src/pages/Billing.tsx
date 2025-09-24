@@ -1,12 +1,13 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import { HiOutlineComputerDesktop, HiOutlineBanknotes } from 'react-icons/hi2';
+import { HiOutlineComputerDesktop, HiOutlineBanknotes, HiOutlinePlus } from 'react-icons/hi2';
+import { HiX } from 'react-icons/hi';
 import { CgSpinner } from 'react-icons/cg';
 
 // Components
 import { InvoiceTable } from '../components/billing/InvoiceTable';
 import { ProductSearchModal } from '../components/billing/ProductSearchModal';
-import { ClientCombobox } from '../components/billing/ClientCombobox';
-import { ClientBadge } from '../components/billing/ClientBadge';
+import { CustomerSearchModal } from '../components/billing/CustomerSearchModal';
+import { CustomerBadge } from '../components/billing/CustomerBadge';
 import { CreateCustomerModal } from '../components/billing/CreateCustomerModal';
 import { DiscountModal } from '../components/billing/DiscountModal';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
@@ -55,6 +56,7 @@ export const Billing = () => {
    const { preferences } = usePreferencesStore();
    const [modals, setModals] = useState({
       productSearch: false,
+      clientSearch: false,
       clientCreate: false,
       discount: false,
       discardConfirm: false,
@@ -64,8 +66,6 @@ export const Billing = () => {
 
    const [generatedInvoiceNumber, setGeneratedInvoiceNumber] = useState<string>('');
    const [finalizedPayments, setFinalizedPayments] = useState<any[]>([]);
-   const [isClientSearchFocused, setIsClientSearchFocused] = useState(false);
-   const [searchInputValue, setSearchInputValue] = useState('');
    const [createClientName, setCreateClientName] = useState('');
    const [_, setFinalizedData] = useState<CheckoutState | null>(null);
    const [isProcessing, setIsProcessing] = useState(false);
@@ -122,8 +122,7 @@ export const Billing = () => {
             accountBalance: client.account_balance || 0,
          },
       });
-      setSearchInputValue(client.name);
-      setIsClientSearchFocused(false);
+      toggleModal('clientSearch', false);
    };
 
    const handleClientCreated = (client: any) => {
@@ -134,11 +133,11 @@ export const Billing = () => {
    const handleRequestCreateClient = (name: string) => {
       setCreateClientName(name);
       toggleModal('clientCreate', true);
+      toggleModal('clientSearch', false);
    };
 
    const handleRemoveClient = () => {
       resetCustomer();
-      setSearchInputValue('');
    };
 
    const handlePaymentProcess = useCallback(async () => {
@@ -270,7 +269,6 @@ export const Billing = () => {
 
    const handleFinalizeSuccess = () => {
       resetInvoice();
-      setSearchInputValue('');
       toggleModal('success', false);
       setFinalizedData(null);
       setGeneratedInvoiceId(undefined);
@@ -301,6 +299,8 @@ export const Billing = () => {
 
          if (isAnyModalOpen) return;
 
+         if (isAnyModalOpen) return;
+
          if (!isInputFocused) {
             switch (event.code) {
                case 'Space':
@@ -309,7 +309,7 @@ export const Billing = () => {
                   break;
                case 'KeyC':
                   event.preventDefault();
-                  document.getElementById('client-search-input')?.focus();
+                  toggleModal('clientSearch', true);
                   break;
                case 'KeyD':
                   event.preventDefault();
@@ -436,17 +436,6 @@ export const Billing = () => {
 
    return (
       <div className="relative w-full flex flex-col gap-4 lg:h-full lg:max-h-screen">
-         <div
-            className={`
-               fixed inset-0 bg-black/60 backdrop-blur-md z-40 transition-all duration-300
-               ${
-                  isClientSearchFocused
-                     ? 'opacity-80 pointer-events-auto'
-                     : 'opacity-0 pointer-events-none'
-               }
-            `}
-            onClick={() => setIsClientSearchFocused(false)}
-         />
          {/* HEADER */}
          <div className="flex flex-col md:flex-row md:items-end justify-between relative">
             <div className="flex items-center gap-3">
@@ -457,43 +446,6 @@ export const Billing = () => {
                   <h1 className="text-2xl font-bold text-white">Facturar</h1>
                   <p className="text-zinc-400">Punto de venta</p>
                </div>
-            </div>
-
-            {/* Client Search / Badge */}
-            <div className="flex items-center gap-3 mt-4 w-full md:w-auto">
-               {!checkoutData.customer.id ? (
-                  <div
-                     className={`
-                        relative w-full md:w-[340px] transition-transform duration-300 ease-out
-                        ${isClientSearchFocused ? 'z-50' : 'z-20'}
-                     `}
-                     style={{
-                        transitionProperty: 'transform, z-index',
-                        transitionDelay: isClientSearchFocused ? '0ms' : '100ms, 300ms',
-                     }}
-                  >
-                     <ClientCombobox
-                        id="client-search-input"
-                        value={searchInputValue}
-                        onChange={setSearchInputValue}
-                        onSelectCustomer={handleClientSelect}
-                        onRequestCreate={handleRequestCreateClient}
-                        placeholder="Buscar cliente..."
-                        onFocus={() => setIsClientSearchFocused(true)}
-                        onBlur={() => setIsClientSearchFocused(false)}
-                     />
-                  </div>
-               ) : (
-                  <div className="w-full md:w-[340px] flex">
-                     <ClientBadge
-                        name={checkoutData.customer.name}
-                        taxId={checkoutData.customer.taxId}
-                        email={checkoutData.customer.email}
-                        accountBalance={checkoutData.customer.accountBalance}
-                        onRemove={handleRemoveClient}
-                     />
-                  </div>
-               )}
             </div>
          </div>
 
@@ -511,35 +463,85 @@ export const Billing = () => {
             </div>
 
             {/* SUMMARY */}
-            <aside className="w-full lg:w-[340px] lg:shrink-0 flex flex-col h-fit lg:max-h-full lg:overflow-y-auto custom-scrollbar pr-1">
-               <div className="flex flex-col md:flex-row lg:flex-col gap-4 w-full shrink-0">
-                  <div className="w-full md:flex-1">
-                     <SplitPaymentWidget total={total} />
+            <aside className="w-full lg:w-[340px] lg:shrink-0 flex flex-col h-[600px] lg:h-full lg:max-h-full pr-1 overflow-hidden relative">
+               <div className="flex flex-col gap-4 w-full h-full">
+                  {/* CLIENT SECTION */}
+                  <div className="bg-zinc-900/50 rounded-xl border border-zinc-800 shadow-sm flex flex-col h-auto shrink-0">
+                     <div className="py-3 px-4 border-b border-zinc-800 bg-zinc-900/50 flex justify-between items-center shrink-0">
+                        <div className="flex flex-col">
+                           <h2 className="text-zinc-500 text-[11px] font-bold uppercase tracking-wider">
+                              Cliente
+                           </h2>
+                        </div>
+                        {checkoutData.customer.id && (
+                           <button
+                              onClick={handleRemoveClient}
+                              className="text-zinc-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all cursor-pointer p-1"
+                              title="Desvincular cliente"
+                           >
+                              <HiX size={16} />
+                           </button>
+                        )}
+                     </div>
+                     <div className="p-4 h-auto">
+                        {!checkoutData.customer.id ? (
+                           <button
+                              onClick={() => toggleModal('clientSearch', true)}
+                              className="w-full flex items-center justify-between px-4 py-3 bg-zinc-950/50 border border-zinc-800 border-dashed rounded-xl text-zinc-400 hover:text-zinc-200 hover:border-zinc-700 hover:bg-zinc-800/50 transition-all group cursor-pointer"
+                           >
+                              <span className="text-sm font-medium">Asociar Cliente</span>
+                              <div className="flex items-center gap-2">
+                                 <kbd className="hidden sm:inline-flex text-[10px] items-center justify-center font-mono bg-zinc-800 border border-zinc-700 rounded px-1.5 py-0.5 text-zinc-500 group-hover:text-zinc-400 transition-colors">
+                                    C
+                                 </kbd>
+                                 <HiOutlinePlus size={16} />
+                              </div>
+                           </button>
+                        ) : (
+                           <CustomerBadge
+                              name={checkoutData.customer.name}
+                              taxId={checkoutData.customer.taxId}
+                              email={checkoutData.customer.email}
+                              phone={checkoutData.customer.phone}
+                              address={checkoutData.customer.address}
+                              city={checkoutData.customer.city}
+                              accountBalance={checkoutData.customer.accountBalance}
+                           />
+                        )}
+                     </div>
                   </div>
 
-                  <BillingTotals
-                     subtotal={subtotal}
-                     discount={discount}
-                     discountAmount={discountAmount}
-                     total={total}
-                     isPaymentValid={isPaymentValid}
-                     isProcessing={isProcessing}
-                     onOpenDiscount={() => toggleModal('discount', true)}
-                     onDiscard={triggerDiscard}
-                     onProcessPayment={handlePaymentProcess}
-                  />
-               </div>
+                  <div className="flex flex-col md:flex-row lg:flex-col gap-4 w-full h-auto flex-1 lg:overflow-y-auto lg:custom-scrollbar pb-4 min-h-0">
+                     <div className="w-full shrink-0">
+                        <SplitPaymentWidget total={total} />
+                     </div>
 
-               {/* LEGEND */}
-               <div className="mt-4 px-2 grid grid-cols-3 gap-2 text-xs text-zinc-600 text-center uppercase tracking-wide opacity-75 shrink-0">
-                  <div>
-                     <span className="font-bold text-zinc-500">C</span> Cliente
+                     <div className="w-full shrink-0">
+                        <BillingTotals
+                           subtotal={subtotal}
+                           discount={discount}
+                           discountAmount={discountAmount}
+                           total={total}
+                           isPaymentValid={isPaymentValid}
+                           isProcessing={isProcessing}
+                           onOpenDiscount={() => toggleModal('discount', true)}
+                           onDiscard={triggerDiscard}
+                           onProcessPayment={handlePaymentProcess}
+                        />
+                     </div>
                   </div>
-                  <div>
-                     <span className="font-bold text-zinc-500">D</span> Descuento
-                  </div>
-                  <div>
-                     <span className="font-bold text-zinc-500">X</span> Limpiar
+
+                  {/* LEGEND */}
+                  <div className="mt-4 px-2 grid grid-cols-3 gap-2 text-xs text-zinc-600 text-center uppercase tracking-wide opacity-75 shrink-0">
+                     <div>
+                        <span className="font-bold text-zinc-500">C</span> Cliente
+                     </div>
+                     <div>
+                        <span className="font-bold text-zinc-500">D</span> Descuento
+                     </div>
+                     <div>
+                        <span className="font-bold text-zinc-500">X</span> Limpiar
+                     </div>
                   </div>
                </div>
             </aside>
@@ -550,6 +552,13 @@ export const Billing = () => {
             isOpen={modals.productSearch}
             onClose={() => toggleModal('productSearch', false)}
             onSelectProduct={handleProductSelect}
+         />
+
+         <CustomerSearchModal
+            isOpen={modals.clientSearch}
+            onClose={() => toggleModal('clientSearch', false)}
+            onSelectClient={handleClientSelect}
+            onRequestCreate={handleRequestCreateClient}
          />
 
          <CreateCustomerModal

@@ -16,7 +16,7 @@ import { useAuthStore } from '../../store/authStore';
 import { Logo } from '../ui/Logo';
 import { createPortal } from 'react-dom';
 
-// --- Types ---
+// Types
 type NavItem = {
    name: string;
    path: string;

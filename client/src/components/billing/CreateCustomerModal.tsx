@@ -163,7 +163,7 @@ export const CreateCustomerModal = ({
                </div>
                <button
                   onClick={handleClose}
-                  className="p-2 text-zinc-500 hover:text-white hover:bg-zinc-800 rounded-lg transition-all"
+                  className="p-2 text-zinc-500 hover:text-white hover:bg-zinc-800 rounded-lg transition-all cursor-pointer"
                >
                   <HiX size={20} />
                </button>
@@ -172,7 +172,7 @@ export const CreateCustomerModal = ({
             {/* Form */}
             <form onSubmit={handleSubmit} className="p-6">
                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Name - Full Width */}
+                  {/* Name */}
                   <div className="md:col-span-2">
                      <FormInput
                         value={formData.name}
@@ -244,7 +244,7 @@ export const CreateCustomerModal = ({
                      />
                   </div>
 
-                  {/* Address - Full Width */}
+                  {/* Address */}
                   <div className="md:col-span-2">
                      <FormInput
                         value={formData.address}
@@ -267,14 +267,14 @@ export const CreateCustomerModal = ({
                   <button
                      type="button"
                      onClick={handleClose}
-                     className="flex-1 px-4 py-2.5 text-sm font-medium text-zinc-400 bg-zinc-800/50 hover:bg-zinc-800 border border-zinc-700 rounded-lg transition-all"
+                     className="flex-1 px-4 py-2.5 text-sm font-medium text-zinc-400 bg-zinc-800/50 hover:bg-zinc-800 border border-zinc-700 rounded-lg transition-all cursor-pointer"
                   >
                      Cancelar
                   </button>
                   <button
                      type="submit"
                      disabled={isSubmitting || !formData.name.trim()}
-                     className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 disabled:bg-zinc-700 disabled:text-zinc-500 disabled:cursor-not-allowed rounded-lg transition-all"
+                     className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 disabled:bg-zinc-700 disabled:text-zinc-500 disabled:cursor-not-allowed rounded-lg transition-all cursor-pointer"
                   >
                      {isSubmitting ? 'Creando...' : 'Crear Cliente'}
                   </button>
