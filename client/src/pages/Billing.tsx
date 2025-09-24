@@ -1,41 +1,22 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import { HiOutlineComputerDesktop, HiOutlineBanknotes, HiOutlinePlus } from 'react-icons/hi2';
+import { HiOutlineComputerDesktop, HiOutlinePlus } from 'react-icons/hi2';
 import { HiX } from 'react-icons/hi';
 import { CgSpinner } from 'react-icons/cg';
 
 // Components
 import { InvoiceTable } from '../components/billing/InvoiceTable';
-import { ProductSearchModal } from '../components/billing/ProductSearchModal';
-import { CustomerSearchModal } from '../components/billing/CustomerSearchModal';
 import { CustomerBadge } from '../components/billing/CustomerBadge';
-import { CreateCustomerModal } from '../components/billing/CreateCustomerModal';
-import { DiscountModal } from '../components/billing/DiscountModal';
-import { ConfirmModal } from '../components/ui/ConfirmModal';
-import { PaymentSuccessModal } from '../components/billing/PaymentSuccessModal';
-import { ErrorModal } from '../components/ui/ErrorModal';
 import { SplitPaymentWidget } from '../components/billing/SplitPaymentWidget';
 import { BillingTotals } from '../components/billing/BillingTotals';
-import { SmartNumberInput } from '../components/ui/SmartNumberInput';
-import { useInventoryStore } from '../store/inventoryStore';
-import { useCustomerStore } from '../store/customerStore';
+import { ShiftOpeningScreen } from '../components/billing/ShiftOpeningScreen';
+import { BillingModalsWrapper } from '../components/billing/BillingModalsWrapper';
+
+// Stores & Hooks
+import { useBillingStore } from '../store/billingStore';
 import { useCashShiftStore } from '../store/cashShiftStore';
-import { Button } from '../components/ui/Button';
-import { usePreferencesStore } from '../store/usePreferencesStore';
-
-// Types
-import { useBillingStore, type CheckoutState } from '../store/billingStore';
-import { type InvoiceItem } from '../types/billing';
-
-// Utils
-import { authenticatedFetch } from '../utils/api';
-import { useAuthStore } from '../store/authStore';
-import { usePrinter } from '../hooks/usePrinter';
-
-const API_URL = import.meta.env.VITE_API_URL;
+import { useBillingPayment } from '../hooks/useBillingPayment';
 
 export const Billing = () => {
-   const { user } = useAuthStore();
-   const { printInvoice } = usePrinter();
    const {
       items,
       discount,
@@ -50,10 +31,9 @@ export const Billing = () => {
       addPayment,
       updatePayment,
    } = useBillingStore();
-   const { decreaseStockBatch } = useInventoryStore();
-   const { updateCustomerAfterPurchase } = useCustomerStore();
-   const { isOpen, openShift, loading: shiftLoading } = useCashShiftStore();
-   const { preferences } = usePreferencesStore();
+
+   const { isOpen, loading: shiftLoading } = useCashShiftStore();
+
    const [modals, setModals] = useState({
       productSearch: false,
       clientSearch: false,
@@ -63,16 +43,8 @@ export const Billing = () => {
       success: false,
       error: false,
    });
-
-   const [generatedInvoiceNumber, setGeneratedInvoiceNumber] = useState<string>('');
-   const [finalizedPayments, setFinalizedPayments] = useState<any[]>([]);
    const [createClientName, setCreateClientName] = useState('');
-   const [_, setFinalizedData] = useState<CheckoutState | null>(null);
-   const [isProcessing, setIsProcessing] = useState(false);
-   const [generatedInvoiceId, setGeneratedInvoiceId] = useState<number | undefined>(undefined);
    const [errorMessage, setErrorMessage] = useState('');
-   const [openingAmount, setOpeningAmount] = useState<number | null>(null);
-   const [shiftError, setShiftError] = useState<string | null>(null);
 
    const subtotal = useMemo(
       () => items.reduce((acc, item) => acc + item.price * item.quantity, 0),
@@ -95,18 +67,29 @@ export const Billing = () => {
    const isPaymentValid =
       items.length > 0 && totalPaid >= total && checkoutData.payments.length > 0;
 
-   const toggleModal = useCallback((key: keyof typeof modals, value: boolean) => {
+   const {
+      processPayment,
+      isProcessing,
+      generatedInvoiceId,
+      generatedInvoiceNumber,
+      finalizedPayments,
+      resetPaymentState,
+   } = useBillingPayment({
+      onSuccess: () => toggleModal('success', true),
+      onError: msg => {
+         setErrorMessage(msg);
+         toggleModal('error', true);
+      },
+   });
+
+   const toggleModal = useCallback((key: string, value: boolean) => {
       setModals(prev => ({ ...prev, [key]: value }));
    }, []);
 
-   const handleProductSelect = (product: Partial<InvoiceItem>) => {
+   const handleProductSelect = (product: any) => {
       addItem(product);
       toggleModal('productSearch', false);
    };
-
-   const triggerDiscard = useCallback(() => {
-      if (items.length > 0) toggleModal('discardConfirm', true);
-   }, [items.length, toggleModal]);
 
    const handleClientSelect = (client: any) => {
       setCheckoutData({
@@ -125,179 +108,34 @@ export const Billing = () => {
       toggleModal('clientSearch', false);
    };
 
-   const handleClientCreated = (client: any) => {
-      handleClientSelect(client);
-      toggleModal('clientCreate', false);
-   };
-
    const handleRequestCreateClient = (name: string) => {
       setCreateClientName(name);
       toggleModal('clientCreate', true);
       toggleModal('clientSearch', false);
    };
 
-   const handleRemoveClient = () => {
-      resetCustomer();
+   const handleClientCreated = (client: any) => {
+      handleClientSelect(client);
+      toggleModal('clientCreate', false);
    };
-
-   const handlePaymentProcess = useCallback(async () => {
-      if (!isPaymentValid || isProcessing) return;
-
-      if (checkoutData.customer.name && !checkoutData.customer.taxId) {
-         setErrorMessage('El cliente debe tener una identificación (NIT/CC) para facturar.');
-         toggleModal('error', true);
-         return;
-      }
-
-      setIsProcessing(true);
-      setErrorMessage('');
-
-      try {
-         const payload = {
-            customer: checkoutData.customer,
-            items: items.map(i => ({
-               id: i.isDatabaseItem ? i.id : null,
-               description: i.description,
-               price: i.price,
-               quantity: i.quantity,
-               originalPrice: i.originalPrice,
-               discountPercentage: i.discountPercentage,
-               isPriceEdited: i.isPriceEdited,
-               isDescriptionEdited: i.isDescriptionEdited,
-            })),
-            payments: checkoutData.payments.map(p => ({
-               method: p.method,
-               amount: p.amount || 0,
-               reference_code: null,
-            })),
-            subtotal,
-            discount: discountAmount,
-            total,
-         };
-
-         const res = await authenticatedFetch(`${API_URL}/api/invoices`, {
-            method: 'POST',
-            body: JSON.stringify(payload),
-         });
-
-         if (!res.ok) {
-            const errorData = await res.json().catch(() => ({}));
-            throw new Error(errorData.error || 'Error desconocido al procesar la venta');
-         }
-
-         let responseData;
-         if (res.status === 204) {
-            responseData = {};
-         } else {
-            responseData = await res.json().catch(() => ({}));
-         }
-
-         if (!responseData.invoiceId && !responseData.id) {
-            console.warn('Backend returned success but no invoice ID', responseData);
-            if (res.status === 204 || res.status === 201 || res.status === 200) {
-               responseData.invoiceId = `TEMP-${Date.now()}`;
-               responseData.invoiceNumberFull = 'Procesando...';
-            }
-         }
-
-         decreaseStockBatch(
-            items.filter(i => i.isDatabaseItem).map(i => ({ id: i.id, quantity: i.quantity })),
-         );
-
-         if (checkoutData.customer.id) {
-            updateCustomerAfterPurchase(checkoutData.customer.id, total, new Date().toISOString());
-         }
-
-         setFinalizedData({ ...checkoutData });
-         setFinalizedPayments([...checkoutData.payments]);
-         setGeneratedInvoiceId(responseData.invoiceId || responseData.id);
-         setGeneratedInvoiceNumber(responseData.invoiceNumberFull || '---');
-
-         try {
-            await printInvoice({
-               invoiceNumber: responseData.invoiceNumberFull,
-               date: new Date(),
-               cashierName: user?.full_name || user?.nickname || '---',
-               customer: {
-                  name: checkoutData.customer.name,
-                  id_number: checkoutData.customer.taxId,
-                  phone: checkoutData.customer.phone,
-                  address: checkoutData.customer.address,
-               },
-               items: items.map(i => ({
-                  description: i.description,
-                  qty: i.quantity,
-                  price: i.price,
-                  total: i.quantity * i.price,
-               })),
-               totals: {
-                  subtotal: subtotal,
-                  discount: discountAmount,
-                  total: total,
-               },
-               payments: checkoutData.payments.map(p => ({
-                  method: p.method,
-                  amount: p.amount || 0,
-               })),
-            });
-         } catch (err) {
-            console.error('Error preparando impresión:', err);
-         }
-
-         toggleModal('success', true);
-      } catch (error) {
-         console.error(error);
-         setErrorMessage(error instanceof Error ? error.message : 'Ocurrió un error inesperado');
-         toggleModal('error', true);
-      } finally {
-         setIsProcessing(false);
-      }
-   }, [
-      isPaymentValid,
-      isProcessing,
-      checkoutData,
-      items,
-      subtotal,
-      discountAmount,
-      total,
-      toggleModal,
-      decreaseStockBatch,
-      updateCustomerAfterPurchase,
-      printInvoice,
-      user,
-   ]);
 
    const handleFinalizeSuccess = () => {
       resetInvoice();
+      resetPaymentState();
       toggleModal('success', false);
-      setFinalizedData(null);
-      setGeneratedInvoiceId(undefined);
-      setGeneratedInvoiceNumber('');
-      setFinalizedPayments([]);
    };
 
-   useEffect(() => {
-      if (preferences.defaultOpeningCash > 0 && openingAmount === null) {
-         setOpeningAmount(preferences.defaultOpeningCash);
+   const handlePaymentProcess = () => {
+      if (isPaymentValid && !isProcessing) {
+         processPayment(subtotal, discountAmount, total);
       }
-   }, [preferences.defaultOpeningCash]);
-
-   useEffect(() => {
-      if (shiftLoading) {
-         const timeout = setTimeout(() => {
-            console.warn('Shift loading timeout - proceeding anyway');
-         }, 5000);
-         return () => clearTimeout(timeout);
-      }
-   }, [shiftLoading]);
+   };
 
    useEffect(() => {
       const handleKeyDown = (event: KeyboardEvent) => {
          const target = event.target as HTMLElement;
          const isInputFocused = ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName);
          const isAnyModalOpen = Object.values(modals).some(Boolean);
-
-         if (isAnyModalOpen) return;
 
          if (isAnyModalOpen) return;
 
@@ -317,30 +155,20 @@ export const Billing = () => {
                   break;
                case 'KeyX':
                   event.preventDefault();
-                  triggerDiscard();
+                  if (items.length > 0) toggleModal('discardConfirm', true);
                   break;
-
                case 'Enter':
                   event.preventDefault();
-
                   if (isPaymentValid) {
                      handlePaymentProcess();
-                     return;
-                  }
-
-                  if (items.length > 0) {
+                  } else if (items.length > 0) {
+                     // Smart enter: add full cash payment or update it
                      const { payments } = checkoutData;
-
                      if (payments.length === 0) {
                         addPayment('cash', total);
-                        return;
-                     }
-
-                     if (payments.length === 1 && payments[0].method === 'cash') {
-                        const currentAmount = payments[0].amount || 0;
-                        if (Math.abs(currentAmount - total) > 0.01) {
+                     } else if (payments.length === 1 && payments[0].method === 'cash') {
+                        if (Math.abs((payments[0].amount || 0) - total) > 0.01) {
                            updatePayment(payments[0].id, total);
-                           return;
                         }
                      }
                   }
@@ -354,12 +182,11 @@ export const Billing = () => {
    }, [
       modals,
       isPaymentValid,
-      triggerDiscard,
-      handlePaymentProcess,
-      toggleModal,
       items.length,
       checkoutData,
       total,
+      toggleModal,
+      handlePaymentProcess,
       addPayment,
       updatePayment,
    ]);
@@ -376,62 +203,7 @@ export const Billing = () => {
    }
 
    if (!isOpen) {
-      return (
-         <div className="flex items-center justify-center h-full w-full bg-zinc-950 animate-in fade-in duration-500">
-            <div className="w-full max-w-sm p-8 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl flex flex-col gap-6 items-center text-center">
-               <div className="w-20 h-20 bg-gradient-to-br from-blue-600/20 to-purple-600/20 rounded-full flex items-center justify-center border border-blue-500/20 shadow-inner">
-                  <HiOutlineBanknotes className="text-blue-400" size={32} />
-               </div>
-
-               <div className="space-y-2">
-                  <h2 className="text-xl font-bold text-white">Apertura de Caja</h2>
-                  <p className="text-zinc-400 text-sm leading-relaxed">
-                     Para comenzar a facturar, es necesario abrir un turno e indicar la base de
-                     efectivo.
-                  </p>
-               </div>
-
-               <div className="w-full space-y-4 pt-2">
-                  <div className="bg-zinc-950 p-1 rounded-xl border border-zinc-800">
-                     <SmartNumberInput
-                        value={openingAmount}
-                        onValueChange={val => {
-                           setOpeningAmount(val);
-                           setShiftError(null);
-                        }}
-                        variant="currency"
-                        placeholder="0"
-                        className="[&>input]:text-center [&>input]:text-xl [&>input]:font-bold [&>input]:bg-transparent [&>input]:border-none [&>input]:py-3 [&>input]:w-full"
-                     />
-                  </div>
-
-                  {shiftError && (
-                     <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
-                        {shiftError}
-                     </div>
-                  )}
-
-                  <Button
-                     onClick={async () => {
-                        setShiftError(null);
-                        try {
-                           await openShift(openingAmount || 0);
-                        } catch (e: any) {
-                           console.error('Falló la apertura:', e);
-                           const msg = e.message || 'Error al abrir el turno. Intente nuevamente.';
-                           setShiftError(msg);
-                        }
-                     }}
-                     disabled={shiftLoading}
-                     isLoading={shiftLoading}
-                     className="w-full py-3.5 text-base shadow-blue-900/20 cursor-pointer"
-                  >
-                     Iniciar Turno
-                  </Button>
-               </div>
-            </div>
-         </div>
-      );
+      return <ShiftOpeningScreen />;
    }
 
    return (
@@ -449,6 +221,7 @@ export const Billing = () => {
             </div>
          </div>
 
+         {/* MAIN CONTENT */}
          <div className="flex flex-col lg:flex-row gap-4 lg:flex-1 lg:min-h-0 lg:overflow-hidden pb-2">
             {/* PRODUCT TABLE */}
             <div className="h-[500px] lg:h-full flex-1 flex flex-col bg-zinc-900/50 rounded-xl border border-zinc-800 shadow-sm overflow-hidden min-h-0 shrink-0">
@@ -462,20 +235,18 @@ export const Billing = () => {
                </div>
             </div>
 
-            {/* SUMMARY */}
+            {/* SIDEBAR SUMMARY */}
             <aside className="w-full lg:w-[340px] lg:shrink-0 flex flex-col h-[600px] lg:h-full lg:max-h-full pr-1 overflow-hidden relative">
                <div className="flex flex-col gap-4 w-full h-full">
                   {/* CLIENT SECTION */}
                   <div className="bg-zinc-900/50 rounded-xl border border-zinc-800 shadow-sm flex flex-col h-auto shrink-0">
                      <div className="py-3 px-4 border-b border-zinc-800 bg-zinc-900/50 flex justify-between items-center shrink-0">
-                        <div className="flex flex-col">
-                           <h2 className="text-zinc-500 text-[11px] font-bold uppercase tracking-wider">
-                              Cliente
-                           </h2>
-                        </div>
+                        <h2 className="text-zinc-500 text-[11px] font-bold uppercase tracking-wider">
+                           Cliente
+                        </h2>
                         {checkoutData.customer.id && (
                            <button
-                              onClick={handleRemoveClient}
+                              onClick={resetCustomer}
                               className="text-zinc-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all cursor-pointer p-1"
                               title="Desvincular cliente"
                            >
@@ -511,11 +282,11 @@ export const Billing = () => {
                      </div>
                   </div>
 
+                  {/* PAYMENTS & TOTALS */}
                   <div className="flex flex-col md:flex-row lg:flex-col gap-4 w-full h-auto flex-1 lg:overflow-y-auto lg:custom-scrollbar pb-4 min-h-0">
                      <div className="w-full shrink-0">
                         <SplitPaymentWidget total={total} />
                      </div>
-
                      <div className="w-full shrink-0">
                         <BillingTotals
                            subtotal={subtotal}
@@ -525,7 +296,7 @@ export const Billing = () => {
                            isPaymentValid={isPaymentValid}
                            isProcessing={isProcessing}
                            onOpenDiscount={() => toggleModal('discount', true)}
-                           onDiscard={triggerDiscard}
+                           onDiscard={() => items.length > 0 && toggleModal('discardConfirm', true)}
                            onProcessPayment={handlePaymentProcess}
                         />
                      </div>
@@ -547,54 +318,28 @@ export const Billing = () => {
             </aside>
          </div>
 
-         {/* MODALS */}
-         <ProductSearchModal
-            isOpen={modals.productSearch}
-            onClose={() => toggleModal('productSearch', false)}
-            onSelectProduct={handleProductSelect}
-         />
-
-         <CustomerSearchModal
-            isOpen={modals.clientSearch}
-            onClose={() => toggleModal('clientSearch', false)}
-            onSelectClient={handleClientSelect}
-            onRequestCreate={handleRequestCreateClient}
-         />
-
-         <CreateCustomerModal
-            isOpen={modals.clientCreate}
-            onClose={() => toggleModal('clientCreate', false)}
-            initialName={createClientName}
-            onCustomerCreated={handleClientCreated}
-         />
-
-         <DiscountModal
-            isOpen={modals.discount}
-            onClose={() => toggleModal('discount', false)}
-            onApply={setDiscount}
-            currentDiscount={discount}
-            subtotal={subtotal}
-         />
-         <ConfirmModal
-            isOpen={modals.discardConfirm}
-            onClose={() => toggleModal('discardConfirm', false)}
-            onConfirm={resetInvoice}
-            title="¿Descartar factura?"
-            message="Eliminarás todos los productos agregados."
-         />
-         <PaymentSuccessModal
-            isOpen={modals.success}
-            onClose={handleFinalizeSuccess}
-            total={total}
-            payments={finalizedPayments}
-            invoiceNumber={generatedInvoiceNumber || 'Pendiente'}
-            invoiceId={generatedInvoiceId}
-            cashierName={user?.full_name || user?.nickname || 'Cajero'}
-         />
-         <ErrorModal
-            isOpen={modals.error}
-            onClose={() => toggleModal('error', false)}
-            message={errorMessage}
+         <BillingModalsWrapper
+            modals={modals}
+            toggleModal={toggleModal}
+            handlers={{
+               onSelectProduct: handleProductSelect,
+               onSelectClient: handleClientSelect,
+               onCreateClientRequest: handleRequestCreateClient,
+               onClientCreated: handleClientCreated,
+               onDiscountApply: setDiscount,
+               onDiscardConfirm: resetInvoice,
+               onSuccessClose: handleFinalizeSuccess,
+            }}
+            data={{
+               createClientName,
+               discount,
+               subtotal,
+               total,
+               finalizedPayments,
+               generatedInvoiceNumber,
+               generatedInvoiceId,
+               errorMessage,
+            }}
          />
       </div>
    );

@@ -24,7 +24,6 @@ type ProductSearchModalProps = {
    onSelectProduct: (product: Partial<InvoiceItem>) => void;
 };
 
-// Hook de búsqueda (Intacto)
 const useProductSearch = (isOpen: boolean) => {
    const { token } = useAuthStore();
    const [searchTerm, setSearchTerm] = useState('');
@@ -87,8 +86,8 @@ export const ProductSearchModal = ({
    const { searchTerm, setSearchTerm, results, isLoading, error } = useProductSearch(isOpen);
    const [selectedIndex, setSelectedIndex] = useState(0);
 
-   const listRef = useRef<HTMLDivElement>(null); // Contenedor con scroll
-   const itemsRef = useRef<(HTMLDivElement | null)[]>([]); // Referencias a cada item
+   const listRef = useRef<HTMLDivElement>(null);
+   const itemsRef = useRef<(HTMLDivElement | null)[]>([]);
    const inputRef = useRef<HTMLInputElement>(null);
 
    useEffect(() => {
@@ -102,14 +101,13 @@ export const ProductSearchModal = ({
       }
    }, [results]);
 
-   // Lógica de Scroll Automático mejorada (Persigue al elemento)
    useEffect(() => {
       if (isOpen && results.length > 0) {
          const currentItem = itemsRef.current[selectedIndex];
          if (currentItem) {
             currentItem.scrollIntoView({
-               block: 'nearest', // Se asegura que entre en visión (arriba o abajo)
-               behavior: 'smooth', // Desplazamiento suave
+               block: 'nearest',
+               behavior: 'smooth',
             });
          }
       }
@@ -155,7 +153,6 @@ export const ProductSearchModal = ({
       return () => window.removeEventListener('keydown', handleKeyDown);
    }, [isOpen, results, selectedIndex, handleSelect, searchTerm]);
 
-   // Helper de estado simplificado
    const getStockStatus = (stock: number = 0) => {
       if (stock <= 0) {
          return {
@@ -204,23 +201,16 @@ export const ProductSearchModal = ({
                   className="w-full bg-transparent text-lg text-white placeholder:text-zinc-600 outline-none font-medium"
                   autoComplete="off"
                />
-               {isLoading && (
-                  <span className="text-[12px] text-sky-500 font-medium animate-pulse -mt-1">
-                     Buscando...
-                  </span>
-               )}
             </div>
-            <div className="hidden sm:flex gap-2 text-[10px] font-mono text-zinc-600 uppercase tracking-wide">
-               <span className="flex items-center gap-1 bg-zinc-900 px-2 py-1 rounded border border-zinc-800">
-                  <kbd>↑</kbd> <kbd>↓</kbd> Navegar
+
+            {isLoading && (
+               <span className="hidden sm:flex gap-2 text-sky-500 font-medium animate-pulse pr-2">
+                  Buscando...
                </span>
-               <span className="flex items-center gap-1 bg-zinc-900 px-2 py-1 rounded border border-zinc-800">
-                  <kbd>↵</kbd> Seleccionar
-               </span>
-            </div>
+            )}
          </div>
 
-         {/* RESULTADOS */}
+         {/* RESULTS */}
          <div ref={listRef} className="flex-1 overflow-y-auto custom-scrollbar p-2 relative">
             {error ? (
                <div className="h-full flex flex-col items-center justify-center text-red-400 gap-3">
@@ -258,14 +248,14 @@ export const ProductSearchModal = ({
                               }
                            `}
                         >
-                           {/* Highlight lateral púrpura */}
+                           {/* Lateral indicator */}
                            {isSelected && (
                               <div className="absolute left-0 top-3 bottom-3 w-1 bg-purple-500 rounded-r-full shadow-[0_0_10px_rgba(168,85,247,0.5)]" />
                            )}
 
-                           {/* IZQUIERDA: Icono + Info */}
+                           {/* LEFT */}
                            <div className="flex items-center gap-4 overflow-hidden flex-1">
-                              {/* Icono */}
+                              {/* Icon */}
                               <div
                                  className={`
                                     w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300 border
@@ -280,7 +270,7 @@ export const ProductSearchModal = ({
                               </div>
 
                               <div className="flex flex-col truncate pr-4 gap-1">
-                                 {/* Nombre + Descuento */}
+                                 {/* Name + Discount */}
                                  <div className="flex items-center gap-2">
                                     <span
                                        className={`text-[15px] font-semibold truncate leading-tight ${
@@ -296,7 +286,7 @@ export const ProductSearchModal = ({
                                     )}
                                  </div>
 
-                                 {/* BADGE DE ESTADO (Texto limpio, sin números) */}
+                                 {/* Badge */}
                                  <div className="flex">
                                     <span
                                        className={`
@@ -311,9 +301,9 @@ export const ProductSearchModal = ({
                               </div>
                            </div>
 
-                           {/* DERECHA: Precio + Stock Numérico */}
+                           {/* RIGHT */}
                            <div className="flex flex-col items-end gap-0.5 shrink-0 pl-4">
-                              {/* Precio Original si hay descuento */}
+                              {/* Original */}
                               {discount > 0 && (
                                  <span className="text-[10px] text-zinc-500 line-through decoration-zinc-600">
                                     <SmartNumber
@@ -324,7 +314,7 @@ export const ProductSearchModal = ({
                                  </span>
                               )}
 
-                              {/* Precio Final */}
+                              {/* Final price */}
                               <SmartNumber
                                  value={finalPrice}
                                  variant="currency"
@@ -334,7 +324,7 @@ export const ProductSearchModal = ({
                                  }`}
                               />
 
-                              {/* STOCK REAL (Número sutil) */}
+                              {/* Stock */}
                               <span
                                  className={`
                                     text-[11px] font-mono mt-1
