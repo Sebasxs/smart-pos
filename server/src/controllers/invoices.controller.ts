@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 import { supabase } from '../config/supabase';
-import { PrecisionMath } from '../utils/precisionMath';
+import { InvoiceValidationService } from '../services/invoiceValidation.service';
 
+// Payload Types
 type InvoiceItemPayload = {
    id: string | null;
    description: string;
@@ -38,31 +39,15 @@ export const createInvoice = async (req: Request<{}, {}, CreateInvoiceBody>, res
 
    try {
       const userId = req.user?.id;
+      if (!userId) return res.status(401).json({ error: 'User not authenticated' });
 
-      if (!userId) {
-         return res.status(401).json({ error: 'Usuario no autenticado' });
+      // 1. Validate Payments
+      const paymentCheck = InvoiceValidationService.validatePaymentSufficiency(payments, total);
+      if (!paymentCheck.isValid) {
+         return res.status(400).json(paymentCheck);
       }
 
-      if (!payments || payments.length === 0) {
-         return res.status(400).json({ error: 'Se requiere al menos un método de pago' });
-      }
-
-      const paymentsTotal = payments.reduce(
-         (sum, p) => PrecisionMath.add(sum, p.amount),
-         PrecisionMath.toDecimal(0),
-      );
-
-      if (PrecisionMath.compare(paymentsTotal, total) < 0) {
-         return res.status(400).json({
-            error: 'El pago es insuficiente para cubrir el total de la factura',
-            details: {
-               paymentsTotal: PrecisionMath.toNumber(paymentsTotal),
-               invoiceTotal: total,
-               missing: PrecisionMath.toNumber(PrecisionMath.subtract(total, paymentsTotal)),
-            },
-         });
-      }
-
+      // 2. Validate Numeric Ranges (Postgres DECIMAL limits)
       const allValues = [
          subtotal,
          discount,
@@ -70,88 +55,20 @@ export const createInvoice = async (req: Request<{}, {}, CreateInvoiceBody>, res
          ...items.flatMap(item => [item.price, item.quantity, item.originalPrice]),
          ...payments.map(p => p.amount),
       ];
-
-      for (const value of allValues) {
-         if (!PrecisionMath.isValidDecimal(value)) {
-            return res.status(400).json({
-               error: `Valor numérico fuera de rango: ${value}. Máximo permitido: 9999999999999.999999`,
-            });
-         }
+      const rangeCheck = InvoiceValidationService.validateNumericRanges(allValues);
+      if (!rangeCheck.isValid) {
+         return res.status(400).json({
+            error: `Numeric value out of range: ${rangeCheck.value}. Max allowed: 9999999999999.999999`,
+         });
       }
 
-      let calculatedSubtotal = PrecisionMath.toDecimal(0);
-
-      for (const item of items) {
-         const itemTotal = PrecisionMath.multiply(item.price, item.quantity);
-         calculatedSubtotal = calculatedSubtotal.plus(itemTotal);
+      // 3. Validate Calculation Integrity
+      const totalCheck = InvoiceValidationService.validateTotals(items, subtotal, total, discount);
+      if (!totalCheck.isValid) {
+         return res.status(400).json(totalCheck);
       }
 
-      const calculatedTotal = PrecisionMath.subtract(calculatedSubtotal, discount);
-
-      const subtotalDiff = PrecisionMath.subtract(subtotal, calculatedSubtotal).abs();
-      const totalDiff = PrecisionMath.subtract(total, calculatedTotal).abs();
-
-      const maxToleranceAbsolute = 0.01;
-      const maxTolerancePercent = 0.01;
-
-      // Rechazar si subtotal difiere más del 1%
-      if (PrecisionMath.compare(subtotalDiff, maxToleranceAbsolute) > 0) {
-         const percentDiff = PrecisionMath.divide(subtotalDiff, calculatedSubtotal);
-
-         if (PrecisionMath.compare(percentDiff, maxTolerancePercent) > 0) {
-            console.error(
-               `⚠️ SECURITY: Subtotal mismatch exceeds 1%:`,
-               `Client=${subtotal}, Server=${PrecisionMath.toNumber(calculatedSubtotal)}`,
-               `Diff=${PrecisionMath.toNumber(subtotalDiff)}`,
-            );
-
-            return res.status(400).json({
-               error: 'Los totales no coinciden. Por favor, recarga la página y vuelve a intentar.',
-               details: {
-                  field: 'subtotal',
-                  clientValue: subtotal,
-                  serverValue: PrecisionMath.toNumber(calculatedSubtotal),
-                  difference: PrecisionMath.toNumber(subtotalDiff),
-               },
-            });
-         }
-
-         console.warn(
-            `Subtotal minor mismatch: Client=${subtotal}, Server=${PrecisionMath.toNumber(
-               calculatedSubtotal,
-            )}`,
-         );
-      }
-
-      // Rechazar si total difiere más del 1%
-      if (PrecisionMath.compare(totalDiff, maxToleranceAbsolute) > 0) {
-         const percentDiff = PrecisionMath.divide(totalDiff, calculatedTotal);
-
-         if (PrecisionMath.compare(percentDiff, maxTolerancePercent) > 0) {
-            console.error(
-               `⚠️ SECURITY: Total mismatch exceeds 1%:`,
-               `Client=${total}, Server=${PrecisionMath.toNumber(calculatedTotal)}`,
-               `Diff=${PrecisionMath.toNumber(totalDiff)}`,
-            );
-
-            return res.status(400).json({
-               error: 'El total de la factura no coincide con los cálculos del servidor. Por favor, recarga la página.',
-               details: {
-                  field: 'total',
-                  clientValue: total,
-                  serverValue: PrecisionMath.toNumber(calculatedTotal),
-                  difference: PrecisionMath.toNumber(totalDiff),
-               },
-            });
-         }
-
-         console.warn(
-            `Total minor mismatch: Client=${total}, Server=${PrecisionMath.toNumber(
-               calculatedTotal,
-            )}`,
-         );
-      }
-
+      // 4. Prepare Clean Data for DB
       const cleanItems = items.map(item => ({
          id: item.id && item.id.length === 36 ? item.id : null,
          quantity: item.quantity,
@@ -166,9 +83,9 @@ export const createInvoice = async (req: Request<{}, {}, CreateInvoiceBody>, res
          reference_code: p.reference_code || null,
       }));
 
-      const totals = {
-         subtotal: PrecisionMath.toNumber(calculatedSubtotal),
-         total: PrecisionMath.toNumber(calculatedTotal),
+      const finalTotals = {
+         subtotal: totalCheck.cleanTotals!.subtotal,
+         total: totalCheck.cleanTotals!.total,
          discount: discount,
          tax: 0,
       };
@@ -183,6 +100,7 @@ export const createInvoice = async (req: Request<{}, {}, CreateInvoiceBody>, res
          document_type: (customer as any).documentType || '31',
       };
 
+      // 5. Ensure Shift is Open
       const { data: openShift } = await supabase
          .from('cash_shifts')
          .select('id')
@@ -191,18 +109,17 @@ export const createInvoice = async (req: Request<{}, {}, CreateInvoiceBody>, res
          .maybeSingle();
 
       if (!openShift) {
-         return res
-            .status(400)
-            .json({ error: 'No tienes un turno de caja abierto. Abre caja antes de vender.' });
+         return res.status(400).json({ error: 'No active cash shift found. Open a shift first.' });
       }
 
+      // 6. Execute Transaction via RPC
       const { data, error } = await supabase
          .rpc('register_new_sale', {
             p_user_id: userId,
             p_customer: customerData,
             p_items: cleanItems,
             p_payments: cleanPayments,
-            p_totals: totals,
+            p_totals: finalTotals,
          })
          .setHeader('Authorization', `Bearer ${req.token}`);
 
@@ -211,13 +128,13 @@ export const createInvoice = async (req: Request<{}, {}, CreateInvoiceBody>, res
       const result = data as { success: boolean; invoice_id: string; invoice_number_full: string };
 
       res.status(201).json({
-         message: 'Venta registrada correctamente',
+         message: 'Invoice created successfully',
          invoiceId: result.invoice_id,
          invoiceNumberFull: result.invoice_number_full,
       });
    } catch (error) {
       console.error('Transaction Error:', error);
-      const message = error instanceof Error ? error.message : 'Error interno';
+      const message = error instanceof Error ? error.message : 'Internal Server Error';
       res.status(500).json({ error: message });
    }
 };

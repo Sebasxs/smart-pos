@@ -12,7 +12,15 @@ export interface FormatOptions {
 
 /**
  * Formats a number according to DIAN rules and user preferences.
- * This is the shared logic between SmartNumberInput and SmartNumber.
+ *
+ * Logic:
+ * - Currency: Uses 0 or 2 decimals based on preference. Adds '$' if requested.
+ * - Quantity: Decimals depend on DIAN unit code (e.g., kg = 3 decimals, unit = 0).
+ * - Percentage: Always 2 decimals.
+ *
+ * @param value The number to format (can be null/undefined).
+ * @param options Configuration options.
+ * @returns Formatted string.
  */
 export function formatNumber(value: number | null | undefined, options: FormatOptions): string {
    if (value === null || value === undefined || isNaN(value)) {
@@ -28,9 +36,10 @@ export function formatNumber(value: number | null | undefined, options: FormatOp
    if (variant === 'currency') {
       decimalScale = maxDecimals ?? decimalPreference;
       if (showPrefix) {
-         prefix = '$';
+         prefix = '$ ';
       }
    } else if (variant === 'quantity') {
+      // Use DIAN Utils to determine precision for units (e.g., KGM vs EA)
       decimalScale = maxDecimals ?? (dianUnitCode ? getDecimalScaleByUnit(dianUnitCode) : 2);
    } else if (variant === 'percentage') {
       decimalScale = maxDecimals ?? 2;
@@ -49,15 +58,16 @@ export function formatNumber(value: number | null | undefined, options: FormatOp
 }
 
 /**
- * Parses a formatted string and extracts the clean number.
+ * Parses a formatted string back to a raw number.
+ * Removes currency symbols, spaces, and handles locale separators (dot/comma).
  */
 export function parseFormattedNumber(value: string): number | null {
    if (!value) return null;
 
    const cleaned = value
-      .replace(/[$%\s]/g, '')
-      .replace(/\./g, '')
-      .replace(/,/g, '.');
+      .replace(/[$%\s]/g, '') // Remove symbols
+      .replace(/\./g, '') // Remove thousand separators (dots in ES-CO)
+      .replace(/,/g, '.'); // Replace decimal separator (comma to dot)
 
    const parsed = parseFloat(cleaned);
    return isNaN(parsed) ? null : parsed;
