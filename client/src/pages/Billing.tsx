@@ -1,22 +1,22 @@
-import { useState, useMemo, useCallback, useEffect } from 'react';
-import { HiOutlineComputerDesktop, HiOutlinePlus } from 'react-icons/hi2';
-import { HiX } from 'react-icons/hi';
+import { useState, useMemo } from 'react';
+import { HiOutlineComputerDesktop } from 'react-icons/hi2';
 import { CgSpinner } from 'react-icons/cg';
 
 // Components
 import { InvoiceTable } from '../components/billing/InvoiceTable';
-import { CustomerBadge } from '../components/billing/CustomerBadge';
-import { SplitPaymentWidget } from '../components/billing/SplitPaymentWidget';
-import { BillingTotals } from '../components/billing/BillingTotals';
 import { ShiftOpeningScreen } from '../components/billing/ShiftOpeningScreen';
 import { BillingModalsWrapper } from '../components/billing/BillingModalsWrapper';
+import { BillingSidebar } from '../components/billing/BillingSidebar';
 
 // Stores & Hooks
 import { useBillingStore } from '../store/billingStore';
 import { useCashShiftStore } from '../store/cashShiftStore';
 import { useBillingPayment } from '../hooks/useBillingPayment';
+import { useBillingModals } from '../hooks/useBillingModals';
+import { useBillingHotkeys } from '../hooks/useBillingHotKeys';
 
 export const Billing = () => {
+   // Global Store
    const {
       items,
       discount,
@@ -34,18 +34,14 @@ export const Billing = () => {
 
    const { isOpen, loading: shiftLoading } = useCashShiftStore();
 
-   const [modals, setModals] = useState({
-      productSearch: false,
-      clientSearch: false,
-      clientCreate: false,
-      discount: false,
-      discardConfirm: false,
-      success: false,
-      error: false,
-   });
+   // Local Hooks
+   const { modals, toggleModal } = useBillingModals();
+
+   // Local State
    const [createClientName, setCreateClientName] = useState('');
    const [errorMessage, setErrorMessage] = useState('');
 
+   // Calculations
    const subtotal = useMemo(
       () => items.reduce((acc, item) => acc + item.price * item.quantity, 0),
       [items],
@@ -67,6 +63,7 @@ export const Billing = () => {
    const isPaymentValid =
       items.length > 0 && totalPaid >= total && checkoutData.payments.length > 0;
 
+   // Payment Logic Hook
    const {
       processPayment,
       isProcessing,
@@ -82,9 +79,7 @@ export const Billing = () => {
       },
    });
 
-   const toggleModal = useCallback((key: string, value: boolean) => {
-      setModals(prev => ({ ...prev, [key]: value }));
-   }, []);
+   // --- Handlers ---
 
    const handleProductSelect = (product: any) => {
       addItem(product);
@@ -131,65 +126,32 @@ export const Billing = () => {
       }
    };
 
-   useEffect(() => {
-      const handleKeyDown = (event: KeyboardEvent) => {
-         const target = event.target as HTMLElement;
-         const isInputFocused = ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName);
-         const isAnyModalOpen = Object.values(modals).some(Boolean);
-
-         if (isAnyModalOpen) return;
-
-         if (!isInputFocused) {
-            switch (event.code) {
-               case 'Space':
-                  event.preventDefault();
-                  toggleModal('productSearch', true);
-                  break;
-               case 'KeyC':
-                  event.preventDefault();
-                  toggleModal('clientSearch', true);
-                  break;
-               case 'KeyD':
-                  event.preventDefault();
-                  toggleModal('discount', true);
-                  break;
-               case 'KeyX':
-                  event.preventDefault();
-                  if (items.length > 0) toggleModal('discardConfirm', true);
-                  break;
-               case 'Enter':
-                  event.preventDefault();
-                  if (isPaymentValid) {
-                     handlePaymentProcess();
-                  } else if (items.length > 0) {
-                     // Smart enter: add full cash payment or update it
-                     const { payments } = checkoutData;
-                     if (payments.length === 0) {
-                        addPayment('cash', total);
-                     } else if (payments.length === 1 && payments[0].method === 'cash') {
-                        if (Math.abs((payments[0].amount || 0) - total) > 0.01) {
-                           updatePayment(payments[0].id, total);
-                        }
-                     }
-                  }
-                  break;
-            }
+   const handleSmartEnter = () => {
+      // Smart enter: add full cash payment or update it automatically
+      const { payments } = checkoutData;
+      if (payments.length === 0) {
+         addPayment('cash', total);
+      } else if (payments.length === 1 && payments[0].method === 'cash') {
+         if (Math.abs((payments[0].amount || 0) - total) > 0.01) {
+            updatePayment(payments[0].id, total);
          }
-      };
+      }
+   };
 
-      window.addEventListener('keydown', handleKeyDown);
-      return () => window.removeEventListener('keydown', handleKeyDown);
-   }, [
+   // --- Hotkeys ---
+   useBillingHotkeys({
       modals,
+      itemsLength: items.length,
       isPaymentValid,
-      items.length,
-      checkoutData,
-      total,
-      toggleModal,
-      handlePaymentProcess,
-      addPayment,
-      updatePayment,
-   ]);
+      onProductSearch: () => toggleModal('productSearch', true),
+      onClientSearch: () => toggleModal('clientSearch', true),
+      onDiscount: () => toggleModal('discount', true),
+      onDiscard: () => toggleModal('discardConfirm', true),
+      onProcessPayment: handlePaymentProcess,
+      onSmartEnter: handleSmartEnter,
+   });
+
+   // --- Render ---
 
    if (shiftLoading && !isOpen) {
       return (
@@ -235,89 +197,25 @@ export const Billing = () => {
                </div>
             </div>
 
-            {/* SIDEBAR SUMMARY */}
-            <aside className="w-full lg:w-[340px] lg:shrink-0 flex flex-col h-[600px] lg:h-full lg:max-h-full pr-1 overflow-hidden relative">
-               <div className="flex flex-col gap-4 w-full h-full">
-                  {/* CLIENT SECTION */}
-                  <div className="bg-zinc-900/50 rounded-xl border border-zinc-800 shadow-sm flex flex-col h-auto shrink-0">
-                     <div className="py-3 px-4 border-b border-zinc-800 bg-zinc-900/50 flex justify-between items-center shrink-0">
-                        <h2 className="text-zinc-500 text-[11px] font-bold uppercase tracking-wider">
-                           Cliente
-                        </h2>
-                        {checkoutData.customer.id && (
-                           <button
-                              onClick={resetCustomer}
-                              className="text-zinc-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all cursor-pointer p-1"
-                              title="Desvincular cliente"
-                           >
-                              <HiX size={16} />
-                           </button>
-                        )}
-                     </div>
-                     <div className="p-4 h-auto">
-                        {!checkoutData.customer.id ? (
-                           <button
-                              onClick={() => toggleModal('clientSearch', true)}
-                              className="w-full flex items-center justify-between px-4 py-3 bg-zinc-950/50 border border-zinc-800 border-dashed rounded-xl text-zinc-400 hover:text-zinc-200 hover:border-zinc-700 hover:bg-zinc-800/50 transition-all group cursor-pointer"
-                           >
-                              <span className="text-sm font-medium">Asociar Cliente</span>
-                              <div className="flex items-center gap-2">
-                                 <kbd className="hidden sm:inline-flex text-[10px] items-center justify-center font-mono bg-zinc-800 border border-zinc-700 rounded px-1.5 py-0.5 text-zinc-500 group-hover:text-zinc-400 transition-colors">
-                                    C
-                                 </kbd>
-                                 <HiOutlinePlus size={16} />
-                              </div>
-                           </button>
-                        ) : (
-                           <CustomerBadge
-                              name={checkoutData.customer.name}
-                              taxId={checkoutData.customer.taxId}
-                              email={checkoutData.customer.email}
-                              phone={checkoutData.customer.phone}
-                              address={checkoutData.customer.address}
-                              city={checkoutData.customer.city}
-                              accountBalance={checkoutData.customer.accountBalance}
-                           />
-                        )}
-                     </div>
-                  </div>
-
-                  {/* PAYMENTS & TOTALS */}
-                  <div className="flex flex-col md:flex-row lg:flex-col gap-4 w-full h-auto flex-1 lg:overflow-y-auto lg:custom-scrollbar pb-4 min-h-0">
-                     <div className="w-full shrink-0">
-                        <SplitPaymentWidget total={total} />
-                     </div>
-                     <div className="w-full shrink-0">
-                        <BillingTotals
-                           subtotal={subtotal}
-                           discount={discount}
-                           discountAmount={discountAmount}
-                           total={total}
-                           isPaymentValid={isPaymentValid}
-                           isProcessing={isProcessing}
-                           onOpenDiscount={() => toggleModal('discount', true)}
-                           onDiscard={() => items.length > 0 && toggleModal('discardConfirm', true)}
-                           onProcessPayment={handlePaymentProcess}
-                        />
-                     </div>
-                  </div>
-
-                  {/* LEGEND */}
-                  <div className="mt-4 px-2 grid grid-cols-3 gap-2 text-xs text-zinc-600 text-center uppercase tracking-wide opacity-75 shrink-0">
-                     <div>
-                        <span className="font-bold text-zinc-500">C</span> Cliente
-                     </div>
-                     <div>
-                        <span className="font-bold text-zinc-500">D</span> Descuento
-                     </div>
-                     <div>
-                        <span className="font-bold text-zinc-500">X</span> Limpiar
-                     </div>
-                  </div>
-               </div>
-            </aside>
+            {/* SIDEBAR COMPONENT */}
+            <BillingSidebar
+               checkoutData={checkoutData}
+               subtotal={subtotal}
+               discount={discount}
+               discountAmount={discountAmount}
+               total={total}
+               itemsLength={items.length}
+               isPaymentValid={isPaymentValid}
+               isProcessing={isProcessing}
+               onResetCustomer={resetCustomer}
+               onOpenClientSearch={() => toggleModal('clientSearch', true)}
+               onOpenDiscount={() => toggleModal('discount', true)}
+               onDiscard={() => toggleModal('discardConfirm', true)}
+               onProcessPayment={handlePaymentProcess}
+            />
          </div>
 
+         {/* MODALS WRAPPER */}
          <BillingModalsWrapper
             modals={modals}
             toggleModal={toggleModal}

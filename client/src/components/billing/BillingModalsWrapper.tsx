@@ -7,9 +7,11 @@ import { PaymentSuccessModal } from './PaymentSuccessModal';
 import { ErrorModal } from '../ui/ErrorModal';
 import { useAuthStore } from '../../store/authStore';
 
+import type { BillingModalState } from '../../hooks/useBillingModals';
+
 type BillingModalsWrapperProps = {
-   modals: Record<string, boolean>;
-   toggleModal: (key: string, value: boolean) => void;
+   modals: BillingModalState;
+   toggleModal: (key: keyof BillingModalState, value: boolean) => void;
    handlers: {
       onSelectProduct: (prod: any) => void;
       onSelectClient: (client: any) => void;
