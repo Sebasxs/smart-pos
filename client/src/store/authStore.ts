@@ -1,7 +1,9 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage, type StateStorage } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import { supabase } from '../utils/supabase';
 import { usePreferencesStore } from './usePreferencesStore';
+import { isTokenExpired } from '../utils/jwt';
+import { roleBasedStorage } from './roleBasedStorage';
 
 export interface User {
    id: string;
@@ -28,44 +30,6 @@ interface AuthState {
    forceInitialized: () => void;
 }
 
-const isTokenExpired = (token: string | null): boolean => {
-   if (!token) return true;
-   try {
-      const payloadBase64 = token.split('.')[1];
-      if (!payloadBase64) return true;
-      const decodedJson = JSON.parse(atob(payloadBase64));
-      const exp = decodedJson.exp;
-      const now = Math.floor(Date.now() / 1000);
-      return !exp || exp < now + 10;
-   } catch (e) {
-      return true;
-   }
-};
-
-const smartStorage: StateStorage = {
-   getItem: (name: string): string | null =>
-      localStorage.getItem(name) || sessionStorage.getItem(name) || null,
-   setItem: (name: string, value: string): void => {
-      try {
-         const parsed = JSON.parse(value);
-         const role = parsed.state?.user?.role;
-         if (role === 'cashier') {
-            sessionStorage.setItem(name, value);
-            localStorage.removeItem(name);
-         } else {
-            localStorage.setItem(name, value);
-            sessionStorage.removeItem(name);
-         }
-      } catch (e) {
-         localStorage.setItem(name, value);
-      }
-   },
-   removeItem: (name: string): void => {
-      localStorage.removeItem(name);
-      sessionStorage.removeItem(name);
-   },
-};
-
 export const useAuthStore = create<AuthState>()(
    persist(
       (set, get) => ({
@@ -81,9 +45,8 @@ export const useAuthStore = create<AuthState>()(
          logout: async () => {
             console.log('🔒 Cerrando sesión...');
             set({ user: null, token: null, isAuthenticated: false, isInitialized: true });
+            roleBasedStorage.removeItem('auth-storage');
 
-            localStorage.removeItem('auth-storage');
-            sessionStorage.removeItem('auth-storage');
             await supabase.auth.signOut().catch(console.warn);
          },
 
@@ -97,16 +60,20 @@ export const useAuthStore = create<AuthState>()(
          initializeAuth: async () => {
             const state = get();
 
-            if (state.token && !isTokenExpired(state.token)) {
-               console.log('⚡ Token válido localmente. Acceso rápido concedido.');
-               set({ isAuthenticated: true, isInitialized: true });
+            // 1. Local Fast Path
+            if (state.token) {
+               if (!isTokenExpired(state.token)) {
+                  console.log('⚡ Token válido localmente. Acceso rápido concedido.');
+                  set({ isAuthenticated: true, isInitialized: true });
 
-               if (state.user?.role === 'cashier') return;
-            } else if (state.token && isTokenExpired(state.token)) {
-               console.warn('🕒 Token expirado localmente. Limpiando sesión.');
-               set({ user: null, token: null, isAuthenticated: false });
+                  if (state.user?.role === 'cashier') return;
+               } else {
+                  console.warn('🕒 Token expirado localmente. Limpiando sesión.');
+                  set({ user: null, token: null, isAuthenticated: false });
+               }
             }
 
+            // 2. Supabase Events
             const {
                data: { subscription },
             } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -125,6 +92,7 @@ export const useAuthStore = create<AuthState>()(
                }
             });
 
+            // 3. Server Verification (Admins/OAuth)
             if (state.user?.role !== 'cashier') {
                try {
                   const {
@@ -189,8 +157,10 @@ export const useAuthStore = create<AuthState>()(
                return null;
             }
 
+            // Cashiers use custom tokens with long duration
             if (state.user?.role === 'cashier') return state.token;
 
+            // For admins, try refreshing Supabase session if needed
             try {
                const { data } = await supabase.auth.getSession();
                return data.session?.access_token || state.token;
@@ -201,7 +171,7 @@ export const useAuthStore = create<AuthState>()(
       }),
       {
          name: 'auth-storage',
-         storage: createJSONStorage(() => smartStorage),
+         storage: createJSONStorage(() => roleBasedStorage),
          partialize: state => ({
             user: state.user,
             token: state.token,
