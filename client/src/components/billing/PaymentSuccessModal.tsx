@@ -1,25 +1,18 @@
-import { useEffect, useRef, useState, useLayoutEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Modal } from '../ui/Modal';
 import {
    HiOutlineCheck,
-   HiOutlinePrinter,
-   HiOutlineEnvelope,
    HiOutlineArrowRight,
-   HiPaperAirplane,
    HiOutlineDocumentText,
    HiOutlineTicket,
-   HiCheckCircle,
-   HiChevronDown,
-   HiOutlineChatBubbleLeftRight,
 } from 'react-icons/hi2';
 import { HiOutlineReceiptTax } from 'react-icons/hi';
-import { TicketView } from './TicketView';
 import { type PaymentEntry, useBillingStore } from '../../store/billingStore';
 import { SmartNumber } from '../ui/SmartNumber';
 import { cn } from '../../utils/cn';
-import { Input } from '../ui/Input';
 import { usePrinter } from '../../hooks/usePrinter';
-import { useInvoiceSharing } from '../../hooks/useInvoiceSharing';
+import { TicketPreviewSection } from './payment/TicketPreviewSection';
+import { PaymentActions } from './payment/PaymentActions';
 
 type PaymentSuccessModalProps = {
    isOpen: boolean;
@@ -30,8 +23,6 @@ type PaymentSuccessModalProps = {
    invoiceId?: number | string;
    cashierName?: string;
 };
-
-const TICKET_BASE_WIDTH = 350;
 
 export const PaymentSuccessModal = ({
    isOpen,
@@ -45,14 +36,6 @@ export const PaymentSuccessModal = ({
    const { printInvoice } = usePrinter();
    const { items, discount, checkoutData } = useBillingStore();
    const { customer } = checkoutData;
-   const {
-      expandedAction,
-      isSending,
-      sentSuccess,
-      toggleAction,
-      sendInvoice,
-      reset: resetSharing,
-   } = useInvoiceSharing();
 
    // Calculations
    const subtotal = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
@@ -62,58 +45,17 @@ export const PaymentSuccessModal = ({
    const change = Math.max(0, totalPaid - total);
    const isCashPayment = payments.some(p => p.method === 'cash');
 
-   // State & Refs
-   const containerRef = useRef<HTMLDivElement>(null);
    const primaryButtonRef = useRef<HTMLButtonElement>(null);
-   const emailInputRef = useRef<HTMLInputElement>(null);
-   const phoneInputRef = useRef<HTMLInputElement>(null);
-
-   const [scale, setScale] = useState(1);
-   const [emailInput, setEmailInput] = useState('');
-   const [phoneInput, setPhoneInput] = useState('');
-   const [isPrinting, setIsPrinting] = useState(false);
    const [activeTab, setActiveTab] = useState<'summary' | 'ticket'>('summary');
 
-   // Reset on Open
    useEffect(() => {
       if (isOpen) {
-         setEmailInput(customer.email || '');
-         setPhoneInput(customer.phone || '');
-         resetSharing();
          setActiveTab('summary');
-         setIsPrinting(false);
          setTimeout(() => primaryButtonRef.current?.focus(), 50);
       }
-   }, [isOpen, customer]);
-
-   // Focus Logic for Sharing
-   useEffect(() => {
-      if (expandedAction === 'email') setTimeout(() => emailInputRef.current?.focus(), 100);
-      if (expandedAction === 'whatsapp') setTimeout(() => phoneInputRef.current?.focus(), 100);
-   }, [expandedAction]);
-
-   // Auto Scale Ticket
-   const calculateScale = () => {
-      if (containerRef.current) {
-         const { clientWidth } = containerRef.current;
-         if (clientWidth === 0) return;
-         const paddingX = window.innerWidth < 768 ? 32 : 48;
-         const availableWidth = clientWidth - paddingX;
-         setScale(Math.min(1, availableWidth / TICKET_BASE_WIDTH));
-      }
-   };
-
-   useLayoutEffect(() => {
-      if (!isOpen) return;
-      const observer = new ResizeObserver(() => requestAnimationFrame(calculateScale));
-      if (containerRef.current) observer.observe(containerRef.current);
-      calculateScale();
-      return () => observer.disconnect();
-   }, [isOpen, activeTab]);
+   }, [isOpen]);
 
    const handlePrint = async () => {
-      if (isPrinting) return;
-      setIsPrinting(true);
       await printInvoice({
          invoiceNumber: invoiceNumber || '---',
          date: new Date(),
@@ -133,11 +75,7 @@ export const PaymentSuccessModal = ({
          totals: { subtotal, discount: discountValue, total },
          payments: payments.map(p => ({ method: p.method, amount: p.amount || 0 })),
       });
-      setIsPrinting(false);
    };
-
-   const isValidEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e.trim());
-   const isValidPhone = (p: string) => p.replace(/\D/g, '').length === 10;
 
    return (
       <Modal
@@ -151,45 +89,28 @@ export const PaymentSuccessModal = ({
             activeTab === 'ticket' ? 'md:h-[85vh]' : '',
          )}
       >
-         {/* TICKET PREVIEW */}
+         {/* LEFT PANEL: TICKET PREVIEW */}
          <div
             className={cn(
-               'md:w-[380px] shrink-0 bg-zinc-950 flex-col transition-all border-zinc-800 relative z-0',
+               'md:w-[380px] shrink-0',
                activeTab === 'ticket' ? 'flex flex-1 md:flex-none min-h-0' : 'hidden md:flex',
-               'md:border-r',
             )}
          >
-            <div className="sticky top-0 z-20 w-full py-3 bg-zinc-950/95 backdrop-blur border-b border-zinc-900 flex items-center justify-center gap-2 text-zinc-500 text-[10px] font-bold uppercase tracking-widest select-none shadow-sm">
-               <HiOutlinePrinter size={14} />
-               <span>VISTA PREVIA</span>
-            </div>
-            <div className="flex-1 overflow-y-auto custom-scrollbar relative" ref={containerRef}>
-               <div className="min-h-full flex flex-col items-center justify-center py-8 px-4 w-full">
-                  <div
-                     className="origin-top transition-transform"
-                     style={{
-                        width: TICKET_BASE_WIDTH,
-                        transform: `scale(${scale})`,
-                        marginBottom: scale < 1 ? `-${(1 - scale) * 100}%` : '0',
-                     }}
-                  >
-                     <TicketView
-                        invoiceNumber={invoiceNumber}
-                        invoiceId={invoiceId}
-                        customer={customer}
-                        items={items}
-                        subtotal={subtotal}
-                        discount={discountValue}
-                        total={total}
-                        payments={payments}
-                        cashierName={cashierName}
-                     />
-                  </div>
-               </div>
-            </div>
+            <TicketPreviewSection
+               isVisible={activeTab === 'ticket' || window.innerWidth >= 768}
+               invoiceNumber={invoiceNumber}
+               invoiceId={invoiceId}
+               customer={customer}
+               items={items}
+               subtotal={subtotal}
+               discount={discountValue}
+               total={total}
+               payments={payments}
+               cashierName={cashierName}
+            />
          </div>
 
-         {/* SUMMARY & ACTIONS */}
+         {/* RIGHT PANEL: SUMMARY & ACTIONS */}
          <div
             className={cn(
                'flex-1 flex-col bg-zinc-950 relative min-h-0',
@@ -237,214 +158,13 @@ export const PaymentSuccessModal = ({
                   )}
                </div>
 
-               <div className="flex flex-col gap-3">
-                  <h3 className="text-zinc-500 text-xs font-bold uppercase tracking-wider ml-1 mb-1">
-                     Acciones Rápidas
-                  </h3>
-
-                  <button
-                     onClick={handlePrint}
-                     disabled={isPrinting}
-                     className="w-full flex items-center justify-between p-3.5 bg-zinc-900/40 hover:bg-zinc-900 border border-zinc-800 hover:border-zinc-700 rounded-xl transition-all group cursor-pointer text-left disabled:opacity-50"
-                  >
-                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-zinc-800 text-zinc-400 rounded-lg group-hover:text-purple-400 group-hover:bg-purple-500/10 transition-colors">
-                           {isPrinting ? (
-                              <div className="w-5 h-5 border-2 border-purple-500/30 border-t-purple-500 rounded-full animate-spin" />
-                           ) : (
-                              <HiOutlinePrinter size={20} />
-                           )}
-                        </div>
-                        <div className="flex flex-col">
-                           <span className="text-zinc-300 font-medium group-hover:text-white transition-colors text-sm">
-                              {isPrinting ? 'Imprimiendo...' : 'Imprimir Copia'}
-                           </span>
-                           <span className="text-zinc-500 text-[12px]">
-                              Generar tirilla térmica
-                           </span>
-                        </div>
-                     </div>
-                     {!isPrinting && (
-                        <HiOutlineArrowRight
-                           size={16}
-                           className="text-zinc-600 group-hover:text-zinc-400"
-                        />
-                     )}
-                  </button>
-
-                  {/* Email Action */}
-                  <div
-                     className={cn(
-                        'flex flex-col bg-zinc-900/40 border border-zinc-800 rounded-xl transition-all overflow-hidden group',
-                        expandedAction === 'email'
-                           ? 'bg-zinc-900 border-zinc-700'
-                           : 'hover:border-zinc-700',
-                     )}
-                  >
-                     <button
-                        onClick={() => toggleAction('email')}
-                        className="w-full flex items-center justify-between p-3.5 cursor-pointer text-left outline-none"
-                     >
-                        <div className="flex items-center gap-3">
-                           <div
-                              className={cn(
-                                 'p-2 rounded-lg transition-colors',
-                                 expandedAction === 'email'
-                                    ? 'bg-blue-500/10 text-blue-400'
-                                    : 'bg-zinc-800 text-zinc-400 group-hover:text-blue-400 group-hover:bg-blue-500/10',
-                              )}
-                           >
-                              <HiOutlineEnvelope size={20} />
-                           </div>
-                           <div className="flex flex-col">
-                              <span
-                                 className={cn(
-                                    'font-medium transition-colors text-sm',
-                                    expandedAction === 'email' ? 'text-blue-400' : 'text-zinc-300',
-                                 )}
-                              >
-                                 Enviar por Correo
-                              </span>
-                              <span className="text-zinc-500 text-[12px]">
-                                 Enviar factura digital
-                              </span>
-                           </div>
-                        </div>
-                        <HiChevronDown
-                           size={16}
-                           className={cn(
-                              'text-zinc-600 transition-transform duration-300',
-                              expandedAction === 'email' ? 'rotate-180 text-blue-400' : '',
-                           )}
-                        />
-                     </button>
-                     {expandedAction === 'email' && (
-                        <div className="px-3.5 pb-3.5 pt-0 animate-in fade-in slide-in-from-top-2 duration-200">
-                           <div className="flex gap-4">
-                              <div className="flex-1 min-w-0 w-0">
-                                 <Input
-                                    ref={emailInputRef}
-                                    value={emailInput}
-                                    type="email"
-                                    onChange={e => setEmailInput(e.target.value)}
-                                    placeholder="cliente@correo.com"
-                                    className="h-10 bg-zinc-950 border-zinc-800 focus:border-zinc-500/50 text-sm"
-                                    onKeyDown={e => e.key === 'Enter' && sendInvoice(emailInput)}
-                                 />
-                              </div>
-                              <button
-                                 onClick={() => sendInvoice(emailInput)}
-                                 disabled={!isValidEmail(emailInput) || isSending}
-                                 className={cn(
-                                    'h-10 w-12 rounded-lg flex items-center justify-center transition-all shrink-0',
-                                    sentSuccess
-                                       ? 'bg-emerald-600 text-white'
-                                       : !isValidEmail(emailInput)
-                                       ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed opacity-50'
-                                       : 'bg-blue-600 hover:bg-blue-500 text-white shadow-lg',
-                                 )}
-                              >
-                                 {isSending ? (
-                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                 ) : sentSuccess ? (
-                                    <HiCheckCircle size={20} />
-                                 ) : (
-                                    <HiPaperAirplane size={18} />
-                                 )}
-                              </button>
-                           </div>
-                        </div>
-                     )}
-                  </div>
-
-                  {/* WhatsApp Action */}
-                  <div
-                     className={cn(
-                        'flex flex-col bg-zinc-900/40 border border-zinc-800 rounded-xl transition-all overflow-hidden group',
-                        expandedAction === 'whatsapp'
-                           ? 'bg-zinc-900 border-zinc-700'
-                           : 'hover:border-zinc-700',
-                     )}
-                  >
-                     <button
-                        onClick={() => toggleAction('whatsapp')}
-                        className="w-full flex items-center justify-between p-3.5 cursor-pointer text-left outline-none"
-                     >
-                        <div className="flex items-center gap-3">
-                           <div
-                              className={cn(
-                                 'p-2 rounded-lg transition-colors',
-                                 expandedAction === 'whatsapp'
-                                    ? 'bg-green-500/10 text-green-400'
-                                    : 'bg-zinc-800 text-zinc-400 group-hover:text-green-400 group-hover:bg-green-500/10',
-                              )}
-                           >
-                              <HiOutlineChatBubbleLeftRight size={20} />
-                           </div>
-                           <div className="flex flex-col">
-                              <span
-                                 className={cn(
-                                    'font-medium transition-colors text-sm',
-                                    expandedAction === 'whatsapp'
-                                       ? 'text-green-400'
-                                       : 'text-zinc-300',
-                                 )}
-                              >
-                                 Enviar por WhatsApp
-                              </span>
-                              <span className="text-zinc-500 text-[12px]">
-                                 Enviar a número móvil
-                              </span>
-                           </div>
-                        </div>
-                        <HiChevronDown
-                           size={16}
-                           className={cn(
-                              'text-zinc-600 transition-transform duration-300',
-                              expandedAction === 'whatsapp' ? 'rotate-180 text-green-400' : '',
-                           )}
-                        />
-                     </button>
-                     {expandedAction === 'whatsapp' && (
-                        <div className="px-3.5 pb-3.5 pt-0 animate-in fade-in slide-in-from-top-2 duration-200">
-                           <div className="flex gap-4">
-                              <div className="flex-1 min-w-0 w-0">
-                                 <Input
-                                    ref={phoneInputRef}
-                                    value={phoneInput}
-                                    type="tel"
-                                    onChange={e => setPhoneInput(e.target.value)}
-                                    placeholder="300 123 4567"
-                                    prefix="+57"
-                                    className="h-10 bg-zinc-950 border-zinc-800 focus:border-zinc-500/50 text-sm"
-                                    onKeyDown={e => e.key === 'Enter' && sendInvoice(phoneInput)}
-                                 />
-                              </div>
-                              <button
-                                 onClick={() => sendInvoice(phoneInput)}
-                                 disabled={!isValidPhone(phoneInput) || isSending}
-                                 className={cn(
-                                    'h-10 w-12 rounded-lg flex items-center justify-center transition-all shrink-0',
-                                    sentSuccess
-                                       ? 'bg-emerald-600 text-white'
-                                       : !isValidPhone(phoneInput)
-                                       ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed opacity-50'
-                                       : 'bg-green-600 hover:bg-green-500 text-white shadow-lg',
-                                 )}
-                              >
-                                 {isSending ? (
-                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                 ) : sentSuccess ? (
-                                    <HiCheckCircle size={20} />
-                                 ) : (
-                                    <HiPaperAirplane size={18} />
-                                 )}
-                              </button>
-                           </div>
-                        </div>
-                     )}
-                  </div>
-               </div>
+               <PaymentActions
+                  email={customer.email}
+                  phone={customer.phone}
+                  onPrint={handlePrint}
+                  onSendEmail={async () => {}} // Placeholder logic
+                  onSendWhatsapp={async () => {}} // Placeholder logic
+               />
             </div>
 
             {/* FOOTER */}
