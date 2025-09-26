@@ -2,8 +2,6 @@ import { Virtuoso } from 'react-virtuoso';
 import {
    HiOutlineTrash,
    HiOutlineArchiveBoxXMark,
-   HiChevronUp,
-   HiChevronDown,
    HiOutlineDocumentText,
    HiOutlinePhone,
 } from 'react-icons/hi2';
@@ -14,9 +12,10 @@ import { SmartNumber } from '../ui/SmartNumber';
 import { formatRelativeDate, differenceInDays, parseISO } from '../../utils/date';
 import { getDocumentTypeLabel } from '../../utils/documentTypes';
 import { CustomerStatusBadge } from './CustomerStatusBadge';
+import { SortableHeader } from '../ui/SortableHeader';
 
 // Types
-import { type Customer, type CustomerSortKey } from '../../types/customer';
+import { type Customer } from '../../types/customer';
 
 type CustomerListProps = {
    customers: Customer[];
@@ -30,61 +29,6 @@ const GRID_LAYOUT = 'grid grid-cols-[2.8fr_1fr_1fr_1.3fr_150px_80px] gap-4 items
 export const CustomerList = ({ customers, isLoading, onEdit, onDelete }: CustomerListProps) => {
    const { sortConfig, setSort } = useCustomerStore();
    const navigate = useNavigate();
-
-   const SortableHeader = ({
-      label,
-      sortKey,
-      align = 'left',
-      offset = 0,
-   }: {
-      label: string;
-      sortKey?: CustomerSortKey;
-      align?: 'left' | 'right' | 'center';
-      offset?: number;
-   }) => {
-      const isActive = sortKey && sortConfig.key === sortKey;
-      const canSort = !!sortKey;
-
-      const offsetStyle =
-         align === 'right' ? { marginRight: `${offset}px` } : { marginLeft: `${offset}px` };
-
-      return (
-         <div
-            className={`flex items-center gap-1 transition-colors select-none ${
-               canSort ? 'cursor-pointer hover:text-zinc-300' : ''
-            } ${align === 'right' ? 'justify-end' : align === 'center' ? 'justify-center' : ''}`}
-            style={offsetStyle}
-            onClick={canSort ? () => setSort(sortKey) : undefined}
-         >
-            {label}
-            <div className="flex flex-col w-[10px]">
-               {canSort ? (
-                  <>
-                     <HiChevronUp
-                        size={10}
-                        className={`${
-                           isActive && sortConfig.direction === 'asc'
-                              ? 'text-blue-400'
-                              : 'text-zinc-700'
-                        }`}
-                     />
-                     <HiChevronDown
-                        size={10}
-                        className={`${
-                           isActive && sortConfig.direction === 'desc'
-                              ? 'text-blue-400'
-                              : 'text-zinc-700'
-                        }`}
-                        style={{ marginTop: -4 }}
-                     />
-                  </>
-               ) : (
-                  <div className="h-[16px]" />
-               )}
-            </div>
-         </div>
-      );
-   };
 
    const Row = (_index: number, customer: Customer) => {
       const now = new Date();
@@ -234,17 +178,37 @@ export const CustomerList = ({ customers, isLoading, onEdit, onDelete }: Custome
                   <div
                      className={`${GRID_LAYOUT} py-4 text-xs font-bold text-zinc-500 uppercase tracking-wider`}
                   >
-                     <SortableHeader label="Cliente" sortKey="name" offset={0} />
+                     <SortableHeader
+                        label="Cliente"
+                        sortKey="name"
+                        currentSortKey={sortConfig.key}
+                        sortDirection={sortConfig.direction}
+                        onSort={setSort}
+                        offset={0}
+                     />
                      <SortableHeader label="ID" align="left" offset={-5} />
-                     <SortableHeader label="Ciudad" sortKey="city" offset={-7} />
+                     <SortableHeader
+                        label="Ciudad"
+                        sortKey="city"
+                        currentSortKey={sortConfig.key}
+                        sortDirection={sortConfig.direction}
+                        onSort={setSort}
+                        offset={-7}
+                     />
                      <SortableHeader
                         label="Última Actividad"
                         sortKey="last_purchase_date"
+                        currentSortKey={sortConfig.key}
+                        sortDirection={sortConfig.direction}
+                        onSort={setSort}
                         offset={-8}
                      />
                      <SortableHeader
                         label="Total Comprado"
                         sortKey="total_spent"
+                        currentSortKey={sortConfig.key}
+                        sortDirection={sortConfig.direction}
+                        onSort={setSort}
                         align="right"
                         offset={-5}
                      />

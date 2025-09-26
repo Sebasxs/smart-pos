@@ -1,13 +1,8 @@
 import { Virtuoso } from 'react-virtuoso';
-import {
-   HiOutlineTrash,
-   HiOutlineArchiveBoxXMark,
-   HiChevronUp,
-   HiChevronDown,
-   HiOutlineQrCode,
-} from 'react-icons/hi2';
-import { useInventoryStore, type SortKey } from '../../store/inventoryStore';
+import { HiOutlineTrash, HiOutlineArchiveBoxXMark, HiOutlineQrCode } from 'react-icons/hi2';
+import { useInventoryStore } from '../../store/inventoryStore';
 import { SmartNumber } from '../ui/SmartNumber';
+import { SortableHeader } from '../ui/SortableHeader';
 
 // Types
 import { type Product } from '../../types/inventory';
@@ -36,50 +31,6 @@ export const InventoryList = ({ products, isLoading, onEdit, onDelete }: Invento
       if (margin <= 39) return 'text-zinc-400 bg-zinc-400/10';
       if (margin >= 60) return 'text-emerald-500 bg-emerald-500/10';
       return 'text-blue-400 bg-blue-500/10';
-   };
-
-   const SortableHeader = ({
-      label,
-      sortKey,
-      align = 'left',
-   }: {
-      label: string;
-      sortKey?: SortKey;
-      align?: 'left' | 'right' | 'center';
-   }) => {
-      if (!sortKey) return <div className={`text-${align}`}>{label}</div>;
-
-      const isActive = sortConfig.key === sortKey;
-
-      return (
-         <div
-            className={`flex items-center gap-1 cursor-pointer hover:text-zinc-300 transition-colors select-none ${
-               align === 'right'
-                  ? 'justify-end'
-                  : align === 'center'
-                  ? 'justify-center'
-                  : 'justify-start'
-            }`}
-            onClick={() => setSort(sortKey)}
-         >
-            {label}
-            <div className="flex flex-col">
-               <HiChevronUp
-                  size={10}
-                  className={`${
-                     isActive && sortConfig.direction === 'asc' ? 'text-blue-400' : 'text-zinc-700'
-                  }`}
-               />
-               <HiChevronDown
-                  size={10}
-                  className={`${
-                     isActive && sortConfig.direction === 'desc' ? 'text-blue-400' : 'text-zinc-700'
-                  }`}
-                  style={{ marginTop: -4 }}
-               />
-            </div>
-         </div>
-      );
    };
 
    const Row = (_index: number, product: Product) => {
@@ -238,11 +189,45 @@ export const InventoryList = ({ products, isLoading, onEdit, onDelete }: Invento
                   <div
                      className={`${GRID_LAYOUT} py-4 text-xs font-bold text-zinc-500 uppercase tracking-wider`}
                   >
-                     <SortableHeader label="Producto / SKU" sortKey="description" />
-                     <SortableHeader label="Costo" sortKey="cost" align="right" />
-                     <SortableHeader label="Precio Venta" sortKey="price" align="right" />
-                     <SortableHeader label="Ganancia" sortKey="margin" align="center" />
-                     <SortableHeader label="Stock" sortKey="stock" align="center" />
+                     <SortableHeader
+                        label="Producto / SKU"
+                        sortKey="description"
+                        currentSortKey={sortConfig.key}
+                        sortDirection={sortConfig.direction}
+                        onSort={setSort}
+                     />
+                     <SortableHeader
+                        label="Costo"
+                        sortKey="cost"
+                        currentSortKey={sortConfig.key}
+                        sortDirection={sortConfig.direction}
+                        onSort={setSort}
+                        align="right"
+                     />
+                     <SortableHeader
+                        label="Precio Venta"
+                        sortKey="price"
+                        currentSortKey={sortConfig.key}
+                        sortDirection={sortConfig.direction}
+                        onSort={setSort}
+                        align="right"
+                     />
+                     <SortableHeader
+                        label="Ganancia"
+                        sortKey="margin"
+                        currentSortKey={sortConfig.key}
+                        sortDirection={sortConfig.direction}
+                        onSort={setSort}
+                        align="center"
+                     />
+                     <SortableHeader
+                        label="Stock"
+                        sortKey="stock"
+                        currentSortKey={sortConfig.key}
+                        sortDirection={sortConfig.direction}
+                        onSort={setSort}
+                        align="center"
+                     />
                      <div></div>
                   </div>
                </div>
