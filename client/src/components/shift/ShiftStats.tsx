@@ -43,18 +43,18 @@ export const ShiftStats = ({ summary }: ShiftStatsProps) => {
             icon={<HiOutlineBanknotes className="text-zinc-500" />}
          />
          <KpiCard
-            title="Ventas (Efectivo)"
-            value={summary?.salesCash}
-            className="text-emerald-400"
-            bgClassName="bg-emerald-500/[0.03] border-emerald-500/10"
-            icon={<HiOutlineReceiptPercent />}
-         />
-         <KpiCard
             title="Gastos / Salidas"
             value={summary?.manualExpense}
             className="text-red-400"
             bgClassName="bg-red-500/[0.03] border-red-500/10"
             icon={<HiOutlineArrowTrendingDown />}
+         />
+         <KpiCard
+            title="Ventas (Efectivo)"
+            value={summary?.salesCash}
+            className="text-emerald-400"
+            bgClassName="bg-emerald-500/[0.03] border-emerald-500/10"
+            icon={<HiOutlineReceiptPercent />}
          />
          <KpiCard
             title="Efectivo Esperado"
