@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { HiOutlineComputerDesktop } from 'react-icons/hi2';
 import { CgSpinner } from 'react-icons/cg';
 
@@ -6,7 +6,8 @@ import { CgSpinner } from 'react-icons/cg';
 import { InvoiceTable } from '../components/billing/InvoiceTable';
 import { ShiftOpeningScreen } from '../components/billing/ShiftOpeningScreen';
 import { BillingModalsWrapper } from '../components/billing/BillingModalsWrapper';
-import { BillingSidebar } from '../components/billing/BillingSidebar';
+import { CheckoutSidebar } from '../components/billing/CheckoutSidebar';
+import { ShortcutLegend } from '../components/billing/ShortcutLegend';
 
 // Stores & Hooks
 import { useBillingStore } from '../store/billingStore';
@@ -198,7 +199,7 @@ export const Billing = () => {
             </div>
 
             {/* SIDEBAR COMPONENT */}
-            <BillingSidebar
+            <CheckoutSidebar
                checkoutData={checkoutData}
                subtotal={subtotal}
                discount={discount}
@@ -214,6 +215,9 @@ export const Billing = () => {
                onProcessPayment={handlePaymentProcess}
             />
          </div>
+
+         {/* LEGEND */}
+         <ShortcutLegend />
 
          {/* MODALS WRAPPER */}
          <BillingModalsWrapper
