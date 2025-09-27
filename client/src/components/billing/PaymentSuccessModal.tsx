@@ -172,7 +172,8 @@ export const PaymentSuccessModal = ({
                <button
                   ref={primaryButtonRef}
                   onClick={onClose}
-                  className="w-full bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-lg flex items-center justify-center gap-2 shadow-xl shadow-blue-900/20 active:scale-[0.98] transition-all cursor-pointer py-3"
+                  autoFocus
+                  className="w-full bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-lg flex items-center justify-center gap-2 shadow-xl shadow-blue-900/20 active:scale-[0.98] transition-all cursor-pointer py-3 outline-none"
                >
                   <span>Nueva Venta</span>
                   <HiOutlineArrowRight size={20} />
