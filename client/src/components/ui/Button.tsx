@@ -47,7 +47,6 @@ export const Button = ({
          className={cn(
             'rounded-lg font-medium transition-all cursor-pointer flex items-center justify-center gap-2',
             'disabled:opacity-50 disabled:cursor-not-allowed',
-            'active:scale-[0.98] hover:scale-[1.02]',
             variants[variant],
             sizes[size],
             className,

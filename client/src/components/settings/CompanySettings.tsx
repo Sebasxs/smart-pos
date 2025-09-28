@@ -1,10 +1,16 @@
 import { useEffect, useState } from 'react';
+import { cn } from '../../utils/cn';
 import { useOrganizationStore } from '../../store/organizationStore';
 import { useAuthStore } from '../../store/authStore';
 import { Input } from '../ui/Input';
 import { CustomSelect } from '../ui/CustomSelect';
 import { Button } from '../ui/Button';
-import { HiOutlineBuildingOffice2, HiOutlinePrinter } from 'react-icons/hi2';
+import {
+   HiOutlineBuildingOffice2,
+   HiOutlinePrinter,
+   HiOutlineCheck,
+   HiOutlineExclamationCircle,
+} from 'react-icons/hi2';
 
 const TAX_REGIMES = [
    { value: 'not_responsible_iva', label: 'No Responsable de IVA (Simplificado)' },
@@ -19,6 +25,7 @@ export const CompanySettings = () => {
    const { settings, fetchSettings, updateSettings, isLoading } = useOrganizationStore();
 
    const [isSaving, setIsSaving] = useState(false);
+   const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
    const [formData, setFormData] = useState({
       company_name: '',
       tax_id: '',
@@ -61,12 +68,15 @@ export const CompanySettings = () => {
       if (!isSuperAdmin) return;
 
       setIsSaving(true);
+      setSaveStatus('idle');
       try {
          await updateSettings(formData);
-         // Toast Success aquí
+         setSaveStatus('success');
+         setTimeout(() => setSaveStatus('idle'), 3000);
       } catch (error) {
          console.error(error);
-         // Toast Error aquí
+         setSaveStatus('error');
+         setTimeout(() => setSaveStatus('idle'), 3000);
       } finally {
          setIsSaving(false);
       }
@@ -93,8 +103,32 @@ export const CompanySettings = () => {
                )}
             </div>
             {isSuperAdmin && (
-               <Button type="submit" isLoading={isSaving} disabled={isSaving}>
-                  Guardar Cambios
+               <Button
+                  type="submit"
+                  isLoading={isSaving}
+                  disabled={isSaving || saveStatus !== 'idle'}
+                  className={cn(
+                     'min-w-[140px] transition-all duration-300',
+                     saveStatus !== 'idle' && 'opacity-100 disabled:opacity-100 text-white',
+                     saveStatus === 'success' &&
+                        'bg-emerald-500 hover:bg-emerald-500 border-emerald-400 shadow-lg shadow-emerald-500/30',
+                     saveStatus === 'error' &&
+                        'bg-red-500 hover:bg-red-500 border-red-400 shadow-lg shadow-red-500/30',
+                  )}
+               >
+                  {saveStatus === 'success' ? (
+                     <>
+                        <HiOutlineCheck size={18} />
+                        ¡Guardado!
+                     </>
+                  ) : saveStatus === 'error' ? (
+                     <>
+                        <HiOutlineExclamationCircle size={18} />
+                        Error
+                     </>
+                  ) : (
+                     'Guardar Cambios'
+                  )}
                </Button>
             )}
          </div>

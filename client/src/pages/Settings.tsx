@@ -51,7 +51,7 @@ export const Settings = () => {
          </div>
 
          <div className="grid grid-cols-1 md:grid-cols-[260px_1fr] gap-8 items-start flex-1 min-h-0">
-            <nav className="flex flex-col gap-2 shrink-0 sticky top-0">
+            <nav className="flex flex-col gap-2 shrink-0 md:sticky md:top-0 z-10 bg-zinc-950 md:bg-transparent py-2 md:py-0">
                <p className="px-4 text-[11px] font-bold text-zinc-500 uppercase tracking-wider mb-1 mt-1">
                   General
                </p>
