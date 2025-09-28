@@ -1,7 +1,7 @@
 import { type ReactNode } from 'react';
 import {
    HiOutlineSparkles,
-   HiOutlineComputerDesktop,
+   HiOutlineReceiptPercent,
    HiOutlineLockOpen,
    HiOutlineDocumentText,
    HiOutlineArchiveBox,
@@ -34,7 +34,7 @@ export const NAVIGATION_CONFIG: (NavItem | NavGroup)[] = [
    {
       name: 'Facturar',
       path: '/billing',
-      icon: <HiOutlineComputerDesktop size={22} />,
+      icon: <HiOutlineReceiptPercent size={22} />,
       hoverColor: 'hover:bg-blue-500/10 hover:text-blue-400',
       activeColor: 'bg-blue-500/10 text-zinc-200 ring-blue-500/20',
    },

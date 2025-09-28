@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import { type NavItem } from '../../../config/navigation';
 import { useCashShiftStore } from '../../../store/cashShiftStore';
-import { HiOutlineLockClosed } from 'react-icons/hi2';
+import { HiOutlineLockClosed, HiOutlineLockOpen } from 'react-icons/hi2';
 
 type SidebarItemProps = {
    item: NavItem;
@@ -14,6 +14,13 @@ export const SidebarItem = ({ item, variant }: SidebarItemProps) => {
    const showStatus = isShiftRelated && !isOpen;
 
    const targetPath = item.path === '/shift' && !isOpen ? '/billing' : item.path;
+
+   const renderIcon = () => {
+      if (item.path === '/shift') {
+         return isOpen ? <HiOutlineLockOpen size={22} /> : <HiOutlineLockClosed size={22} />;
+      }
+      return item.icon;
+   };
 
    return (
       <NavLink
@@ -29,7 +36,7 @@ export const SidebarItem = ({ item, variant }: SidebarItemProps) => {
          title={item.name}
       >
          <div className="w-[56px] min-w-[56px] flex items-center justify-center shrink-0 relative">
-            {item.icon}
+            {renderIcon()}
             {showStatus && (
                <div className="absolute top-1 right-3 w-2 h-2 bg-amber-500 rounded-full border-2 border-zinc-950" />
             )}
