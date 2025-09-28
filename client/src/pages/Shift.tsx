@@ -77,7 +77,7 @@ export const Shift = () => {
    }
 
    return (
-      <div className="flex flex-col h-full gap-6 max-w-7xl mx-auto w-full">
+      <div className="flex flex-col h-full gap-6 max-w-screen-2xl mx-auto w-full">
          {/* HEADER */}
          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shrink-0">
             <div>
