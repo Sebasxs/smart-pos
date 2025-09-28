@@ -1,11 +1,7 @@
 import { useEffect, useState } from 'react';
+import { Navigate } from 'react-router-dom';
 import { useCashShiftStore } from '../store/cashShiftStore';
-import {
-   HiOutlineClock,
-   HiOutlineLockClosed,
-   HiOutlineExclamationTriangle,
-   HiOutlineArrowPath,
-} from 'react-icons/hi2';
+import { HiOutlineClock, HiOutlineExclamationTriangle, HiOutlineArrowPath } from 'react-icons/hi2';
 import { Button } from '../components/ui/Button';
 import { formatDateTime } from '../utils/date';
 import { CgSpinner } from 'react-icons/cg';
@@ -55,17 +51,7 @@ export const Shift = () => {
    }
 
    if (!isOpen || (!shiftData && !isFetchingDetails)) {
-      return (
-         <div className="flex flex-col items-center justify-center h-full text-zinc-500 gap-4 bg-zinc-900/20 rounded-xl border border-dashed border-zinc-800 m-4">
-            <div className="p-4 bg-zinc-900 rounded-full border border-zinc-800">
-               <HiOutlineLockClosed size={32} />
-            </div>
-            <div className="text-center">
-               <p className="text-lg font-medium text-zinc-300">Caja Cerrada</p>
-               <p className="text-sm">Ve a "Facturar" para iniciar un nuevo turno.</p>
-            </div>
-         </div>
-      );
+      return <Navigate to="/billing" replace />;
    }
 
    if (!shiftData) {

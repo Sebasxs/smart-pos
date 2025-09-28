@@ -5,7 +5,11 @@ import { Button } from '../ui/Button';
 import { usePreferencesStore } from '../../store/usePreferencesStore';
 import { useCashShiftStore } from '../../store/cashShiftStore';
 
-export const ShiftOpeningScreen = () => {
+interface ShiftOpeningScreenProps {
+   subtitle?: string;
+}
+
+export const ShiftOpeningScreen = ({ subtitle }: ShiftOpeningScreenProps) => {
    const { openShift, loading } = useCashShiftStore();
    const { preferences } = usePreferencesStore();
 
@@ -39,8 +43,8 @@ export const ShiftOpeningScreen = () => {
             <div className="space-y-2">
                <h2 className="text-xl font-bold text-white">Apertura de Caja</h2>
                <p className="text-zinc-400 text-sm leading-relaxed">
-                  Para comenzar a facturar, es necesario abrir un turno e indicar la base de
-                  efectivo.
+                  {subtitle ||
+                     'Para comenzar a facturar, es necesario abrir un turno e indicar la base de efectivo.'}
                </p>
             </div>
 
