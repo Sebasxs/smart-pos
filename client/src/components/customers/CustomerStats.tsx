@@ -80,19 +80,21 @@ export const CustomerStats = ({ stats, activeFilter, onToggleFilter }: CustomerS
       stats.totalCustomers > 0 ? Math.round((stats.newCustomers / stats.totalCustomers) * 100) : 0;
 
    return (
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 w-full">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 w-full">
          {/* 1. TODOS */}
-         <StatFilterCard
-            label="Total Clientes"
-            icon={HiOutlineUsers}
-            mainValue={stats.totalCustomers}
-            subValue={<span className="text-indigo-300">Registrados</span>}
-            isActive={activeFilter === 'all'}
-            onClick={() => onToggleFilter('all')}
-            colorClass="text-indigo-500 opacity-60"
-            activeBgClass="bg-gradient-to-br from-indigo-500/20 to-indigo-600/5"
-            activeBorderClass="border-indigo-500/50"
-         />
+         <div className="col-span-2 md:col-span-1">
+            <StatFilterCard
+               label="Total Clientes"
+               icon={HiOutlineUsers}
+               mainValue={stats.totalCustomers}
+               subValue={<span className="text-indigo-300">Registrados</span>}
+               isActive={activeFilter === 'all'}
+               onClick={() => onToggleFilter('all')}
+               colorClass="text-indigo-500 opacity-60"
+               activeBgClass="bg-gradient-to-br from-indigo-500/20 to-indigo-600/5"
+               activeBorderClass="border-indigo-500/50"
+            />
+         </div>
 
          {/* 2. ACTIVOS (Compraron recientemente) */}
          <StatFilterCard
