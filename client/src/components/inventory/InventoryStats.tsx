@@ -15,7 +15,6 @@ type InventoryStatsProps = {
    onToggleFilter: (filter: InventoryFilter) => void;
 };
 
-// Componente interno de Tarjeta
 const StatFilterCard = ({
    label,
    mainValue,
@@ -77,42 +76,27 @@ const StatFilterCard = ({
 
 export const InventoryStats = ({ stats, activeFilter, onToggleFilter }: InventoryStatsProps) => {
    return (
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 w-full">
-         {/* 1. TODOS / VALOR TOTAL */}
-         <StatFilterCard
-            label="Total Inventario"
-            icon={HiOutlineCube}
-            mainValue={stats.totalProducts}
-            subValue={
-               <span className="text-purple-300">
-                  <SmartNumber value={stats.totalValue} variant="currency" showPrefix={true} />
-               </span>
-            }
-            isActive={activeFilter === 'all'}
-            onClick={() => onToggleFilter('all')}
-            colorClass="text-purple-500 opacity-60"
-            activeBgClass="bg-gradient-to-br from-purple-500/20 to-purple-600/5"
-            activeBorderClass="border-purple-500/50"
-         />
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 w-full">
+         {/* 1. ALL */}
+         <div className="col-span-2 md:col-span-1">
+            <StatFilterCard
+               label="Total Inventario"
+               icon={HiOutlineCube}
+               mainValue={stats.totalProducts}
+               subValue={
+                  <span className="text-purple-300">
+                     <SmartNumber value={stats.totalValue} variant="currency" showPrefix={true} />
+                  </span>
+               }
+               isActive={activeFilter === 'all'}
+               onClick={() => onToggleFilter('all')}
+               colorClass="text-purple-500 opacity-60"
+               activeBgClass="bg-gradient-to-br from-purple-500/20 to-purple-600/5"
+               activeBorderClass="border-purple-500/50"
+            />
+         </div>
 
-         {/* 2. OFERTAS */}
-         <StatFilterCard
-            label="En Oferta"
-            icon={HiOutlineTag}
-            mainValue={stats.discounted}
-            subValue={
-               stats.discounted > 0 ? (
-                  <span className="text-emerald-300">-{stats.averageDiscount}% Prom.</span>
-               ) : null
-            }
-            isActive={activeFilter === 'discounted'}
-            onClick={() => onToggleFilter('discounted')}
-            colorClass="text-emerald-500 opacity-60"
-            activeBgClass="bg-gradient-to-br from-emerald-500/20 to-emerald-600/5"
-            activeBorderClass="border-emerald-500/50"
-         />
-
-         {/* 3. STOCK BAJO / AGOTADO */}
+         {/* 2. LOW STOCK / OUT OF STOCK */}
          <StatFilterCard
             label="Stock Crítico"
             icon={HiOutlineExclamationTriangle}
@@ -129,6 +113,23 @@ export const InventoryStats = ({ stats, activeFilter, onToggleFilter }: Inventor
             colorClass="text-amber-500 opacity-60"
             activeBgClass="bg-gradient-to-br from-amber-500/20 to-orange-600/5"
             activeBorderClass="border-amber-500/50"
+         />
+
+         {/* 3. DISCOUNTED */}
+         <StatFilterCard
+            label="En Oferta"
+            icon={HiOutlineTag}
+            mainValue={stats.discounted}
+            subValue={
+               stats.discounted > 0 ? (
+                  <span className="text-emerald-300">-{stats.averageDiscount}% Prom.</span>
+               ) : null
+            }
+            isActive={activeFilter === 'discounted'}
+            onClick={() => onToggleFilter('discounted')}
+            colorClass="text-emerald-500 opacity-60"
+            activeBgClass="bg-gradient-to-br from-emerald-500/20 to-emerald-600/5"
+            activeBorderClass="border-emerald-500/50"
          />
       </div>
    );

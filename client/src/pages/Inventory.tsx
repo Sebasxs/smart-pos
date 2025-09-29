@@ -43,46 +43,70 @@ export const Inventory = () => {
       if (!container) return;
 
       const handleTouchStart = (e: TouchEvent) => {
-         if (container.scrollTop === 0) {
-            touchStartY.current = e.touches[0].clientY;
+         const touch = e.touches[0];
+         const containerRect = container.getBoundingClientRect();
+         const relativeY = touch.clientY - containerRect.top;
+
+         // Solo permitir el gesto de refrescar si se inicia en la parte superior (header/stats)
+         // o fuera del área de la lista, para no interferir con el scroll de los productos.
+         if (relativeY < 240) {
+            touchStartY.current = touch.clientY;
             setIsPulling(true);
          }
       };
 
       const handleTouchMove = (e: TouchEvent) => {
          if (!isPulling || isRefreshing) return;
+
          const currentY = e.touches[0].clientY;
          const distance = currentY - touchStartY.current;
-         if (distance > 0 && container.scrollTop === 0) {
+
+         // Solo interceptamos si el movimiento es hacia abajo (pull down)
+         if (distance > 0) {
             e.preventDefault();
             const resistedDistance = Math.min(distance * 0.5, PULL_THRESHOLD * 1.5);
             setPullDistance(resistedDistance);
+         } else if (distance < -10) {
+            // Si el usuario desliza hacia arriba, cancelamos el modo pulling para permitir scroll normal
+            setIsPulling(false);
+            setPullDistance(0);
          }
       };
 
       const handleTouchEnd = async () => {
          if (!isPulling) return;
+
+         const finalDistance = pullDistance;
          setIsPulling(false);
-         if (pullDistance >= PULL_THRESHOLD) {
+         setPullDistance(0);
+
+         if (finalDistance >= PULL_THRESHOLD) {
             setIsRefreshing(true);
-            await refresh();
-            setTimeout(() => {
-               setIsRefreshing(false);
-               setPullDistance(0);
-            }, 500);
-         } else {
-            setPullDistance(0);
+            try {
+               await refresh();
+            } finally {
+               setTimeout(() => {
+                  setIsRefreshing(false);
+               }, 500);
+            }
          }
+      };
+
+      const handleTouchCancel = () => {
+         setIsPulling(false);
+         setPullDistance(0);
       };
 
       container.addEventListener('touchstart', handleTouchStart, { passive: true });
       container.addEventListener('touchmove', handleTouchMove, { passive: false });
       container.addEventListener('touchend', handleTouchEnd, { passive: true });
+      container.addEventListener('touchcancel', handleTouchCancel, { passive: true });
 
       return () => {
          container.removeEventListener('touchstart', handleTouchStart);
          container.removeEventListener('touchmove', handleTouchMove);
          container.removeEventListener('touchend', handleTouchEnd);
+         container.removeEventListener('touchcancel', handleTouchCancel);
       };
    }, [isPulling, pullDistance, isRefreshing, refresh]);
 
@@ -114,7 +138,8 @@ export const Inventory = () => {
    return (
       <div
          ref={containerRef}
-         className="flex flex-col h-full max-h-screen overflow-hidden relative"
+         className="flex flex-col h-full max-h-screen overflow-hidden relative overscroll-contain"
+         style={{ touchAction: 'pan-x pan-y' }}
       >
          {/* Pull-to-refresh indicator */}
          {showPullIndicator && (
