@@ -6,9 +6,18 @@ import { type ComponentProps } from 'react';
 type InputProps = {
    label?: string;
    prefix?: React.ReactNode;
+   focusVariant?: 'blue' | 'zinc' | 'none';
 } & ComponentProps<'input'>;
 
-export const Input = ({ label, id, name, className = '', prefix, ...props }: InputProps) => {
+export const Input = ({
+   label,
+   id,
+   name,
+   className = '',
+   prefix,
+   focusVariant = 'blue',
+   ...props
+}: InputProps) => {
    const inputId = id || name;
 
    return (
@@ -30,7 +39,8 @@ export const Input = ({ label, id, name, className = '', prefix, ...props }: Inp
                className={cn(
                   'w-full bg-zinc-800/50 border border-zinc-800 text-zinc-200 placeholder:text-zinc-500',
                   'rounded-lg px-3 py-2.5 outline-none',
-                  'focus:border-blue-500/70 focus:bg-zinc-800',
+                  focusVariant === 'blue' && 'focus:border-blue-500/70 focus:bg-zinc-800',
+                  focusVariant === 'zinc' && 'focus:border-zinc-700 focus:bg-zinc-800',
                   'hover:border-zinc-700 hover:bg-zinc-800',
                   'transition-all text-sm',
                   prefix && 'pl-11',

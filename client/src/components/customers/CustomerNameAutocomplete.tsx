@@ -1,30 +1,35 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { HiOutlineCube, HiOutlineExclamationCircle, HiOutlinePencilSquare } from 'react-icons/hi2';
+import {
+   HiOutlineUser,
+   HiOutlineExclamationCircle,
+   HiOutlinePencilSquare,
+   HiOutlineIdentification,
+} from 'react-icons/hi2';
 import { cn } from '../../utils/cn';
-import { type Product } from '../../types/inventory';
-import { SmartNumber } from '../ui/SmartNumber';
+import { type Customer } from '../../types/customer';
+import { HiOutlineMail } from 'react-icons/hi';
 
-type ProductDescriptionAutocompleteProps = {
+type CustomerNameAutocompleteProps = {
    value: string;
    onChange: (value: string) => void;
-   onSelectExisting: (product: Product) => void;
-   products: Product[];
+   onSelectExisting: (customer: Customer) => void;
+   customers: Customer[];
    currentId?: string | null;
    autoFocus?: boolean;
    required?: boolean;
    placeholder?: string;
 };
 
-export const ProductDescriptionAutocomplete = ({
+export const CustomerNameAutocomplete = ({
    value,
    onChange,
    onSelectExisting,
-   products,
+   customers,
    currentId,
    autoFocus,
    required,
    placeholder,
-}: ProductDescriptionAutocompleteProps) => {
+}: CustomerNameAutocompleteProps) => {
    const [isOpen, setIsOpen] = useState(false);
    const [selectedIndex, setSelectedIndex] = useState(-1);
 
@@ -32,25 +37,26 @@ export const ProductDescriptionAutocomplete = ({
    const listRef = useRef<HTMLDivElement>(null);
    const itemsRef = useRef<(HTMLButtonElement | null)[]>([]);
 
-   const filteredProducts = useMemo(() => {
+   const filteredCustomers = useMemo(() => {
       if (value.trim().length < 2) return [];
 
       const lowerTerm = value.toLowerCase();
-      return products
+      return customers
          .filter(
-            p =>
-               p.id !== currentId &&
-               (p.description.toLowerCase().includes(lowerTerm) ||
-                  p.sku?.toLowerCase().includes(lowerTerm)),
+            c =>
+               c.id !== currentId &&
+               (c.name.toLowerCase().includes(lowerTerm) ||
+                  c.tax_id?.toLowerCase().includes(lowerTerm) ||
+                  c.email?.toLowerCase().includes(lowerTerm)),
          )
          .slice(0, 10);
-   }, [value, products, currentId]);
+   }, [value, customers, currentId]);
 
-   const showDropdown = isOpen && filteredProducts.length > 0;
+   const showDropdown = isOpen && filteredCustomers.length > 0;
 
    useEffect(() => {
       setSelectedIndex(-1);
-   }, [filteredProducts.length]);
+   }, [filteredCustomers.length]);
 
    useEffect(() => {
       const handleClickOutside = (e: MouseEvent | TouchEvent) => {
@@ -75,8 +81,8 @@ export const ProductDescriptionAutocomplete = ({
       }
    }, [selectedIndex]);
 
-   const handleSelect = (product: Product) => {
-      onSelectExisting(product);
+   const handleSelect = (customer: Customer) => {
+      onSelectExisting(customer);
       setIsOpen(false);
    };
 
@@ -86,16 +92,16 @@ export const ProductDescriptionAutocomplete = ({
       switch (e.key) {
          case 'ArrowDown':
             e.preventDefault();
-            setSelectedIndex(prev => (prev + 1) % filteredProducts.length);
+            setSelectedIndex(prev => (prev + 1) % filteredCustomers.length);
             break;
          case 'ArrowUp':
             e.preventDefault();
-            setSelectedIndex(prev => (prev <= 0 ? filteredProducts.length - 1 : prev - 1));
+            setSelectedIndex(prev => (prev <= 0 ? filteredCustomers.length - 1 : prev - 1));
             break;
          case 'Enter':
             if (selectedIndex >= 0) {
                e.preventDefault();
-               handleSelect(filteredProducts[selectedIndex]);
+               handleSelect(filteredCustomers[selectedIndex]);
             }
             break;
          case 'Escape':
@@ -107,20 +113,19 @@ export const ProductDescriptionAutocomplete = ({
    };
 
    const handleBlur = () => {
-      // Usamos un pequeño delay para permitir que el click en las sugerencias se procese
       setTimeout(() => {
          if (!containerRef.current?.contains(document.activeElement)) {
             setIsOpen(false);
          }
-      }, 200);
+      }, 100);
    };
 
    return (
       <div className="w-full relative group" ref={containerRef}>
-         <label className="block text-sm font-medium text-zinc-400 mb-1.5">Descripción</label>
+         <label className="block text-sm font-medium text-zinc-400 mb-1.5">Nombre Completo</label>
          <div className="relative">
             <div className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none transition-colors group-focus-within:text-blue-500/80">
-               <HiOutlineCube size={18} />
+               <HiOutlineUser size={18} />
             </div>
             <input
                value={value}
@@ -146,7 +151,7 @@ export const ProductDescriptionAutocomplete = ({
             />
          </div>
 
-         {/* Suggestions */}
+         {/* Suggestions Dropdown */}
          {showDropdown && (
             <div
                ref={listRef}
@@ -157,29 +162,29 @@ export const ProductDescriptionAutocomplete = ({
                )}
             >
                {/* Header Sticky */}
-               <div className="h-9 px-3 bg-indigo-500/10 border-b border-indigo-500/20 text-[10px] text-indigo-300 font-medium flex items-center justify-between sticky top-0 backdrop-blur-md z-10 shadow-sm">
+               <div className="h-9 px-3 bg-blue-500/10 border-b border-blue-500/20 text-[10px] text-blue-300 font-medium flex items-center justify-between sticky top-0 backdrop-blur-md z-10 shadow-sm">
                   <div className="flex items-center gap-1.5">
                      <HiOutlineExclamationCircle size={12} />
-                     <span>Productos similares encontrados</span>
+                     <span>Clientes similares encontrados</span>
                   </div>
                   <span className="opacity-70 text-[9px] uppercase tracking-wide">
                      Enter para editar
                   </span>
                </div>
 
-               {filteredProducts.map((product, index) => {
+               {filteredCustomers.map((customer, index) => {
                   const isActive = index === selectedIndex;
                   return (
                      <button
-                        key={product.id}
+                        key={customer.id}
                         ref={el => {
                            itemsRef.current[index] = el;
                         }}
                         type="button"
-                        onClick={() => handleSelect(product)}
+                        onClick={() => handleSelect(customer)}
                         onMouseEnter={() => setSelectedIndex(index)}
                         className={cn(
-                           'w-full text-left px-4 py-3 flex items-center justify-between group transition-all border-b border-zinc-800/50 last:border-0',
+                           'w-full text-left px-4 py-2 flex items-center justify-between group transition-all border-b border-zinc-800/50 last:border-0',
                            isActive ? 'bg-zinc-800 border-zinc-700' : 'hover:bg-zinc-800/50',
                         )}
                      >
@@ -191,41 +196,28 @@ export const ProductDescriptionAutocomplete = ({
                                     isActive ? 'text-white' : 'text-zinc-300',
                                  )}
                               >
-                                 {product.description}
+                                 {customer.name}
                               </span>
                               {isActive && (
-                                 <span className="flex items-center gap-1 text-[9px] bg-indigo-500 text-white px-1.5 py-0.5 rounded font-bold animate-in zoom-in duration-200 shadow-lg shadow-indigo-500/20">
+                                 <span className="flex items-center gap-1 text-[9px] bg-blue-500 text-white px-1.5 py-0.5 rounded font-bold animate-in zoom-in duration-200 shadow-lg shadow-blue-500/20">
                                     <HiOutlinePencilSquare size={10} /> EDITAR
                                  </span>
                               )}
                            </div>
 
-                           <div className="flex items-center gap-2 mt-0.5">
-                              {product.sku && (
-                                 <span className="text-xs text-zinc-500 font-mono bg-zinc-950/50 px-1 rounded border border-zinc-800">
-                                    {product.sku}
-                                 </span>
-                              )}
-                           </div>
-                        </div>
+                           {customer.email && (
+                              <span className="text-sm text-zinc-500 flex items-center gap-1">
+                                 <HiOutlineMail size={12} />
+                                 {customer.email}
+                              </span>
+                           )}
 
-                        <div className="flex flex-col items-end shrink-0 gap-0.5">
-                           <span
-                              className={cn(
-                                 'text-xs font-mono font-medium',
-                                 isActive ? 'text-emerald-400' : 'text-zinc-400',
-                              )}
-                           >
-                              <SmartNumber value={product.price} variant="currency" />
-                           </span>
-                           <span
-                              className={cn(
-                                 'text-[10px]',
-                                 product.stock <= 0 ? 'text-red-500 font-medium' : 'text-zinc-600',
-                              )}
-                           >
-                              Stock: {product.stock}
-                           </span>
+                           {customer.tax_id && (
+                              <span className="text-xs text-zinc-500 flex items-center gap-1">
+                                 <HiOutlineIdentification size={12} />
+                                 {customer.tax_id}
+                              </span>
+                           )}
                         </div>
                      </button>
                   );

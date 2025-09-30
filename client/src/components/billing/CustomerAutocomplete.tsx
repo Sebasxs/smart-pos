@@ -154,11 +154,12 @@ export const CustomerAutocomplete = ({
             autoComplete="new-password"
             className={cn(
                'w-full bg-zinc-800/50 hover:bg-zinc-800 focus:bg-zinc-800',
-               'border border-zinc-800 focus:border-zinc-500/70',
+               'border border-zinc-800 focus:border-blue-500/70',
                'rounded-lg py-2.5 text-sm text-zinc-200 placeholder:text-zinc-500',
                'outline-none transition-all duration-200',
                'pl-10 pr-3',
-               showDropdown && 'rounded-b-none border-b-transparent focus:border-b-transparent',
+               showDropdown &&
+                  'rounded-b-none border-zinc-700 focus:border-zinc-700 bg-zinc-800 shadow-sm',
                className,
             )}
          />
@@ -170,7 +171,7 @@ export const CustomerAutocomplete = ({
          </button>
 
          {showDropdown && (
-            <div className="absolute left-0 right-0 z-50 -mt-[1px] bg-zinc-800 border border-zinc-800 group-focus-within:border-zinc-500/70 border-t-0 rounded-b-xl shadow-2xl shadow-black/50 overflow-hidden animate-in fade-in duration-200">
+            <div className="absolute left-0 right-0 z-50 -mt-[1px] bg-zinc-800/95 backdrop-blur-xl border border-zinc-700 border-t-0 rounded-b-xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8)] overflow-hidden animate-in fade-in slide-in-from-top-1 duration-200">
                <div
                   ref={dropdownRef}
                   className="max-h-[280px] overflow-y-auto py-1 custom-scrollbar"
