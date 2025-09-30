@@ -6,6 +6,13 @@ export interface Product {
    stock: number;
    discountPercentage: number;
    sku?: string;
+   brandId?: string;
+   categoryId?: string;
+   supplierId?: string;
+   unitType?: string;
+   dianUnitCode?: string;
+   taxIncluded?: boolean;
+   type?: 'good' | 'service' | 'bundle';
    createdAt?: string;
 }
 

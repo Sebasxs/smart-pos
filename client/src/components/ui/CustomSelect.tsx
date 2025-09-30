@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { HiCheck, HiChevronDown } from 'react-icons/hi2';
 import { cn } from '../../utils/cn';
 
@@ -97,12 +98,12 @@ const colorStyles: Record<
       check: 'text-cyan-400',
    },
    gray: {
-      border: 'border-zinc-500',
-      text: 'text-zinc-400',
-      background: 'bg-gradient-to-r from-zinc-600 to-zinc-500',
-      shadow: 'shadow-zinc-500/20',
-      optionSelected: 'text-zinc-300',
-      check: 'text-zinc-400',
+      border: 'border-zinc-800',
+      text: 'text-zinc-500',
+      background: 'bg-zinc-800',
+      shadow: 'shadow-black/20',
+      optionSelected: 'text-zinc-200',
+      check: 'text-blue-400',
    },
    flat: {
       border: 'border-zinc-500/70',
@@ -127,8 +128,12 @@ export const CustomSelect = ({
    const [isOpen, setIsOpen] = useState(false);
    const [highlightedIndex, setHighlightedIndex] = useState(0);
    const containerRef = useRef<HTMLDivElement>(null);
+   const buttonRef = useRef<HTMLButtonElement>(null);
    const dropdownRef = useRef<HTMLDivElement>(null);
    const scrollContainerRef = useRef<HTMLDivElement>(null);
+   const [dropdownDir, setDropdownDir] = useState<'down' | 'up'>('down');
+   const [maxHeight, setMaxHeight] = useState(280);
+   const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
 
    const selectedOption = options.find(opt => opt.value === value);
    const styles = colorStyles[color];
@@ -198,12 +203,53 @@ export const CustomSelect = ({
    }, [highlightedIndex, isOpen]);
 
    const handleToggle = () => {
-      setIsOpen(!isOpen);
       if (!isOpen) {
+         if (buttonRef.current) {
+            const rect = buttonRef.current.getBoundingClientRect();
+            const spaceBelow = window.innerHeight - rect.bottom;
+            const spaceAbove = rect.top;
+            const minSpaceNeeded = 200;
+
+            const isUp = spaceBelow < minSpaceNeeded && spaceAbove > spaceBelow;
+
+            setDropdownDir(isUp ? 'up' : 'down');
+            setMaxHeight(Math.min(280, isUp ? spaceAbove - 20 : spaceBelow - 20));
+
+            // Calculate styles for fixed positioning
+            setDropdownStyle({
+               position: 'fixed',
+               left: rect.left,
+               width: rect.width,
+               top: isUp ? 'auto' : rect.bottom,
+               bottom: isUp ? window.innerHeight - rect.top : 'auto',
+               zIndex: 9999, // Ensure it's on top of everything
+            });
+         }
          const selectedIndex = options.findIndex(opt => opt.value === value);
          setHighlightedIndex(selectedIndex >= 0 ? selectedIndex : 0);
       }
+      setIsOpen(!isOpen);
    };
+
+   // Close on scroll or resize to prevent detached dropdowns
+   useEffect(() => {
+      if (!isOpen) return;
+      const handleGlobalEvents = (e: Event) => {
+         // Don't close if scrolling inside the dropdown itself
+         if (dropdownRef.current && dropdownRef.current.contains(e.target as Node)) {
+            return;
+         }
+         setIsOpen(false);
+      };
+
+      window.addEventListener('scroll', handleGlobalEvents, true);
+      window.addEventListener('resize', handleGlobalEvents);
+
+      return () => {
+         window.removeEventListener('scroll', handleGlobalEvents, true);
+         window.removeEventListener('resize', handleGlobalEvents);
+      };
+   }, [isOpen]);
 
    const handleSelect = (optionValue: string) => {
       onChange(optionValue);
@@ -211,7 +257,7 @@ export const CustomSelect = ({
    };
 
    return (
-      <div className={cn('w-full', containerClassName)}>
+      <div className={cn('w-full relative', containerClassName)}>
          {label && (
             <div className="block text-sm font-medium text-zinc-400 mb-1.5 cursor-default">
                {label}
@@ -221,15 +267,20 @@ export const CustomSelect = ({
          <div className="relative" ref={containerRef}>
             {/* Select Button */}
             <button
+               ref={buttonRef}
                type="button"
                onClick={handleToggle}
                className={cn(
-                  'w-full h-[42px] bg-zinc-800/50 border text-zinc-200 cursor-pointer',
-                  'rounded-xl px-3 pr-10 outline-none transition-[color,background-color,border-color,box-shadow] duration-200 text-sm text-left',
+                  'w-full min-h-[42px] bg-zinc-800/50 border text-zinc-200 cursor-pointer',
+                  'rounded-xl px-3 py-2 outline-none transition-[color,background-color,border-color,box-shadow] duration-200 text-sm text-left',
                   'flex items-center relative',
                   isOpen
-                     ? `${styles.border} focus:${styles.border} rounded-b-none border-b-transparent`
-                     : 'border-zinc-700 hover:border-zinc-600',
+                     ? `${styles.border} focus:${styles.border} ${
+                          dropdownDir === 'down'
+                             ? 'rounded-b-none border-b-transparent'
+                             : 'rounded-t-none border-t-transparent'
+                       }`
+                     : 'border-zinc-800 hover:border-zinc-700',
                   className,
                )}
             >
@@ -246,51 +297,57 @@ export const CustomSelect = ({
                />
             </button>
 
-            {/* Dropdown Menu */}
-            {isOpen && (
-               <div
-                  ref={dropdownRef}
-                  className={cn(
-                     'absolute left-0 right-0 z-50 -mt-[1px] bg-zinc-800 shadow-xl shadow-black/50 overflow-hidden animate-in fade-in duration-200',
-                     `border-x border-b rounded-b-xl ${styles.border} border-t-zinc-800`,
-                  )}
-               >
+            {/* Dropdown Menu - Portaled */}
+            {isOpen &&
+               createPortal(
                   <div
-                     ref={scrollContainerRef}
-                     className="max-h-[280px] overflow-y-auto py-1 custom-scrollbar"
+                     ref={dropdownRef}
+                     style={dropdownStyle}
+                     className={cn(
+                        'bg-zinc-900 border shadow-2xl shadow-black/50 overflow-hidden animate-in fade-in duration-200',
+                        dropdownDir === 'down'
+                           ? `-mt-[1px] border-x border-b rounded-b-xl ${styles.border}`
+                           : `bottom-full mb-[1px] border-x border-t rounded-t-xl ${styles.border}`,
+                     )}
                   >
-                     {options.map((option, index) => {
-                        const isSelected = option.value === value;
-                        const isHighlighted = index === highlightedIndex;
+                     <div
+                        ref={scrollContainerRef}
+                        style={{ maxHeight: `${maxHeight}px` }}
+                        className="overflow-y-auto py-1 custom-scrollbar"
+                     >
+                        {options.map((option, index) => {
+                           const isSelected = option.value === value;
+                           const isHighlighted = index === highlightedIndex;
 
-                        return (
-                           <div
-                              key={option.value}
-                              onClick={() => handleSelect(option.value)}
-                              onMouseEnter={() => setHighlightedIndex(index)}
-                              className={cn(
-                                 'px-4 py-3 cursor-pointer transition-all duration-150 flex items-center justify-between',
-                                 isHighlighted
-                                    ? `${styles.background} text-white font-medium shadow-lg ${styles.shadow}`
-                                    : 'text-zinc-300 hover:bg-zinc-800/50',
-                                 isSelected &&
-                                    !isHighlighted &&
-                                    `bg-zinc-800/70 ${styles.optionSelected} font-medium`,
-                              )}
-                           >
-                              <span className="text-sm">{option.label}</span>
-                              {isSelected && (
-                                 <HiCheck
-                                    className={isHighlighted ? 'text-white' : styles.check}
-                                    size={18}
-                                 />
-                              )}
-                           </div>
-                        );
-                     })}
-                  </div>
-               </div>
-            )}
+                           return (
+                              <div
+                                 key={option.value}
+                                 onClick={() => handleSelect(option.value)}
+                                 onMouseEnter={() => setHighlightedIndex(index)}
+                                 className={cn(
+                                    'px-4 py-2 cursor-pointer transition-all duration-150 flex items-center justify-between',
+                                    isHighlighted
+                                       ? `${styles.background} text-white font-medium shadow-lg ${styles.shadow}`
+                                       : 'text-zinc-300 hover:bg-zinc-800/50',
+                                    isSelected &&
+                                       !isHighlighted &&
+                                       `bg-zinc-800/40 ${styles.optionSelected} font-medium`,
+                                 )}
+                              >
+                                 <span className="text-sm">{option.label}</span>
+                                 {isSelected && (
+                                    <HiCheck
+                                       className={isHighlighted ? 'text-white' : styles.check}
+                                       size={18}
+                                    />
+                                 )}
+                              </div>
+                           );
+                        })}
+                     </div>
+                  </div>,
+                  document.body,
+               )}
          </div>
       </div>
    );

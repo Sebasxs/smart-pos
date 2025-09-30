@@ -5,16 +5,16 @@ import { type ComponentProps } from 'react';
 
 type InputProps = {
    label?: string;
-   prefix?: React.ReactNode;
+   startIcon?: React.ReactNode;
    focusVariant?: 'blue' | 'zinc' | 'none';
-} & ComponentProps<'input'>;
+} & Omit<ComponentProps<'input'>, 'prefix'>;
 
 export const Input = ({
    label,
    id,
    name,
    className = '',
-   prefix,
+   startIcon,
    focusVariant = 'blue',
    ...props
 }: InputProps) => {
@@ -28,9 +28,9 @@ export const Input = ({
             </label>
          )}
          <div className="relative">
-            {prefix && (
+            {startIcon && (
                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 text-sm font-medium pointer-events-none select-none">
-                  {prefix}
+                  {startIcon}
                </div>
             )}
             <input
@@ -43,7 +43,7 @@ export const Input = ({
                   focusVariant === 'zinc' && 'focus:border-zinc-700 focus:bg-zinc-800',
                   'hover:border-zinc-700 hover:bg-zinc-800',
                   'transition-all text-sm',
-                  prefix && 'pl-11',
+                  startIcon && 'pl-11',
                   className,
                )}
                {...props}

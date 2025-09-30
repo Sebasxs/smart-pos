@@ -55,9 +55,9 @@ export function SmartNumberInput({
    }
 
    return (
-      <div className={twMerge('flex flex-col gap-1.5', className)}>
+      <div className={twMerge('w-full flex flex-col', className)}>
          {label && (
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{label}</label>
+            <label className="block text-sm font-medium text-zinc-400 mb-1.5">{label}</label>
          )}
          <NumericFormat
             value={value}
@@ -78,10 +78,15 @@ export function SmartNumberInput({
                e.target.select();
                props.onFocus?.(e);
             }}
+            onClick={e => (e.target as HTMLInputElement).select()}
             disabled={disabled}
             placeholder={placeholder}
             className={clsx(
-               'flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-950 dark:border-gray-800 dark:text-gray-50',
+               'w-full bg-zinc-800/50 border border-zinc-800 text-zinc-200 placeholder:text-zinc-500',
+               'rounded-lg px-3 py-2.5 outline-none',
+               'focus:border-blue-500/70 focus:bg-zinc-800',
+               'hover:border-zinc-700 hover:bg-zinc-800',
+               'transition-all text-sm',
                error && 'border-red-500 focus:ring-red-500',
             )}
             {...props}

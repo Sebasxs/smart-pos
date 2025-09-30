@@ -1,13 +1,25 @@
 import { useState, useEffect } from 'react';
 import { Modal } from '../ui/Modal';
+import { cn } from '../../utils/cn';
 import { SmartNumberInput } from '../ui/SmartNumberInput';
 import { Button } from '../ui/Button';
+import { Input } from '../ui/Input';
+import { CustomSelect } from '../ui/CustomSelect';
 import { useInventoryStore } from '../../store/inventoryStore';
-import { HiOutlineCube, HiOutlinePencilSquare } from 'react-icons/hi2';
+import { useAuthStore } from '../../store/authStore';
+import {
+   HiOutlineCube,
+   HiOutlinePencilSquare,
+   HiOutlineChevronDown,
+   HiOutlineChevronUp,
+   HiOutlineIdentification,
+} from 'react-icons/hi2';
 import { ProductDescriptionAutocomplete } from './ProductDescriptionAutocomplete';
 
 // Types
 import { type Product } from '../../types/inventory';
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 type ProductModalProps = {
    isOpen: boolean;
@@ -21,18 +33,67 @@ const initialForm = {
    price: 0,
    stock: 0,
    discountPercentage: 0,
+   sku: '',
+   brandId: '',
+   categoryId: '',
+   supplierId: '',
+   unitType: 'unit',
+   type: 'good' as 'good' | 'service' | 'bundle',
 };
+
+const UNIT_TYPE_OPTIONS = [
+   { value: 'unit', label: 'Unidad' },
+   { value: 'kg', label: 'Kilogramo (kg)' },
+   { value: 'g', label: 'Gramo (g)' },
+   { value: 'm', label: 'Metro (m)' },
+   { value: 'm2', label: 'Metro Cuadrado (m2)' },
+   { value: 'l', label: 'Litro (l)' },
+   { value: 'ml', label: 'Mililitro (ml)' },
+   { value: 'gal', label: 'Galón (gal)' },
+   { value: 'oz', label: 'Onza (oz)' },
+   { value: 'service', label: 'Servicio' },
+];
 
 export const ProductModal = ({ isOpen, onClose, productToEdit }: ProductModalProps) => {
    const { createProduct, updateProduct, allProducts } = useInventoryStore();
 
-   // Estado local para manejar si estamos editando un ID específico
-   // Esto nos permite cambiar de "Crear" a "Editar" dinámicamente sin cerrar el modal
+   // Local state
    const [editingId, setEditingId] = useState<string | null>(null);
    const [form, setForm] = useState(initialForm);
    const [isSubmitting, setIsSubmitting] = useState(false);
+   const [showAdvanced, setShowAdvanced] = useState(false);
 
-   // Efecto para detectar si acabamos de cambiar a modo edición dinámicamente
+   // Selects data
+   const [suppliers, setSuppliers] = useState<{ id: string; name: string }[]>([]);
+   const [brands, setBrands] = useState<{ id: string; name: string }[]>([]);
+   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+
+   useEffect(() => {
+      if (!isOpen) return;
+
+      const fetchData = async () => {
+         try {
+            const token = await useAuthStore.getState().getAccessToken();
+            const headers = { Authorization: `Bearer ${token}` };
+
+            const [suppRes, brandRes, catRes] = await Promise.all([
+               fetch(`${API_URL}/api/products/suppliers`, { headers }),
+               fetch(`${API_URL}/api/products/brands`, { headers }),
+               fetch(`${API_URL}/api/products/categories`, { headers }),
+            ]);
+
+            if (suppRes.ok) setSuppliers(await suppRes.json());
+            if (brandRes.ok) setBrands(await brandRes.json());
+            if (catRes.ok) setCategories(await catRes.json());
+         } catch (error) {
+            console.error('Error fetching modal data:', error);
+         }
+      };
+
+      fetchData();
+   }, [isOpen]);
+
+   // Detect if we just switched to edit mode
    const [justSwitched, setJustSwitched] = useState(false);
 
    useEffect(() => {
@@ -46,6 +107,7 @@ export const ProductModal = ({ isOpen, onClose, productToEdit }: ProductModalPro
          setEditingId(null);
       }
       setJustSwitched(false);
+      setShowAdvanced(false);
    }, [isOpen, productToEdit]);
 
    const loadData = (product: Product) => {
@@ -55,16 +117,20 @@ export const ProductModal = ({ isOpen, onClose, productToEdit }: ProductModalPro
          price: product.price,
          stock: product.stock,
          discountPercentage: product.discountPercentage,
+         sku: product.sku || '',
+         brandId: product.brandId || '',
+         categoryId: product.categoryId || '',
+         supplierId: product.supplierId || '',
+         unitType: product.unitType || 'unit',
+         type: product.type || 'good',
       });
    };
 
-   // Esta función se llama cuando el usuario selecciona un producto del dropdown
+   // Function called when the user selects a product from the dropdown
    const handleSwitchToEdit = (product: Product) => {
       loadData(product);
       setEditingId(product.id);
       setJustSwitched(true);
-
-      // Quitamos el highlight después de un momento
       setTimeout(() => setJustSwitched(false), 2000);
    };
 
@@ -73,41 +139,37 @@ export const ProductModal = ({ isOpen, onClose, productToEdit }: ProductModalPro
       setIsSubmitting(true);
 
       const success = editingId
-         ? await updateProduct(editingId, form as Product)
-         : await createProduct(form as Product);
+         ? await updateProduct(editingId, form as any)
+         : await createProduct(form as any);
 
       setIsSubmitting(false);
       if (success) onClose();
    };
 
-   // Determinar si estamos en modo edición (ya sea por prop o por selección dinámica)
+   // Determine if we are in edit mode
    const isEditing = !!editingId;
 
    return (
       <Modal
          isOpen={isOpen}
          onClose={onClose}
-         className={`
-            w-fit max-w-md bg-zinc-950 border shadow-2xl transition-colors duration-500
-            ${
-               justSwitched
-                  ? 'border-indigo-500 shadow-indigo-900/20'
-                  : 'border-zinc-800/50 shadow-purple-500/10'
-            }
-         `}
+         className={cn(
+            'w-full max-w-lg bg-zinc-950 border shadow-2xl transition-all duration-500',
+            justSwitched
+               ? 'border-indigo-500 shadow-indigo-900/20'
+               : 'border-zinc-800/50 shadow-purple-500/10',
+         )}
       >
-         <div className="p-6">
-            {/* Header */}
-            <div className="flex items-center gap-4 mb-2 pb-4 border-b border-zinc-800/50">
+         {/* Header - Fixed at top */}
+         <div className="px-6 pt-6 pb-4 border-b border-zinc-800/50">
+            <div className="flex items-center gap-4">
                <div
-                  className={`
-                     w-10 h-10 rounded-xl flex items-center justify-center transition-colors duration-300 shadow-inner
-                     ${
-                        isEditing
-                           ? 'bg-indigo-500/10 text-indigo-400 shadow-indigo-500/20'
-                           : 'bg-purple-500/10 text-purple-400 shadow-purple-500/20'
-                     }
-                  `}
+                  className={cn(
+                     'w-10 h-10 rounded-xl flex items-center justify-center transition-colors duration-300 shadow-inner',
+                     isEditing
+                        ? 'bg-indigo-500/10 text-indigo-400 shadow-indigo-500/20'
+                        : 'bg-purple-500/10 text-purple-400 shadow-purple-500/20',
+                  )}
                >
                   {isEditing ? <HiOutlinePencilSquare size={20} /> : <HiOutlineCube size={20} />}
                </div>
@@ -127,10 +189,13 @@ export const ProductModal = ({ isOpen, onClose, productToEdit }: ProductModalPro
                   </p>
                </div>
             </div>
+         </div>
 
-            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-               {/* 1. Descripción con Autocompletado Inteligente */}
-               <div className="relative z-20">
+         {/* Scrollable Body */}
+         <div className="flex-1 overflow-y-auto custom-scrollbar">
+            <form id="product-form" onSubmit={handleSubmit} className="p-6 flex flex-col gap-4">
+               {/* 1. Description with Intelligent Autocomplete */}
+               <div>
                   <ProductDescriptionAutocomplete
                      value={form.description}
                      onChange={val => setForm(prev => ({ ...prev, description: val }))}
@@ -143,67 +208,158 @@ export const ProductModal = ({ isOpen, onClose, productToEdit }: ProductModalPro
                   />
                </div>
 
-               {/* 2. Sección Financiera (Costo y Precio) */}
-               <div className="py-2 space-y-4 relative z-10">
-                  <div className="grid grid-cols-2 gap-4">
-                     <SmartNumberInput
-                        label="Costo de Compra"
-                        value={form.cost}
-                        onValueChange={v => setForm(prev => ({ ...prev, cost: v ?? 0 }))}
-                        variant="currency"
-                        showPrefix={true}
-                        placeholder="0"
-                        className="[&>input]:text-zinc-400"
-                     />
-                     <SmartNumberInput
-                        label="Precio de Venta"
-                        value={form.price}
-                        onValueChange={v => setForm(prev => ({ ...prev, price: v ?? 0 }))}
-                        variant="currency"
-                        showPrefix={true}
-                        placeholder="0"
-                        className="[&>input]:text-emerald-400 [&>input]:font-bold"
-                     />
-                  </div>
-
-                  {/* 3. Inventario y Promociones */}
-                  <div className="grid grid-cols-2 gap-4">
-                     <SmartNumberInput
-                        label="Stock"
-                        value={form.stock}
-                        onValueChange={v => setForm(prev => ({ ...prev, stock: v ?? 0 }))}
-                        variant="quantity"
-                        dianUnitCode="EA"
-                        placeholder="0"
-                     />
-                     <SmartNumberInput
-                        label="Descuento (%)"
-                        value={form.discountPercentage}
-                        onValueChange={v =>
-                           setForm(prev => ({ ...prev, discountPercentage: v ?? 0 }))
-                        }
-                        variant="percentage"
-                        placeholder="0"
-                     />
-                  </div>
+               {/* 2. Financial Section (Cost and Price) */}
+               <div className="grid grid-cols-2 gap-4">
+                  <SmartNumberInput
+                     label="Costo de compra"
+                     value={form.cost}
+                     onValueChange={v => setForm(prev => ({ ...prev, cost: v ?? 0 }))}
+                     variant="currency"
+                     showPrefix={true}
+                     placeholder="0"
+                     className="[&>input]:text-zinc-400"
+                  />
+                  <SmartNumberInput
+                     label="Precio de venta"
+                     value={form.price}
+                     onValueChange={v => setForm(prev => ({ ...prev, price: v ?? 0 }))}
+                     variant="currency"
+                     showPrefix={true}
+                     placeholder="0"
+                     className="[&>input]:text-emerald-400 [&>input]:font-bold"
+                  />
                </div>
 
-               {/* Footer Actions */}
-               <div className="flex gap-3 justify-end border-t border-zinc-800/50 mt-2 pt-4">
-                  <Button type="button" variant="secondary" onClick={onClose}>
-                     Cancelar
-                  </Button>
-                  <Button
-                     type="submit"
-                     isLoading={isSubmitting}
-                     className={
-                        isEditing ? 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-900/20' : ''
-                     }
+               {/* 3. Logistics (Unit and Stock) */}
+               <div className="grid grid-cols-2 gap-4">
+                  <CustomSelect
+                     label="Unidad de medida"
+                     value={form.unitType}
+                     onChange={val => setForm(prev => ({ ...prev, unitType: val }))}
+                     options={UNIT_TYPE_OPTIONS}
+                     color="gray"
+                  />
+                  <SmartNumberInput
+                     label="Stock disponible"
+                     value={form.stock}
+                     onValueChange={v => setForm(prev => ({ ...prev, stock: v ?? 0 }))}
+                     variant="quantity"
+                     dianUnitCode={form.unitType === 'unit' ? 'EA' : form.unitType}
+                     placeholder="0"
+                  />
+               </div>
+
+               {/* 4. SKU and Discount */}
+               <div className="grid grid-cols-2 gap-4">
+                  <Input
+                     label="SKU / Código"
+                     value={form.sku}
+                     onChange={e => setForm(prev => ({ ...prev, sku: e.target.value }))}
+                     placeholder="Opcional"
+                     startIcon={<HiOutlineIdentification size={18} />}
+                  />
+                  <SmartNumberInput
+                     label="Descuento (%)"
+                     value={form.discountPercentage}
+                     onValueChange={v => setForm(prev => ({ ...prev, discountPercentage: v ?? 0 }))}
+                     variant="percentage"
+                     placeholder="0"
+                  />
+               </div>
+
+               {/* 5. Advanced Fields Toggle */}
+               <div className="border-t border-zinc-800/50 pt-1">
+                  <button
+                     type="button"
+                     onClick={() => setShowAdvanced(!showAdvanced)}
+                     className="flex items-center gap-2 text-zinc-500 hover:text-zinc-300 text-[11px] font-medium transition-colors py-2"
                   >
-                     {isEditing ? 'Guardar Cambios' : 'Crear Producto'}
-                  </Button>
+                     {showAdvanced ? (
+                        <HiOutlineChevronUp size={14} />
+                     ) : (
+                        <HiOutlineChevronDown size={14} />
+                     )}
+                     {showAdvanced
+                        ? 'Ocultar detalles adicionales'
+                        : 'Ver detalles adicionales (Marca, Categoría...)'}
+                  </button>
+
+                  {showAdvanced && (
+                     <div className="grid grid-cols-2 gap-4 pt-2 pb-1 animate-in fade-in slide-in-from-top-2 duration-300">
+                        <div className="col-span-2 md:col-span-1">
+                           <CustomSelect
+                              label="Tipo de producto"
+                              value={form.type}
+                              onChange={val => setForm(prev => ({ ...prev, type: val as any }))}
+                              options={[
+                                 { value: 'good', label: 'Bien' },
+                                 { value: 'service', label: 'Servicio' },
+                                 { value: 'bundle', label: 'Combo/Kit' },
+                              ]}
+                              color="gray"
+                           />
+                        </div>
+
+                        <div className="col-span-2 md:col-span-1">
+                           <CustomSelect
+                              label="Marca"
+                              value={form.brandId}
+                              onChange={val => setForm(prev => ({ ...prev, brandId: val }))}
+                              options={[
+                                 { value: '', label: '-- Ninguna --' },
+                                 ...brands.map(b => ({ value: b.id, label: b.name })),
+                              ]}
+                              color="gray"
+                           />
+                        </div>
+
+                        <div className="col-span-2 md:col-span-1">
+                           <CustomSelect
+                              label="Categoría"
+                              value={form.categoryId}
+                              onChange={val => setForm(prev => ({ ...prev, categoryId: val }))}
+                              options={[
+                                 { value: '', label: '-- Ninguna --' },
+                                 ...categories.map(c => ({ value: c.id, label: c.name })),
+                              ]}
+                              color="gray"
+                           />
+                        </div>
+
+                        <div className="col-span-2 md:col-span-1">
+                           <CustomSelect
+                              label="Proveedor"
+                              value={form.supplierId}
+                              onChange={val => setForm(prev => ({ ...prev, supplierId: val }))}
+                              options={[
+                                 { value: '', label: '-- Ninguno --' },
+                                 ...suppliers.map(s => ({ value: s.id, label: s.name })),
+                              ]}
+                              color="gray"
+                           />
+                        </div>
+                     </div>
+                  )}
                </div>
             </form>
+         </div>
+
+         {/* Footer - Fixed at bottom */}
+         <div className="p-6 border-t border-zinc-800/50 flex gap-3 justify-end bg-zinc-950/80 backdrop-blur-sm">
+            <Button type="button" variant="secondary" onClick={onClose} className="px-6">
+               Cancelar
+            </Button>
+            <Button
+               form="product-form"
+               type="submit"
+               isLoading={isSubmitting}
+               className={cn(
+                  'px-8',
+                  isEditing ? 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-900/20' : '',
+               )}
+            >
+               {isEditing ? 'Guardar Cambios' : 'Crear Producto'}
+            </Button>
          </div>
       </Modal>
    );

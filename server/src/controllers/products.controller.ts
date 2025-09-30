@@ -43,6 +43,13 @@ export const getProducts = async (req: Request, res: Response) => {
          createdAt: product.created_at,
          sku: product.sku,
          isActive: product.is_active,
+         brandId: product.brand_id,
+         categoryId: product.category_id,
+         supplierId: product.supplier_id,
+         unitType: product.unit_type,
+         dianUnitCode: product.dian_unit_code,
+         taxIncluded: product.tax_included,
+         type: product.type,
       }));
 
       res.json(formattedData);
@@ -51,8 +58,6 @@ export const getProducts = async (req: Request, res: Response) => {
       res.status(500).json({ error: error.message || 'Error al obtener el inventario' });
    }
 };
-
-// ... el resto del archivo sigue igual
 
 export const getSuppliersList = async (req: Request, res: Response) => {
    try {
@@ -69,19 +74,68 @@ export const getSuppliersList = async (req: Request, res: Response) => {
    }
 };
 
+export const getBrandsList = async (req: Request, res: Response) => {
+   try {
+      const { data, error } = await supabase
+         .from('brands')
+         .select('id, name')
+         .order('name')
+         .setHeader('Authorization', `Bearer ${req.token}`);
+
+      if (error) throw error;
+      res.json(data || []);
+   } catch (error) {
+      res.status(500).json({ error: 'Error cargando marcas' });
+   }
+};
+
+export const getCategoriesList = async (req: Request, res: Response) => {
+   try {
+      const { data, error } = await supabase
+         .from('categories')
+         .select('id, name, parent_id')
+         .order('name')
+         .setHeader('Authorization', `Bearer ${req.token}`);
+
+      if (error) throw error;
+      res.json(data || []);
+   } catch (error) {
+      res.status(500).json({ error: 'Error cargando categorías' });
+   }
+};
+
 export const createProduct = async (req: Request, res: Response) => {
    try {
-      const { description, price, cost, stock, discountPercentage, sku } = req.body;
+      const {
+         description,
+         price,
+         cost,
+         stock,
+         discountPercentage,
+         sku,
+         brandId,
+         categoryId,
+         supplierId,
+         unitType,
+         taxIncluded,
+         type,
+      } = req.body;
 
       const { data, error } = await supabase
          .from('products')
          .insert({
             description,
             price,
-            cost,
-            stock,
-            discount_percentage: discountPercentage,
+            cost: cost || 0,
+            stock: stock || 0,
+            discount_percentage: discountPercentage || 0,
             sku,
+            brand_id: brandId,
+            category_id: categoryId,
+            supplier_id: supplierId,
+            unit_type: unitType || 'unit',
+            tax_included: taxIncluded ?? true,
+            type: type || 'good',
          })
          .select()
          .single()
@@ -90,16 +144,29 @@ export const createProduct = async (req: Request, res: Response) => {
       if (error) throw error;
 
       res.status(201).json(data);
-   } catch (error) {
+   } catch (error: any) {
       console.error('Error creating product:', error);
-      res.status(500).json({ error: 'No se pudo crear el producto' });
+      res.status(500).json({ error: error.message || 'No se pudo crear el producto' });
    }
 };
 
 export const updateProduct = async (req: Request, res: Response) => {
    try {
       const { id } = req.params;
-      const { description, price, cost, stock, discountPercentage, sku } = req.body;
+      const {
+         description,
+         price,
+         cost,
+         stock,
+         discountPercentage,
+         sku,
+         brandId,
+         categoryId,
+         supplierId,
+         unitType,
+         taxIncluded,
+         type,
+      } = req.body;
 
       const { data, error } = await supabase
          .from('products')
@@ -110,6 +177,12 @@ export const updateProduct = async (req: Request, res: Response) => {
             stock,
             discount_percentage: discountPercentage,
             sku,
+            brand_id: brandId,
+            category_id: categoryId,
+            supplier_id: supplierId,
+            unit_type: unitType,
+            tax_included: taxIncluded,
+            type: type,
          })
          .eq('id', id)
          .select()

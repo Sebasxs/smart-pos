@@ -48,7 +48,9 @@
    scrollbar-gutter: stable;
 }
 
+html,
 body {
+   scrollbar-gutter: stable;
    background-color: #09090b; /* bg-zinc-950 */
    color: #e4e4e7; /* text-zinc-200 */
 }

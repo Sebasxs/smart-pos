@@ -11,6 +11,7 @@ import {
 import { cn } from '../../../utils/cn';
 import { Input } from '../../ui/Input';
 import { useInvoiceSharing } from '../../../hooks/useInvoiceSharing';
+import { TbNumber57Small } from 'react-icons/tb';
 
 type PaymentActionsProps = {
    email?: string;
@@ -241,7 +242,7 @@ export const PaymentActions = ({
                            type="tel"
                            onChange={e => setPhoneInput(e.target.value)}
                            placeholder="300 123 4567"
-                           prefix="+57"
+                           startIcon={<TbNumber57Small size={22} />}
                            className="h-10 bg-zinc-950 border-zinc-800 focus:border-zinc-500/50 text-sm"
                            onKeyDown={e => e.key === 'Enter' && handleSend('whatsapp')}
                         />

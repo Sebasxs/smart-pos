@@ -57,7 +57,7 @@ export const Modal = ({
             className={cn(
                'bg-zinc-950 border border-zinc-800 shadow-2xl shadow-black/80 rounded-3xl overflow-hidden flex flex-col',
                variant === 'center' ? 'w-full md:w-fit md:min-w-[300px]' : 'w-full max-w-2xl',
-               'max-h-[85vh]',
+               'max-h-[90vh] md:max-h-[85vh]',
                contentAnimation,
                className,
             )}
