@@ -1,5 +1,10 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { HiOutlineCube, HiOutlineExclamationCircle, HiOutlinePencilSquare } from 'react-icons/hi2';
+import {
+   HiOutlineCube,
+   HiOutlineExclamationCircle,
+   HiOutlinePencilSquare,
+   HiOutlinePlus,
+} from 'react-icons/hi2';
 import { cn } from '../../utils/cn';
 import { type Product } from '../../types/inventory';
 import { SmartNumber } from '../ui/SmartNumber';
@@ -30,6 +35,7 @@ export const ProductDescriptionAutocomplete = ({
 
    const containerRef = useRef<HTMLDivElement>(null);
    const listRef = useRef<HTMLDivElement>(null);
+   const addNewRef = useRef<HTMLButtonElement>(null);
    const itemsRef = useRef<(HTMLButtonElement | null)[]>([]);
 
    const filteredProducts = useMemo(() => {
@@ -67,7 +73,12 @@ export const ProductDescriptionAutocomplete = ({
    }, []);
 
    useEffect(() => {
-      if (selectedIndex >= 0 && itemsRef.current[selectedIndex]) {
+      if (selectedIndex === -1 && addNewRef.current) {
+         addNewRef.current.scrollIntoView({
+            block: 'nearest',
+            behavior: 'smooth',
+         });
+      } else if (selectedIndex >= 0 && itemsRef.current[selectedIndex]) {
          itemsRef.current[selectedIndex]?.scrollIntoView({
             block: 'nearest',
             behavior: 'smooth',
@@ -86,16 +97,20 @@ export const ProductDescriptionAutocomplete = ({
       switch (e.key) {
          case 'ArrowDown':
             e.preventDefault();
-            setSelectedIndex(prev => (prev + 1) % filteredProducts.length);
+            // -1 is the "Add New" option
+            setSelectedIndex(prev => (prev >= filteredProducts.length - 1 ? -1 : prev + 1));
             break;
          case 'ArrowUp':
             e.preventDefault();
-            setSelectedIndex(prev => (prev <= 0 ? filteredProducts.length - 1 : prev - 1));
+            setSelectedIndex(prev => (prev <= -1 ? filteredProducts.length - 1 : prev - 1));
             break;
          case 'Enter':
+            e.preventDefault(); // Intercept Enter to handle dropdown
             if (selectedIndex >= 0) {
-               e.preventDefault();
                handleSelect(filteredProducts[selectedIndex]);
+            } else {
+               // If -1 (Add New), just close the dropdown
+               setIsOpen(false);
             }
             break;
          case 'Escape':
@@ -160,12 +175,55 @@ export const ProductDescriptionAutocomplete = ({
                <div className="h-9 px-3 bg-indigo-500/10 border-b border-indigo-500/20 text-[10px] text-indigo-300 font-medium flex items-center justify-between sticky top-0 backdrop-blur-md z-10 shadow-sm">
                   <div className="flex items-center gap-1.5">
                      <HiOutlineExclamationCircle size={12} />
-                     <span>Productos similares encontrados</span>
+                     <span>Coincidencias encontradas</span>
                   </div>
                   <span className="opacity-70 text-[9px] uppercase tracking-wide">
-                     Enter para editar
+                     {selectedIndex === -1 ? 'Enter p/ Nuevo' : 'Enter p/ Editar'}
                   </span>
                </div>
+
+               {/* Option "Add as New" */}
+               <button
+                  ref={addNewRef}
+                  type="button"
+                  onClick={() => setIsOpen(false)}
+                  onMouseEnter={() => setSelectedIndex(-1)}
+                  className={cn(
+                     'w-full text-left px-4 py-3 flex items-center gap-3 transition-all border-b border-zinc-800/50',
+                     selectedIndex === -1 ? 'bg-indigo-500/10' : 'hover:bg-zinc-800/50',
+                  )}
+               >
+                  <div
+                     className={cn(
+                        'w-8 h-8 rounded-full flex items-center justify-center transition-colors shrink-0',
+                        selectedIndex === -1
+                           ? 'bg-indigo-500 text-white'
+                           : 'bg-zinc-800 text-zinc-500',
+                     )}
+                  >
+                     <HiOutlinePlus size={16} />
+                  </div>
+                  <div className="flex flex-col min-w-0">
+                     <span
+                        className={cn(
+                           'text-sm font-medium truncate',
+                           selectedIndex === -1 ? 'text-white' : 'text-zinc-300',
+                        )}
+                     >
+                        Usar "{value}"
+                     </span>
+                     <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">
+                        Crear como nuevo registro
+                     </span>
+                  </div>
+                  {selectedIndex === -1 && (
+                     <div className="ml-auto animate-in fade-in slide-in-from-right-2 duration-300">
+                        <span className="text-[9px] bg-indigo-500 text-white px-1.5 py-0.5 rounded font-bold shadow-lg shadow-indigo-500/20">
+                           SELECCIONADO
+                        </span>
+                     </div>
+                  )}
+               </button>
 
                {filteredProducts.map((product, index) => {
                   const isActive = index === selectedIndex;
