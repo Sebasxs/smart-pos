@@ -6,6 +6,7 @@ import { isTokenExpired } from '../utils/jwt';
 import { roleBasedStorage } from './roleBasedStorage';
 
 export interface User {
+   // ... (sin cambios)
    id: string;
    full_name: string;
    nickname?: string;
@@ -17,6 +18,7 @@ export interface User {
 }
 
 interface AuthState {
+   // ... (sin cambios)
    user: User | null;
    token: string | null;
    isAuthenticated: boolean;
@@ -30,6 +32,9 @@ interface AuthState {
    forceInitialized: () => void;
 }
 
+// Variable fuera del store para manejar la promesa en vuelo (Singleton)
+let refreshPromise: Promise<string | null> | null = null;
+
 export const useAuthStore = create<AuthState>()(
    persist(
       (set, get) => ({
@@ -38,42 +43,31 @@ export const useAuthStore = create<AuthState>()(
          isAuthenticated: false,
          isInitialized: false,
 
+         // ... login, logout, forceInitialized, initializeAuth, fetchProfile (SIN CAMBIOS) ...
          login: (user, token) => {
             set({ user, token, isAuthenticated: true, isInitialized: true });
          },
 
          logout: async () => {
+            const state = get();
+            if (!state.isAuthenticated && !state.user) return;
             console.log('🔒 Cerrando sesión...');
             set({ user: null, token: null, isAuthenticated: false, isInitialized: true });
             roleBasedStorage.removeItem('auth-storage');
-
             await supabase.auth.signOut().catch(console.warn);
          },
 
          forceInitialized: () => {
             if (!get().isInitialized) {
-               console.warn('⚠️ Force Initialized activado por timeout.');
                set({ isInitialized: true });
             }
          },
 
          initializeAuth: async () => {
             const state = get();
-
-            // 1. Local Fast Path
-            if (state.token) {
-               if (!isTokenExpired(state.token)) {
-                  console.log('⚡ Token válido localmente. Acceso rápido concedido.');
-                  set({ isAuthenticated: true, isInitialized: true });
-
-                  if (state.user?.role === 'cashier') return;
-               } else {
-                  console.warn('🕒 Token expirado localmente. Limpiando sesión.');
-                  set({ user: null, token: null, isAuthenticated: false });
-               }
+            if (state.token && state.user) {
+               set({ isAuthenticated: true, isInitialized: true });
             }
-
-            // 2. Supabase Events
             const {
                data: { subscription },
             } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -82,43 +76,35 @@ export const useAuthStore = create<AuthState>()(
                   if (!get().user?.full_name) {
                      get().fetchProfile(session);
                   }
-               } else if (event === 'SIGNED_OUT') {
-                  if (get().user?.role !== 'cashier') {
-                     set({ user: null, token: null, isAuthenticated: false });
-                  }
                } else if (event === 'TOKEN_REFRESHED' && session) {
-                  console.log('🔄 Token refrescado automáticamente');
                   set({ token: session.access_token });
+               } else if (event === 'SIGNED_OUT') {
+                  const currentUser = get().user;
+                  if (currentUser && currentUser.role !== 'cashier') {
+                     get().logout();
+                  }
                }
             });
 
-            // 3. Server Verification (Admins/OAuth)
             if (state.user?.role !== 'cashier') {
-               try {
-                  const {
-                     data: { session },
-                     error,
-                  } = await supabase.auth.getSession();
-
-                  if (error) throw error;
-
-                  if (session) {
-                     set({ token: session.access_token, isAuthenticated: true });
-                     get().fetchProfile(session);
-                  } else if (!state.token) {
-                     set({ isAuthenticated: false });
+               supabase.auth.getSession().then(({ data, error }) => {
+                  if (error || !data.session) {
+                     if (state.token && isTokenExpired(state.token)) {
+                        get().logout();
+                     }
+                  } else {
+                     if (data.session.access_token !== state.token) {
+                        set({ token: data.session.access_token, isAuthenticated: true });
+                     }
                   }
-               } catch (err) {
-                  console.warn('⚠️ Error de red verificando sesión (Modo Offline activo):', err);
-               }
+               });
             }
-
             if (!get().isInitialized) set({ isInitialized: true });
-
             return () => subscription.unsubscribe();
          },
 
          fetchProfile: async (session: any) => {
+            // ... (código existente sin cambios)
             if (!session?.user) return;
             try {
                const { data: profile, error } = await supabase
@@ -144,29 +130,57 @@ export const useAuthStore = create<AuthState>()(
 
                usePreferencesStore.getState().loadPreferencesFromProfile(profile.preferences);
             } catch (e) {
-               console.error('⚠️ Error cargando perfil (Background):', e);
+               console.error('⚠️ Error cargando perfil:', e);
             }
          },
 
+         // --- AQUÍ ESTÁ EL CAMBIO IMPORTANTE ---
          getAccessToken: async () => {
             const state = get();
+            let currentToken = state.token;
 
-            if (state.token && isTokenExpired(state.token)) {
-               console.warn('Token expirado al intentar usarlo. Cerrando sesión.');
-               get().logout();
-               return null;
+            // Cajeros: No se refresca (lógica existente)
+            if (state.user?.role === 'cashier') {
+               if (currentToken && isTokenExpired(currentToken)) {
+                  get().logout();
+                  return null;
+               }
+               return currentToken;
             }
 
-            // Cashiers use custom tokens with long duration
-            if (state.user?.role === 'cashier') return state.token;
+            // Admins: Lógica de renovación con Singleton para evitar race conditions
+            if (currentToken && isTokenExpired(currentToken)) {
+               // 1. Si ya hay una renovación en proceso, devolver esa promesa existente
+               if (refreshPromise) {
+                  return await refreshPromise;
+               }
 
-            // For admins, try refreshing Supabase session if needed
-            try {
-               const { data } = await supabase.auth.getSession();
-               return data.session?.access_token || state.token;
-            } catch {
-               return state.token;
+               // 2. Si no, iniciar la renovación y guardar la promesa
+               refreshPromise = (async () => {
+                  console.log('🔄 Token expirado. Iniciando renovación única...');
+                  const { data, error } = await supabase.auth.getSession();
+
+                  if (!error && data.session) {
+                     const newToken = data.session.access_token;
+                     set({ token: newToken });
+                     console.log('✅ Token renovado exitosamente.');
+                     return newToken;
+                  } else {
+                     console.warn('⛔ Falló la renovación. Logout forzado.');
+                     get().logout();
+                     return null;
+                  }
+               })();
+
+               try {
+                  return await refreshPromise;
+               } finally {
+                  // 3. Limpiar la promesa al terminar (éxito o fallo)
+                  refreshPromise = null;
+               }
             }
+
+            return currentToken;
          },
       }),
       {

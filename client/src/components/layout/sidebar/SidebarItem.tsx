@@ -1,64 +1,44 @@
 import { NavLink } from 'react-router-dom';
 import { type NavItem } from '../../../config/navigation';
-import { useCashShiftStore } from '../../../store/cashShiftStore';
-import { HiOutlineLockClosed, HiOutlineLockOpen } from 'react-icons/hi2';
+import { cn } from '../../../utils/cn';
 
 type SidebarItemProps = {
    item: NavItem;
-   variant: 'mobile' | 'desktop';
+   isCollapsed: boolean;
 };
 
-export const SidebarItem = ({ item, variant }: SidebarItemProps) => {
-   const { isOpen } = useCashShiftStore();
-   const isShiftRelated = item.path === '/shift' || item.path === '/billing';
-   const showStatus = isShiftRelated && !isOpen;
-
-   const targetPath = item.path === '/shift' && !isOpen ? '/billing' : item.path;
-
-   const renderIcon = () => {
-      if (item.path === '/shift') {
-         return isOpen ? <HiOutlineLockOpen size={22} /> : <HiOutlineLockClosed size={22} />;
-      }
-      return item.icon;
-   };
-
+export const SidebarItem = ({ item, isCollapsed }: SidebarItemProps) => {
    return (
       <NavLink
-         to={targetPath}
-         className={({ isActive }) => `
-            group flex items-center h-11 mx-2 rounded-xl transition-all duration-100 overflow-hidden shrink-0 relative
-            ${
+         to={item.path}
+         className={({ isActive }) =>
+            cn(
+               'group flex items-center h-9 mx-2 rounded-lg transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1.0)] relative overflow-hidden',
                isActive
-                  ? item.activeColor || 'bg-zinc-800 text-white shadow-sm ring-1 ring-zinc-700/50'
-                  : `text-zinc-500 ${item.hoverColor || 'hover:bg-zinc-900 hover:text-zinc-200'}`
-            }
-         `}
-         title={item.name}
+                  ? item.activeColor ||
+                       'bg-surface text-text-main shadow-sm ring-1 ring-surface-highlight/50'
+                  : `text-text-muted ${item.hoverColor || 'hover:bg-surface hover:text-text-main'}`,
+            )
+         }
+         title={isCollapsed ? item.name : undefined}
       >
-         <div className="w-[56px] min-w-[56px] flex items-center justify-center shrink-0 relative">
-            {renderIcon()}
-            {showStatus && (
-               <div className="absolute top-1 right-3 w-2 h-2 bg-amber-500 rounded-full border-2 border-zinc-950" />
-            )}
+         {/* Icono: Ancho fijo y centrado exacto */}
+         <div className="w-[44px] min-w-[44px] h-full flex items-center justify-center shrink-0 z-10">
+            {item.icon}
          </div>
-         <div className="whitespace-nowrap overflow-hidden w-full flex items-center justify-between pr-4">
-            <span
-               className={`text-sm font-medium tracking-wide block transition-opacity duration-100 ${
-                  variant === 'desktop'
-                     ? 'opacity-0 w-0 xl:w-auto xl:opacity-100'
-                     : 'opacity-100 w-auto'
-               }`}
-            >
-               {item.name}
-            </span>
-            {showStatus && (
-               <HiOutlineLockClosed
-                  size={14}
-                  className={`text-amber-500/50 transition-opacity duration-100 ${
-                     variant === 'desktop' ? 'opacity-0 xl:opacity-100' : 'opacity-100'
-                  }`}
-               />
+
+         {/* Texto: Transición fluida sincronizada. 
+             - Al abrir: delay-100 para esperar que la barra crezca un poco.
+             - Al cerrar: sin delay, fade-out inmediato sincronizado con el ancho. */}
+         <div
+            className={cn(
+               'whitespace-nowrap overflow-hidden flex items-center absolute left-[44px] right-0 top-0 bottom-0 pr-3 transition-opacity',
+               isCollapsed
+                  ? 'opacity-0 duration-300 ease-in-out pointer-events-none'
+                  : 'opacity-100 duration-300 delay-100 ease-in-out',
             )}
+         >
+            <span className="text-sm font-medium tracking-wide block truncate">{item.name}</span>
          </div>
       </NavLink>
    );

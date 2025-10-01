@@ -34,22 +34,23 @@ export const ShiftOpeningScreen = ({ subtitle }: ShiftOpeningScreenProps) => {
    };
 
    return (
-      <div className="flex items-center justify-center h-full w-full bg-zinc-950 animate-in fade-in duration-500">
-         <div className="w-full max-w-sm p-8 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl flex flex-col gap-6 items-center text-center">
-            <div className="w-20 h-20 bg-gradient-to-br from-blue-600/20 to-purple-600/20 rounded-full flex items-center justify-center border border-blue-500/20 shadow-inner">
-               <HiOutlineBanknotes className="text-blue-400" size={32} />
+      <div className="flex items-center justify-center h-full w-full bg-canvas animate-in fade-in duration-500">
+         <div className="w-full max-w-sm p-8 bg-surface border border-border rounded-3xl shadow-2xl flex flex-col gap-6 items-center text-center">
+            <div className="w-20 h-20 bg-gradient-to-br from-surface-highlight to-surface-active rounded-full flex items-center justify-center border border-border shadow-inner">
+               <HiOutlineBanknotes className="text-primary" size={36} />
             </div>
 
             <div className="space-y-2">
-               <h2 className="text-xl font-bold text-white">Apertura de Caja</h2>
-               <p className="text-zinc-400 text-sm leading-relaxed">
-                  {subtitle ||
-                     'Para comenzar a facturar, es necesario abrir un turno e indicar la base de efectivo.'}
+               <h2 className="text-2xl font-bold text-text-main tracking-tight">
+                  Apertura de Caja
+               </h2>
+               <p className="text-text-muted text-sm leading-relaxed max-w-[260px] mx-auto">
+                  {subtitle || 'Confirma la base de efectivo inicial para comenzar a operar.'}
                </p>
             </div>
 
-            <div className="w-full space-y-4 pt-2">
-               <div className="bg-zinc-950 p-1 rounded-xl border border-zinc-800">
+            <div className="w-full space-y-5 pt-2">
+               <div className="bg-canvas p-1 rounded-2xl border border-border focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20 transition-all">
                   <SmartNumberInput
                      value={openingAmount}
                      onValueChange={val => {
@@ -58,12 +59,12 @@ export const ShiftOpeningScreen = ({ subtitle }: ShiftOpeningScreenProps) => {
                      }}
                      variant="currency"
                      placeholder="0"
-                     className="[&>input]:text-center [&>input]:text-xl [&>input]:font-bold [&>input]:bg-transparent [&>input]:border-none [&>input]:py-3 [&>input]:w-full"
+                     className="[&>input]:text-center [&>input]:text-3xl [&>input]:font-bold [&>input]:bg-transparent [&>input]:border-none [&>input]:py-4 [&>input]:w-full [&>input]:text-text-main [&>input]:placeholder:text-text-dim"
                   />
                </div>
 
                {shiftError && (
-                  <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
+                  <div className="p-3 bg-danger-bg border border-danger/20 rounded-xl text-danger-text text-sm font-medium animate-in zoom-in duration-200">
                      {shiftError}
                   </div>
                )}
@@ -72,7 +73,7 @@ export const ShiftOpeningScreen = ({ subtitle }: ShiftOpeningScreenProps) => {
                   onClick={handleOpen}
                   disabled={loading}
                   isLoading={loading}
-                  className="w-full py-3.5 text-base shadow-blue-900/20 cursor-pointer"
+                  className="w-full py-4 text-lg shadow-lg active:scale-[0.98]"
                >
                   Iniciar Turno
                </Button>

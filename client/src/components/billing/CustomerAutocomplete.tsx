@@ -133,7 +133,7 @@ export const CustomerAutocomplete = ({
 
    return (
       <div className="relative group flex-1 min-w-[150px]" ref={containerRef}>
-         <div className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none transition-colors group-focus-within:text-blue-500/80 z-10">
+         <div className="absolute left-3 top-1/2 -translate-y-1/2 text-text-dim pointer-events-none transition-colors group-focus-within:text-primary z-10">
             {isLoading ? (
                <CgSpinner className="animate-spin" size={18} />
             ) : (
@@ -153,25 +153,26 @@ export const CustomerAutocomplete = ({
             placeholder={placeholder}
             autoComplete="new-password"
             className={cn(
-               'w-full bg-zinc-800/50 hover:bg-zinc-800 focus:bg-zinc-800',
-               'border border-zinc-800 focus:border-blue-500/70',
-               'rounded-lg py-2.5 text-sm text-zinc-200 placeholder:text-zinc-500',
+               'w-full bg-surface-highlight hover:bg-surface-active focus:bg-surface-active',
+               'border border-border focus:border-border-focus',
+               'rounded-lg py-2.5 text-sm text-text-main placeholder:text-text-dim',
                'outline-none transition-all duration-200',
-               'pl-10 pr-3',
+               'pl-10 pr-8', // Added pr-8 for the X button space
                showDropdown &&
-                  'rounded-b-none border-zinc-700 focus:border-zinc-700 bg-zinc-800 shadow-sm',
+                  'rounded-b-none border-border-hover focus:border-border-hover bg-surface-active shadow-sm',
                className,
             )}
          />
          <button
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-500 transition-colors hover:text-zinc-200 z-10 cursor-pointer p-1"
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-text-dim transition-colors hover:text-text-main z-10 cursor-pointer p-1 rounded-full hover:bg-surface-highlight"
             onClick={() => onChange('')}
+            tabIndex={-1}
          >
-            {value && <HiOutlineX size={18} />}
+            {value && <HiOutlineX size={16} />}
          </button>
 
          {showDropdown && (
-            <div className="absolute left-0 right-0 z-50 -mt-[1px] bg-zinc-800/95 backdrop-blur-xl border border-zinc-700 border-t-0 rounded-b-xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8)] overflow-hidden animate-in fade-in slide-in-from-top-1 duration-200">
+            <div className="absolute left-0 right-0 z-50 -mt-[1px] bg-surface-active/95 backdrop-blur-xl border border-border-hover border-t-0 rounded-b-xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8)] overflow-hidden animate-in fade-in slide-in-from-top-1 duration-200">
                <div
                   ref={dropdownRef}
                   className="max-h-[280px] overflow-y-auto py-1 custom-scrollbar"
@@ -184,10 +185,10 @@ export const CustomerAutocomplete = ({
                            onClick={() => handleSelect(c)}
                            onMouseEnter={() => setHighlightedIndex(index)}
                            className={cn(
-                              'px-4 py-3 cursor-pointer transition-all duration-150 flex flex-col gap-1',
+                              'px-4 py-3 cursor-pointer transition-all duration-150 flex flex-col gap-1 border-l-2',
                               isHighlighted
-                                 ? 'bg-zinc-700/50 text-white'
-                                 : 'text-zinc-300 hover:bg-zinc-700/30',
+                                 ? 'bg-surface-highlight border-primary text-text-main'
+                                 : 'border-transparent text-text-secondary hover:bg-surface-highlight/50',
                            )}
                         >
                            <span className="text-sm font-medium">{c.name}</span>

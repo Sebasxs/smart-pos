@@ -119,46 +119,49 @@ export const CustomerSearchModal = ({
          isOpen={isOpen}
          onClose={onClose}
          variant="search"
-         className="flex flex-col p-0 bg-zinc-950 border-zinc-800 h-[600px]"
+         className="flex flex-col p-0 bg-surface border border-border h-[600px] shadow-2xl shadow-black/80 rounded-2xl"
       >
          {/* HEADER */}
-         <div className="flex items-center gap-4 px-5 py-5 border-b border-zinc-800/50 shrink-0">
-            <div className="text-zinc-500">
+         <div className="flex items-center gap-4 px-6 py-5 border-b border-border shrink-0 bg-surface z-10">
+            <div className="text-text-muted">
                {isLoading ? (
-                  <CgSpinner className="animate-spin text-blue-500" size={22} />
+                  <CgSpinner className="animate-spin text-primary" size={24} />
                ) : (
-                  <HiOutlineSearch size={22} />
+                  <HiOutlineSearch size={24} />
                )}
             </div>
             <div className="flex-1 flex flex-col justify-center">
                <input
                   ref={inputRef}
                   type="text"
-                  placeholder="Buscar clientes..."
+                  placeholder="Buscar clientes por nombre, NIT o email..."
                   value={searchTerm}
                   onChange={e => setSearchTerm(e.target.value)}
-                  className="w-full bg-transparent text-lg text-white placeholder:text-zinc-600 outline-none font-medium"
+                  className="w-full bg-transparent text-xl text-text-main placeholder:text-text-dim outline-none font-medium"
                   autoComplete="off"
                />
             </div>
             {isLoading && (
-               <span className="hidden sm:flex gap-2 text-md text-sky-500 font-medium animate-pulse pr-2">
+               <span className="hidden sm:flex gap-2 text-sm text-primary font-medium animate-pulse pr-2">
                   Buscando...
                </span>
             )}
          </div>
 
          {/* RESULTS */}
-         <div ref={listRef} className="flex-1 overflow-y-auto custom-scrollbar p-2 relative">
+         <div
+            ref={listRef}
+            className="flex-1 overflow-y-auto custom-scrollbar p-2 relative bg-canvas/30"
+         >
             {error ? (
-               <div className="h-full flex flex-col items-center justify-center text-red-400 gap-3">
-                  <div className="p-4 bg-red-500/10 rounded-full border border-red-500/20">
+               <div className="h-full flex flex-col items-center justify-center text-danger-text gap-3 opacity-80">
+                  <div className="p-4 bg-danger-bg rounded-full ring-1 ring-danger/20">
                      <HiOutlineExclamationCircle size={32} />
                   </div>
                   <span className="font-medium text-sm">{error}</span>
                </div>
             ) : results.length > 0 || searchTerm.trim() !== '' ? (
-               <div className="flex flex-col gap-1.5">
+               <div className="flex flex-col gap-1.5 p-1">
                   {results.map((client, index) => {
                      const isSelected = index === selectedIndex;
                      return (
@@ -173,22 +176,22 @@ export const CustomerSearchModal = ({
                            }}
                            onMouseEnter={() => setSelectedIndex(index)}
                            className={cn(
-                              'group relative flex items-center justify-between px-4 py-3 rounded-xl cursor-pointer transition-all border',
+                              'group relative flex items-center justify-between px-4 py-3.5 rounded-xl cursor-pointer transition-all duration-150',
                               isSelected
-                                 ? 'bg-zinc-900 border-blue-500/50 shadow-lg shadow-blue-900/10 z-10'
-                                 : 'bg-transparent border-transparent hover:bg-zinc-900/50 hover:border-zinc-800',
+                                 ? 'bg-surface-highlight shadow-lg ring-1 ring-border-hover z-10 translate-x-1'
+                                 : 'bg-transparent border-transparent hover:bg-surface-highlight/50',
                            )}
                         >
                            {isSelected && (
-                              <div className="absolute left-0 top-3 bottom-3 w-1 bg-blue-500 rounded-r-full shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
+                              <div className="absolute left-0 top-3 bottom-3 w-1 bg-primary rounded-r-full shadow-[0_0_8px_rgba(59,130,246,0.6)]" />
                            )}
-                           <div className="flex items-center gap-4 overflow-hidden flex-1 min-w-0">
+                           <div className="flex items-center gap-4 overflow-hidden flex-1 min-w-0 pl-2">
                               <div
                                  className={cn(
-                                    'w-14 h-14 rounded-full flex items-center justify-center shrink-0 transition-all duration-100 font-bold text-xl border-2',
+                                    'w-12 h-12 rounded-full flex items-center justify-center shrink-0 transition-all duration-100 font-bold text-lg border-2',
                                     isSelected
-                                       ? 'bg-blue-500 text-white border-blue-400/50 shadow-lg shadow-blue-500/20'
-                                       : 'bg-zinc-900 text-zinc-500 border-zinc-800',
+                                       ? 'bg-primary text-white border-primary/50 shadow-md shadow-primary/20'
+                                       : 'bg-surface text-text-muted border-border',
                                  )}
                               >
                                  {client.name.charAt(0).toUpperCase()}
@@ -196,8 +199,8 @@ export const CustomerSearchModal = ({
                               <div className="flex flex-col truncate flex-1 min-w-0 gap-0.5">
                                  <span
                                     className={cn(
-                                       'text-base font-bold truncate leading-tight transition-colors',
-                                       isSelected ? 'text-white' : 'text-zinc-200',
+                                       'text-[15px] font-bold truncate leading-tight transition-colors',
+                                       isSelected ? 'text-white' : 'text-text-main',
                                     )}
                                  >
                                     {client.name}
@@ -205,7 +208,7 @@ export const CustomerSearchModal = ({
                                  <div
                                     className={cn(
                                        'flex items-center gap-1.5 text-sm truncate transition-colors',
-                                       isSelected ? 'text-blue-200' : 'text-zinc-500',
+                                       isSelected ? 'text-primary-text' : 'text-text-dim',
                                     )}
                                  >
                                     <HiOutlineMail size={13} className="shrink-0" />
@@ -213,11 +216,11 @@ export const CustomerSearchModal = ({
                                        {client.email || 'Sin correo electrónico'}
                                     </span>
                                  </div>
-                                 <div className="flex items-center gap-x-4 gap-y-1 text-xs font-medium flex-wrap">
+                                 <div className="flex items-center gap-x-4 gap-y-1 text-xs font-medium flex-wrap mt-0.5">
                                     <span
                                        className={cn(
                                           'flex items-center gap-1 transition-colors',
-                                          isSelected ? 'text-blue-100/60' : 'text-zinc-500',
+                                          isSelected ? 'text-text-secondary' : 'text-text-muted',
                                        )}
                                     >
                                        <HiOutlineIdentification size={13} /> {client.tax_id}
@@ -226,7 +229,7 @@ export const CustomerSearchModal = ({
                                        <span
                                           className={cn(
                                              'flex items-center gap-1 transition-colors',
-                                             isSelected ? 'text-blue-100/60' : 'text-zinc-500',
+                                             isSelected ? 'text-text-secondary' : 'text-text-muted',
                                           )}
                                        >
                                           <HiOutlineMapPin size={13} /> {client.city}
@@ -236,11 +239,11 @@ export const CustomerSearchModal = ({
                               </div>
                            </div>
                            {client.account_balance !== 0 && (
-                              <div className="flex flex-col items-end gap-1 shrink-0 pl-4 border-l border-zinc-800/50">
+                              <div className="flex flex-col items-end gap-1 shrink-0 pl-4 border-l border-border/50">
                                  <span
                                     className={cn(
                                        'text-[10px] uppercase tracking-wider font-bold transition-colors',
-                                       isSelected ? 'text-zinc-300' : 'text-zinc-500',
+                                       isSelected ? 'text-text-secondary' : 'text-text-dim',
                                     )}
                                  >
                                     Saldo
@@ -252,12 +255,12 @@ export const CustomerSearchModal = ({
                                     className={cn(
                                        'font-mono font-bold text-base tracking-tight leading-none',
                                        client.account_balance > 0
-                                          ? 'text-emerald-400'
+                                          ? 'text-success-text'
                                           : client.account_balance < 0
-                                          ? 'text-red-400'
+                                          ? 'text-danger-text'
                                           : isSelected
-                                          ? 'text-zinc-300'
-                                          : 'text-zinc-500',
+                                          ? 'text-text-main'
+                                          : 'text-text-dim',
                                     )}
                                  />
                               </div>
@@ -277,26 +280,26 @@ export const CustomerSearchModal = ({
                         }}
                         onMouseEnter={() => setSelectedIndex(results.length)}
                         className={cn(
-                           'mt-2 flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-all border border-dashed',
+                           'mt-2 flex items-center gap-4 px-4 py-3.5 rounded-xl cursor-pointer transition-all border border-dashed mx-1',
                            selectedIndex === results.length
-                              ? 'bg-blue-900/20 border-blue-500/50 text-blue-400'
-                              : 'border-zinc-800 text-zinc-400 hover:bg-zinc-900/50',
+                              ? 'bg-primary-subtle border-primary/50 text-primary-text'
+                              : 'border-border text-text-muted hover:bg-surface-highlight',
                         )}
                      >
                         <div
                            className={cn(
-                              'w-11 h-11 rounded-full flex items-center justify-center shrink-0 border transition-colors',
+                              'w-10 h-10 rounded-full flex items-center justify-center shrink-0 border transition-colors',
                               selectedIndex === results.length
-                                 ? 'bg-blue-500 text-white border-blue-500'
-                                 : 'bg-zinc-900 text-zinc-500 border-zinc-800',
+                                 ? 'bg-primary text-white border-primary'
+                                 : 'bg-surface text-text-dim border-border',
                            )}
                         >
                            <HiOutlinePlus size={20} />
                         </div>
                         <div className="flex flex-col">
-                           <span className="text-sm font-medium">Crear nuevo cliente</span>
-                           <span className="text-xs opacity-70 truncate max-w-[200px]">
-                              "{searchTerm}"
+                           <span className="text-sm font-bold">Crear nuevo cliente</span>
+                           <span className="text-xs opacity-80 truncate max-w-[200px]">
+                              Usar nombre: "{searchTerm}"
                            </span>
                         </div>
                      </div>
@@ -304,12 +307,14 @@ export const CustomerSearchModal = ({
                </div>
             ) : (
                <div className="h-full flex flex-col items-center justify-center text-center p-8 animate-in fade-in duration-500">
-                  <div className="flex flex-col items-center opacity-40 hover:opacity-80 transition-opacity duration-500">
-                     <div className="w-20 h-20 bg-terraform-gradient rounded-3xl flex items-center justify-center mb-5 border border-zinc-800 shadow-2xl -rotate-3">
-                        <HiOutlineUser size={40} className="text-blue-500/50" />
+                  <div className="flex flex-col items-center opacity-60 hover:opacity-100 transition-opacity duration-500">
+                     <div className="w-20 h-20 bg-gradient-to-br from-surface to-surface-highlight rounded-3xl flex items-center justify-center mb-5 border border-border shadow-2xl -rotate-3">
+                        <HiOutlineUser size={40} className="text-primary/40" />
                      </div>
-                     <h3 className="text-zinc-400 font-medium text-lg">Directorio de Clientes</h3>
-                     <p className="text-zinc-600 text-sm mt-1 max-w-[240px]">
+                     <h3 className="text-text-secondary font-medium text-lg">
+                        Directorio de Clientes
+                     </h3>
+                     <p className="text-text-muted text-sm mt-1 max-w-[240px]">
                         Busca por nombre, identificación o correo electrónico.
                      </p>
                   </div>

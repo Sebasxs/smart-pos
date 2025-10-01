@@ -4,6 +4,13 @@ import { Button } from '../ui/Button';
 import { SmartNumberInput } from '../ui/SmartNumberInput';
 import { SmartNumber } from '../ui/SmartNumber';
 import { useCashShiftStore } from '../../store/cashShiftStore';
+import {
+   HiOutlineCalculator,
+   HiOutlineBanknotes,
+   HiOutlineArrowTrendingDown,
+   HiOutlineArrowTrendingUp,
+   HiOutlineReceiptPercent,
+} from 'react-icons/hi2';
 
 type CloseShiftModalProps = {
    isOpen: boolean;
@@ -29,83 +36,115 @@ export const CloseShiftModal = ({ isOpen, onClose }: CloseShiftModalProps) => {
    };
 
    const { summary } = shiftData || {};
+   const difference = (closingAmount || 0) - (summary?.expectedCash || 0);
+   const isPerfect = difference === 0;
+   const isSurplus = difference > 0;
+
+   // Datos simulados como lista de movimientos de resumen
+   const summaryItems = [
+      {
+         label: 'Base Inicial',
+         value: summary?.openingAmount,
+         icon: HiOutlineBanknotes,
+         color: 'text-text-secondary',
+         bg: 'bg-surface-highlight',
+      },
+      {
+         label: 'Ventas Efectivo',
+         value: summary?.salesCash,
+         icon: HiOutlineReceiptPercent,
+         color: 'text-success-text',
+         bg: 'bg-success-bg/10',
+      },
+      ...(summary?.manualIncome
+         ? [
+              {
+                 label: 'Ingresos Manuales',
+                 value: summary.manualIncome,
+                 icon: HiOutlineArrowTrendingUp,
+                 color: 'text-success-text',
+                 bg: 'bg-success-bg/10',
+              },
+           ]
+         : []),
+      ...(summary?.manualExpense
+         ? [
+              {
+                 label: 'Gastos / Salidas',
+                 value: summary.manualExpense,
+                 icon: HiOutlineArrowTrendingDown,
+                 color: 'text-danger-text',
+                 bg: 'bg-danger-bg/10',
+                 isNegative: true,
+              },
+           ]
+         : []),
+   ];
 
    return (
       <Modal
          isOpen={isOpen}
          onClose={onClose}
-         className="w-full max-w-md bg-zinc-950 border border-zinc-800"
+         className="w-full max-w-md bg-surface border border-border shadow-lg rounded-2xl"
       >
-         <div className="p-6">
-            <h2 className="text-xl font-bold text-white mb-6">Cerrar Turno de Caja</h2>
-            <div className="space-y-6">
-               <div className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden">
-                  <div className="p-4 space-y-3">
-                     <div className="flex justify-between text-sm">
-                        <span className="text-zinc-400">Base Inicial</span>
-                        <span className="text-zinc-200 font-mono">
-                           <SmartNumber value={summary?.openingAmount} variant="currency" />
+         <div className="p-8 flex flex-col h-full max-h-[90vh]">
+            <div className="flex items-center gap-4 mb-6 shrink-0">
+               <div className="p-3 bg-primary-subtle rounded-xl text-primary-text">
+                  <HiOutlineCalculator size={24} />
+               </div>
+               <div>
+                  <h2 className="text-xl font-bold text-text-main">Cerrar Turno</h2>
+                  <p className="text-text-muted text-sm">Arqueo de caja</p>
+               </div>
+            </div>
+
+            {/* Lista de Movimientos (Scrollable) */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar mb-6 pr-1 -mr-2">
+               <div className="space-y-2">
+                  {summaryItems.map((item, idx) => (
+                     <div
+                        key={idx}
+                        className={`flex items-center justify-between p-3 rounded-xl border border-transparent ${item.bg}`}
+                     >
+                        <div className="flex items-center gap-3">
+                           <item.icon className={`opacity-70 ${item.color}`} size={18} />
+                           <span className="text-sm font-medium text-text-main">{item.label}</span>
+                        </div>
+                        <span className={`font-mono font-bold ${item.color}`}>
+                           {item.isNegative ? '- ' : '+ '}
+                           <SmartNumber value={item.value} variant="currency" showPrefix={false} />
                         </span>
                      </div>
-                     <div className="flex justify-between text-sm">
-                        <span className="text-zinc-400">Ventas (Efectivo)</span>
-                        <span className="text-emerald-400 font-mono">
-                           +{' '}
-                           <SmartNumber
-                              value={summary?.salesCash}
-                              variant="currency"
-                              showPrefix={false}
-                           />
-                        </span>
-                     </div>
-                     <div className="flex justify-between text-sm">
-                        <span className="text-zinc-400">Ingresos Manuales</span>
-                        <span className="text-emerald-400 font-mono">
-                           +{' '}
-                           <SmartNumber
-                              value={summary?.manualIncome}
-                              variant="currency"
-                              showPrefix={false}
-                           />
-                        </span>
-                     </div>
-                     <div className="flex justify-between text-sm">
-                        <span className="text-zinc-400">Salidas Manuales</span>
-                        <span className="text-red-400 font-mono">
-                           -{' '}
-                           <SmartNumber
-                              value={summary?.manualExpense}
-                              variant="currency"
-                              showPrefix={false}
-                           />
-                        </span>
-                     </div>
-                  </div>
-                  <div className="px-4 py-3 bg-zinc-950 border-t border-zinc-800 flex justify-between items-center gap-6">
-                     <span className="text-sm font-bold text-zinc-300 uppercase tracking-wide">
-                        Efectivo Esperado
-                     </span>
-                     <SmartNumber
-                        value={summary?.expectedCash}
-                        variant="currency"
-                        className="text-lg font-bold text-white"
-                     />
-                  </div>
+                  ))}
                </div>
 
-               <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                     <label className="text-sm font-medium text-zinc-400">
-                        Conteo de Efectivo Real
-                     </label>
-                  </div>
+               <div className="mt-4 px-4 py-3 bg-surface-highlight border border-border rounded-xl flex justify-between items-center sticky bottom-0 shadow-lg">
+                  <span className="text-xs font-bold text-text-muted uppercase tracking-wider">
+                     Total Esperado
+                  </span>
+                  <SmartNumber
+                     value={summary?.expectedCash}
+                     variant="currency"
+                     className="text-xl font-bold text-text-main"
+                  />
+               </div>
+            </div>
+
+            {/* Input de Conteo */}
+            <div className="space-y-4 shrink-0">
+               <label className="text-sm font-medium text-text-secondary block ml-1">
+                  Conteo físico de efectivo
+               </label>
+               {/* Wrapper con fondo Canvas FIJO. No cambia en focus. Solo el borde cambia. */}
+               <div className="bg-canvas p-2 rounded-2xl border border-border focus-within:border-primary/50 transition-colors">
                   <SmartNumberInput
                      value={closingAmount}
                      onValueChange={setClosingAmount}
                      variant="currency"
                      placeholder="0"
                      autoFocus
-                     className="[&>input]:bg-zinc-900 [&>input]:border-zinc-700 [&>input]:h-12 [&>input]:text-lg"
+                     // className especifico para remover estilos default y hacer el input transparente
+                     className="[&>input]:bg-transparent [&>input]:border-none [&>input]:h-10 [&>input]:text-2xl [&>input]:font-bold [&>input]:text-center [&>input]:text-text-main [&>input]:placeholder:text-text-dim/30 [&>input]:focus:ring-0 [&>input]:w-full"
                      onKeyDown={e => {
                         if (e.key === 'Enter' && closingAmount !== null && !isClosingShift) {
                            e.preventDefault();
@@ -113,47 +152,46 @@ export const CloseShiftModal = ({ isOpen, onClose }: CloseShiftModalProps) => {
                         }
                      }}
                   />
-                  {closingAmount !== null && summary?.expectedCash !== undefined && (
-                     <div
-                        className={`mt-2 px-3 py-2 rounded-lg border text-sm flex justify-between items-center font-medium ${
-                           closingAmount - summary.expectedCash === 0
-                              ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                              : closingAmount - summary.expectedCash > 0
-                              ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
-                              : 'bg-red-500/10 text-red-400 border-red-500/20'
-                        }`}
-                     >
-                        <span>
-                           {closingAmount - summary.expectedCash === 0
-                              ? 'Cuadre Perfecto'
-                              : closingAmount - summary.expectedCash > 0
-                              ? 'Sobrante'
-                              : 'Faltante'}
-                        </span>
-                        <div className="font-mono font-bold">
-                           {closingAmount - summary.expectedCash > 0 ? '+' : ''}
-                           <SmartNumber
-                              value={closingAmount - summary.expectedCash}
-                              variant="currency"
-                           />
-                        </div>
-                     </div>
-                  )}
                </div>
 
-               <div className="flex gap-3 pt-2">
-                  <Button variant="secondary" onClick={onClose} className="flex-1">
-                     Cancelar
-                  </Button>
-                  <Button
-                     variant="danger"
-                     onClick={handleCloseShift}
-                     disabled={isClosingShift || closingAmount === null}
-                     className="flex-1"
+               {/* Feedback de Diferencia */}
+               {closingAmount !== null && summary?.expectedCash !== undefined && (
+                  <div
+                     className={`px-4 py-3 rounded-xl border flex justify-between items-center animate-in fade-in slide-in-from-top-1 ${
+                        isPerfect
+                           ? 'bg-success-bg/10 border-success/20 text-success-text'
+                           : isSurplus
+                           ? 'bg-primary-subtle/10 border-primary/20 text-primary-text'
+                           : 'bg-danger-bg/10 border-danger/20 text-danger-text'
+                     }`}
                   >
-                     {isClosingShift ? 'Cerrando...' : 'Confirmar Cierre'}
-                  </Button>
-               </div>
+                     <span className="text-sm font-bold">
+                        {isPerfect ? 'Cuadre Perfecto' : isSurplus ? 'Sobrante' : 'Faltante'}
+                     </span>
+                     <div className="font-mono font-bold text-lg">
+                        <SmartNumber value={difference} variant="currency" />
+                     </div>
+                  </div>
+               )}
+            </div>
+
+            <div className="flex gap-3 pt-6 shrink-0">
+               <Button
+                  variant="outline"
+                  onClick={onClose}
+                  className="flex-1 h-11 text-text-muted hover:text-text-main border-border hover:bg-surface-highlight"
+               >
+                  Cancelar
+               </Button>
+               <Button
+                  variant={isPerfect || isSurplus ? 'primary' : 'danger'}
+                  onClick={handleCloseShift}
+                  disabled={isClosingShift || closingAmount === null}
+                  isLoading={isClosingShift}
+                  className="flex-[2] h-11 text-base"
+               >
+                  {isClosingShift ? 'Cerrando...' : 'Confirmar Cierre'}
+               </Button>
             </div>
          </div>
       </Modal>

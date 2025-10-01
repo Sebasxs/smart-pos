@@ -1,21 +1,254 @@
 @import 'tailwindcss';
 
 :root {
-   --font-sans: 'Outfit', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
-      'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-      'Liberation Mono', 'Courier New', monospace;
+   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+   --font-mono: 'Roboto Mono', monospace;
+   --font-outfit: 'Outfit', system-ui, -apple-system, sans-serif;
+
+   /* --- BASE LAYERS --- */
+   --color-canvas: #20201f;
+   --color-surface: #282828;
+   --color-surface-highlight: #323232;
+   --color-surface-active: #3f3f3f;
+
+   /* --- BORDERS --- */
+   --color-border: #444444;
+   --color-border-hover: #525252;
+   --color-border-focus: #737373;
+
+   /* --- TEXT --- */
+   --color-text-main: #e4e4e7;
+   --color-text-secondary: #d4d4d8;
+   --color-text-muted: #9f9fa9;
+   --color-text-dim: #71717b;
+
+   /* --- STATES --- */
+   --color-disabled-bg: #333333;
+   --color-disabled-text: #666666;
+
+   /* =========================================
+      SYSTEM PALETTE
+      ========================================= */
+   --color-primary: #3b82f6;
+   --color-primary-hover: #60a5fa;
+   --color-primary-subtle: rgba(59, 130, 246, 0.22);
+   --color-primary-text: #93c5fd;
+
+   --color-success: #10b981;
+   --color-success-bg: rgba(16, 185, 129, 0.18);
+   --color-success-text: #6ee7b7;
+
+   --color-warning: #f59e0b;
+   --color-warning-bg: rgba(245, 158, 11, 0.18);
+   --color-warning-text: #fcd34d;
+
+   --color-danger: #ef4444;
+   --color-danger-bg: rgba(239, 68, 68, 0.18);
+   --color-danger-text: #fca5a5;
+
+   --color-info: #0ea5e9;
+   --color-info-bg: rgba(14, 165, 233, 0.18);
+   --color-info-text: #7dd3fc;
+
+   /* =========================================
+      MODULE SEMANTIC PALETTES
+      ========================================= */
+
+   /* 1. DASHBOARD -> AHORA USA LA PALETA "COPILOT/IA" (Deep Indigo/Violet) */
+   --color-brand-dashboard-main: #a78bfa;
+   --color-brand-dashboard-bg: rgba(139, 92, 246, 0.15);
+   --color-brand-dashboard-border: rgba(139, 92, 246, 0.3);
+   --color-brand-dashboard-solid: #7c3aed;
+   --color-brand-dashboard-solid-hover: #8b5cf6;
+
+   /* 2. USERS (Pink) */
+   --color-brand-users-main: #f472b6;
+   --color-brand-users-bg: rgba(244, 114, 182, 0.1);
+   --color-brand-users-border: rgba(244, 114, 182, 0.2);
+   --color-brand-users-solid: #db2777;
+   --color-brand-users-solid-hover: #ec4899;
+
+   /* 3. SUPPLIERS (Indigo/Violet mix) */
+   --color-brand-suppliers-main: #a5b4fc;
+   --color-brand-suppliers-bg: rgba(165, 180, 252, 0.1);
+   --color-brand-suppliers-border: rgba(165, 180, 252, 0.2);
+   --color-brand-suppliers-solid: #6366f1;
+   --color-brand-suppliers-solid-hover: #818cf8;
+
+   /* 4. PURCHASES (Emerald) */
+   --color-brand-purchases-main: #34d399;
+   --color-brand-purchases-bg: rgba(52, 211, 153, 0.1);
+   --color-brand-purchases-border: rgba(52, 211, 153, 0.2);
+   --color-brand-purchases-solid: #059669;
+   --color-brand-purchases-solid-hover: #10b981;
+
+   /* 5. EXPENSES (Rose - Distinct from Danger) */
+   --color-brand-expenses-main: #fb7185;
+   --color-brand-expenses-bg: rgba(251, 113, 133, 0.1);
+   --color-brand-expenses-border: rgba(251, 113, 133, 0.2);
+   --color-brand-expenses-solid: #e11d48;
+   --color-brand-expenses-solid-hover: #f43f5e;
+
+   /* 6. QUOTES (Teal - Distinct from Emerald) */
+   --color-brand-quotes-main: #2dd4bf;
+   --color-brand-quotes-bg: rgba(45, 212, 191, 0.1);
+   --color-brand-quotes-border: rgba(45, 212, 191, 0.2);
+   --color-brand-quotes-solid: #0d9488;
+   --color-brand-quotes-solid-hover: #14b8a6;
+
+   /* 7. ADJUSTMENTS (Amber) */
+   --color-brand-adjustments-main: #fbbf24;
+   --color-brand-adjustments-bg: rgba(251, 191, 36, 0.1);
+   --color-brand-adjustments-border: rgba(251, 191, 36, 0.2);
+   --color-brand-adjustments-solid: #d97706;
+   --color-brand-adjustments-solid-hover: #f59e0b;
+
+   /* 8. WARRANTIED (Orange) */
+   --color-brand-warranties-main: #fb923c;
+   --color-brand-warranties-bg: rgba(251, 146, 60, 0.1);
+   --color-brand-warranties-border: rgba(251, 146, 60, 0.2);
+   --color-brand-warranties-solid: #ea580c;
+   --color-brand-warranties-solid-hover: #f97316;
+
+   /* 9. KARDEX (Cyan) */
+   --color-brand-kardex-main: #22d3ee;
+   --color-brand-kardex-bg: rgba(34, 211, 238, 0.1);
+   --color-brand-kardex-border: rgba(34, 211, 238, 0.2);
+   --color-brand-kardex-solid: #0891b2;
+   --color-brand-kardex-solid-hover: #06b6d4;
+
+   /* 10. CREDIT NOTES (Danger Reuse) */
+   --color-brand-credit-main: var(--color-danger-text);
+   --color-brand-credit-bg: var(--color-danger-bg);
+   --color-brand-credit-border: rgba(239, 68, 68, 0.2);
+   --color-brand-credit-solid: #dc2626;
+   --color-brand-credit-solid-hover: #ef4444;
+
+   /* 11. BALANCES / CARTERA (Cyan/Teal Mix - Money pending) */
+   --color-brand-balances-main: #2dd4bf;
+   --color-brand-balances-bg: rgba(20, 184, 166, 0.1);
+   --color-brand-balances-border: rgba(20, 184, 166, 0.25);
+   --color-brand-balances-solid: #0d9488;
+   --color-brand-balances-solid-hover: #14b8a6;
 }
+
+@theme {
+   --font-sans: var(--font-sans);
+   --font-mono: var(--font-mono);
+   --font-outfit: var(--font-outfit);
+
+   /* Base */
+   --color-canvas: var(--color-canvas);
+   --color-surface: var(--color-surface);
+   --color-surface-highlight: var(--color-surface-highlight);
+   --color-surface-active: var(--color-surface-active);
+
+   --color-border: var(--color-border);
+   --color-border-hover: var(--color-border-hover);
+   --color-border-focus: var(--color-border-focus);
+
+   --color-text-main: var(--color-text-main);
+   --color-text-secondary: var(--color-text-secondary);
+   --color-text-muted: var(--color-text-muted);
+   --color-text-dim: var(--color-text-dim);
+   --color-disabled-text: var(--color-disabled-text);
+   --color-disabled-bg: var(--color-disabled-bg);
+
+   /* System */
+   --color-primary: var(--color-primary);
+   --color-primary-hover: var(--color-primary-hover);
+   --color-primary-subtle: var(--color-primary-subtle);
+   --color-primary-text: var(--color-primary-text);
+
+   --color-success: var(--color-success);
+   --color-success-bg: var(--color-success-bg);
+   --color-success-text: var(--color-success-text);
+
+   --color-warning: var(--color-warning);
+   --color-warning-bg: var(--color-warning-bg);
+   --color-warning-text: var(--color-warning-text);
+
+   --color-danger: var(--color-danger);
+   --color-danger-bg: var(--color-danger-bg);
+   --color-danger-text: var(--color-danger-text);
+
+   --color-info: var(--color-info);
+   --color-info-bg: var(--color-info-bg);
+   --color-info-text: var(--color-info-text);
+
+   /* Brand Aliases */
+   --color-brand-dashboard-main: var(--color-brand-dashboard-main);
+   --color-brand-dashboard-bg: var(--color-brand-dashboard-bg);
+   --color-brand-dashboard-border: var(--color-brand-dashboard-border);
+   --color-brand-dashboard-solid: var(--color-brand-dashboard-solid);
+   --color-brand-dashboard-solid-hover: var(--color-brand-dashboard-solid-hover);
+
+   --color-brand-quotes-main: var(--color-brand-quotes-main);
+   --color-brand-quotes-bg: var(--color-brand-quotes-bg);
+   --color-brand-quotes-border: var(--color-brand-quotes-border);
+   --color-brand-quotes-solid: var(--color-brand-quotes-solid);
+   --color-brand-quotes-solid-hover: var(--color-brand-quotes-solid-hover);
+
+   --color-brand-expenses-main: var(--color-brand-expenses-main);
+   --color-brand-expenses-bg: var(--color-brand-expenses-bg);
+   --color-brand-expenses-border: var(--color-brand-expenses-border);
+   --color-brand-expenses-solid: var(--color-brand-expenses-solid);
+   --color-brand-expenses-solid-hover: var(--color-brand-expenses-solid-hover);
+
+   --color-brand-users-main: var(--color-brand-users-main);
+   --color-brand-users-bg: var(--color-brand-users-bg);
+   --color-brand-users-border: var(--color-brand-users-border);
+   --color-brand-users-solid: var(--color-brand-users-solid);
+   --color-brand-users-solid-hover: var(--color-brand-users-solid-hover);
+
+   --color-brand-suppliers-main: var(--color-brand-suppliers-main);
+   --color-brand-suppliers-bg: var(--color-brand-suppliers-bg);
+   --color-brand-suppliers-border: var(--color-brand-suppliers-border);
+   --color-brand-suppliers-solid: var(--color-brand-suppliers-solid);
+   --color-brand-suppliers-solid-hover: var(--color-brand-suppliers-solid-hover);
+
+   --color-brand-purchases-main: var(--color-brand-purchases-main);
+   --color-brand-purchases-bg: var(--color-brand-purchases-bg);
+   --color-brand-purchases-border: var(--color-brand-purchases-border);
+   --color-brand-purchases-solid: var(--color-brand-purchases-solid);
+   --color-brand-purchases-solid-hover: var(--color-brand-purchases-solid-hover);
+
+   --color-brand-adjustments-main: var(--color-brand-adjustments-main);
+   --color-brand-adjustments-bg: var(--color-brand-adjustments-bg);
+   --color-brand-adjustments-border: var(--color-brand-adjustments-border);
+   --color-brand-adjustments-solid: var(--color-brand-adjustments-solid);
+   --color-brand-adjustments-solid-hover: var(--color-brand-adjustments-solid-hover);
+
+   --color-brand-warranties-main: var(--color-brand-warranties-main);
+   --color-brand-warranties-bg: var(--color-brand-warranties-bg);
+   --color-brand-warranties-border: var(--color-brand-warranties-border);
+   --color-brand-warranties-solid: var(--color-brand-warranties-solid);
+   --color-brand-warranties-solid-hover: var(--color-brand-warranties-solid-hover);
+
+   --color-brand-kardex-main: var(--color-brand-kardex-main);
+   --color-brand-kardex-bg: var(--color-brand-kardex-bg);
+   --color-brand-kardex-border: var(--color-brand-kardex-border);
+   --color-brand-kardex-solid: var(--color-brand-kardex-solid);
+   --color-brand-kardex-solid-hover: var(--color-brand-kardex-solid-hover);
+
+   --color-brand-credit-main: var(--color-brand-credit-main);
+   --color-brand-credit-bg: var(--color-brand-credit-bg);
+   --color-brand-credit-border: var(--color-brand-credit-border);
+   --color-brand-credit-solid: var(--color-brand-credit-solid);
+   --color-brand-credit-solid-hover: var(--color-brand-credit-solid-hover);
+
+   --color-brand-balances-main: var(--color-brand-balances-main);
+   --color-brand-balances-bg: var(--color-brand-balances-bg);
+   --color-brand-balances-border: var(--color-brand-balances-border);
+   --color-brand-balances-solid: var(--color-brand-balances-solid);
+   --color-brand-balances-solid-hover: var(--color-brand-balances-solid-hover);
+}
+
+/* --- SCROLLBAR CUSTOMIZATION --- */
 
 * {
    scrollbar-width: thin;
-   scrollbar-color: #3f3f46 transparent;
-}
-
-.no-spinners::-webkit-outer-spin-button,
-.no-spinners::-webkit-inner-spin-button {
-   -webkit-appearance: none;
-   margin: 0;
+   scrollbar-color: var(--color-surface-highlight) transparent;
 }
 
 .no-scrollbar::-webkit-scrollbar {
@@ -36,12 +269,14 @@
 }
 
 ::-webkit-scrollbar-thumb {
-   background-color: #3f3f46;
-   border-radius: 10px;
+   background-color: var(--color-surface-highlight);
+   border-radius: 99px;
+   border: 1px solid transparent;
+   background-clip: content-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-   background-color: #52525b;
+   background-color: var(--color-border-hover);
 }
 
 .scrollbar-stable {
@@ -50,7 +285,18 @@
 
 html,
 body {
-   scrollbar-gutter: stable;
-   background-color: #09090b; /* bg-zinc-950 */
-   color: #e4e4e7; /* text-zinc-200 */
+   background-color: var(--color-canvas);
+   color: var(--color-text-main);
+   overflow-x: hidden;
+}
+
+/* --- AUTOFILL OVERRIDE --- */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+   -webkit-box-shadow: 0 0 0 30px #252524 inset !important;
+   -webkit-text-fill-color: var(--color-text-main) !important;
+   transition: background-color 5000s ease-in-out 0s;
+   caret-color: var(--color-text-main);
 }

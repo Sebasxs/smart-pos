@@ -3,6 +3,8 @@ import { HiOutlineTrash, HiOutlineArchiveBoxXMark, HiOutlineQrCode } from 'react
 import { useInventoryStore } from '../../store/inventoryStore';
 import { SmartNumber } from '../ui/SmartNumber';
 import { SortableHeader } from '../ui/SortableHeader';
+import { cn } from '../../utils/cn';
+import { Button } from '../ui/Button';
 
 // Types
 import { type Product } from '../../types/inventory';
@@ -28,9 +30,9 @@ export const InventoryList = ({ products, isLoading, onEdit, onDelete }: Invento
    };
 
    const getMarginStyle = (margin: number) => {
-      if (margin <= 39) return 'text-zinc-400 bg-zinc-400/10';
-      if (margin >= 60) return 'text-emerald-500 bg-emerald-500/10';
-      return 'text-blue-400 bg-blue-500/10';
+      if (margin <= 39) return 'text-text-muted bg-surface-highlight border-transparent';
+      if (margin >= 60) return 'text-success-text bg-success-bg border-success/20';
+      return 'text-info-text bg-info-bg border-info/20';
    };
 
    const Row = (_index: number, product: Product) => {
@@ -42,119 +44,120 @@ export const InventoryList = ({ products, isLoading, onEdit, onDelete }: Invento
       const isLowStock = product.stock <= 3;
       const hasDiscount = product.discountPercentage > 0;
 
-      const rowClass = hasDiscount
-         ? 'bg-emerald-500/[0.04] hover:bg-emerald-500/[0.08]'
-         : isLowStock
-         ? 'bg-amber-500/[0.04] hover:bg-amber-500/[0.08]'
-         : 'hover:bg-zinc-800/30';
-
-      const indicatorClass = hasDiscount
-         ? 'bg-emerald-500'
-         : isLowStock
-         ? 'bg-amber-500'
-         : 'bg-transparent';
-
       return (
          <div
             onClick={() => onEdit(product)}
-            className={`relative group transition-colors cursor-pointer border-b border-zinc-800/50 ${rowClass}`}
-            title="Click para editar"
+            className={cn(
+               GRID_LAYOUT,
+               'group relative py-3 border-b border-border/20 cursor-pointer', // Borde interno muy sutil
+               'bg-surface hover:bg-surface-highlight',
+               isLowStock && !hasDiscount && 'bg-warning-bg/20 hover:bg-warning-bg/50',
+               hasDiscount && 'bg-success-bg/20 hover:bg-success-bg/50',
+            )}
          >
-            {/* LEFT INDICATOR */}
-            <div className={`absolute left-0 top-0 bottom-0 w-[2px] ${indicatorClass}`} />
+            {/* Indicador lateral sutil */}
+            <div
+               className={cn(
+                  'absolute left-0 top-3 bottom-3 w-1 rounded-r-full transition-colors',
+                  hasDiscount ? 'bg-success' : isLowStock ? 'bg-warning' : 'bg-transparent',
+               )}
+            />
 
-            <div className={`${GRID_LAYOUT} py-3`}>
-               {/* 1. PRODUCT & SKU */}
-               <div className="flex flex-col justify-center min-w-0 pr-2">
-                  <span className="font-bold text-zinc-200 text-[15px] truncate w-full">
-                     {product.description}
-                  </span>
+            {/* 1. PRODUCT & SKU */}
+            <div className="flex flex-col justify-center min-w-0 pr-2 pl-2">
+               <span className="font-bold text-text-secondary text-[15px] truncate w-full transition-colors group-hover:text-text-main">
+                  {product.description}
+               </span>
 
-                  <div className="flex items-center gap-1.5 mt-0.5 text-zinc-500">
-                     <HiOutlineQrCode size={14} className="shrink-0 opacity-70" />
-                     <span className="text-xs font-mono tracking-wide truncate">
-                        {product.sku || 'Sin SKU'}
-                     </span>
-                  </div>
+               <div className="flex items-center gap-2 mt-0.5">
+                  {product.sku ? (
+                     <div className="flex items-center gap-1 text-text-dim text-xs font-mono bg-canvas/30 px-1.5 py-0.5 rounded border border-transparent">
+                        <HiOutlineQrCode size={12} className="shrink-0" />
+                        <span className="truncate">{product.sku}</span>
+                     </div>
+                  ) : (
+                     <span className="text-xs text-text-muted/50 italic">Sin SKU</span>
+                  )}
                </div>
+            </div>
 
-               {/* 2. COST */}
-               <div className="text-right">
-                  <span className="font-mono text-zinc-400 text-sm font-medium pr-1">
-                     <SmartNumber value={product.cost || 0} variant="currency" />
-                  </span>
-               </div>
+            {/* 2. COST */}
+            <div className="text-right">
+               <span className="font-mono text-text-dim text-sm font-medium pr-1">
+                  <SmartNumber value={product.cost || 0} variant="currency" />
+               </span>
+            </div>
 
-               {/* 3. PRICE */}
-               <div className="text-right">
-                  <div className="flex flex-col items-end justify-center pr-1">
-                     <span
-                        className={`font-mono font-bold text-base ${
-                           hasDiscount ? 'text-emerald-400' : 'text-zinc-200'
-                        }`}
-                     >
-                        <SmartNumber value={finalPrice} variant="currency" />
-                     </span>
-
-                     {hasDiscount && (
-                        <div className="flex items-center gap-1.5 mt-0.5">
-                           <span className="text-xs text-zinc-500 line-through decoration-zinc-700">
-                              <SmartNumber
-                                 value={product.price}
-                                 variant="currency"
-                                 showPrefix={false}
-                              />
-                           </span>
-                           <span className="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-1.5 rounded-sm leading-none py-0.5">
-                              -{product.discountPercentage}%
-                           </span>
-                        </div>
+            {/* 3. PRICE */}
+            <div className="text-right">
+               <div className="flex flex-col items-end justify-center pr-1">
+                  <span
+                     className={cn(
+                        'font-mono font-bold text-base tracking-tight',
+                        hasDiscount ? 'text-success-text' : 'text-text-main',
                      )}
-                  </div>
-               </div>
-
-               {/* 4. PROFIT */}
-               <div className="text-center pl-2">
-                  <span
-                     className={`
-                     inline-flex items-center justify-center w-12 py-0.5 rounded-md font-mono font-bold text-sm
-                     ${getMarginStyle(margin)}
-                  `}
                   >
-                     {margin}%
+                     <SmartNumber value={finalPrice} variant="currency" />
                   </span>
-               </div>
 
-               {/* 5. STOCK */}
-               <div className="text-center pl-2">
-                  <span
-                     className={`
-                     inline-flex items-center justify-center w-12 py-0.5 rounded-md font-mono font-bold text-sm
-                     ${
-                        isLowStock
-                           ? 'text-amber-500 bg-amber-500/5'
-                           : 'text-zinc-400 bg-zinc-400/10'
-                     }
-                     `}
+                  {hasDiscount && (
+                     <div className="flex items-center gap-1.5 mt-0.5">
+                        <span className="text-xs text-text-dim line-through decoration-text-dim/50 font-mono">
+                           <SmartNumber
+                              value={product.price}
+                              variant="currency"
+                              showPrefix={false}
+                           />
+                        </span>
+                        <span className="text-[10px] font-bold text-success-text bg-success-bg px-1.5 rounded leading-none py-0.5 border border-success/20">
+                           -{product.discountPercentage}%
+                        </span>
+                     </div>
+                  )}
+               </div>
+            </div>
+
+            {/* 4. PROFIT */}
+            <div className="text-center pl-2">
+               <span
+                  className={cn(
+                     'inline-flex items-center justify-center w-12 py-0.5 rounded-md font-mono font-bold text-sm border',
+                     getMarginStyle(margin),
+                  )}
+               >
+                  {margin}%
+               </span>
+            </div>
+
+            {/* 5. STOCK */}
+            <div className="text-center pl-2">
+               <span
+                  className={cn(
+                     'inline-flex items-center justify-center min-w-[3rem] px-2 py-0.5 rounded-md font-mono font-bold text-sm border',
+                     isLowStock
+                        ? 'text-warning-text bg-warning-bg border-warning/20'
+                        : 'text-text-secondary bg-surface-highlight border-transparent', // Sin borde en estado normal
+                  )}
+               >
+                  {product.stock}
+               </span>
+            </div>
+
+            {/* 6. ACTIONS */}
+            <div className="text-right">
+               <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200 translate-x-2 group-hover:translate-x-0">
+                  <Button
+                     variant="ghost"
+                     size="icon"
+                     onClick={e => {
+                        e.stopPropagation();
+                        onDelete(product);
+                     }}
+                     className="h-9 w-9 text-text-dim hover:text-danger-text hover:bg-danger-bg opacity-0 group-hover:opacity-100 transition-opacity"
+                     title="Eliminar producto"
                   >
-                     {product.stock}
-                  </span>
-               </div>
-
-               {/* 6. ACTIONS */}
-               <div className="text-right">
-                  <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                     <button
-                        onClick={e => {
-                           e.stopPropagation();
-                           onDelete(product);
-                        }}
-                        className="p-1.5 text-zinc-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors cursor-pointer"
-                        title="Eliminar"
-                     >
-                        <HiOutlineTrash size={18} />
-                     </button>
-                  </div>
+                     <HiOutlineTrash size={18} />
+                  </Button>
                </div>
             </div>
          </div>
@@ -165,7 +168,7 @@ export const InventoryList = ({ products, isLoading, onEdit, onDelete }: Invento
       return (
          <div className="flex flex-col gap-2 animate-pulse p-4">
             {[...Array(6)].map((_, i) => (
-               <div key={i} className="h-16 bg-zinc-900/50 rounded-xl border border-zinc-800/50" />
+               <div key={i} className="h-16 bg-surface rounded-xl border border-transparent" />
             ))}
          </div>
       );
@@ -173,28 +176,38 @@ export const InventoryList = ({ products, isLoading, onEdit, onDelete }: Invento
 
    if (products.length === 0) {
       return (
-         <div className="flex flex-col items-center justify-center h-full text-zinc-500 bg-zinc-900/30 rounded-xl border border-zinc-800/50">
-            <HiOutlineArchiveBoxXMark size={48} className="mb-4 opacity-50" />
-            <p className="font-medium">No se encontraron productos</p>
+         <div className="flex flex-col items-center justify-center h-full text-text-dim bg-surface/30 rounded-xl border-none p-12">
+            <div className="w-20 h-20 bg-surface-highlight rounded-full flex items-center justify-center mb-4 border border-transparent">
+               <HiOutlineArchiveBoxXMark size={40} className="opacity-50" />
+            </div>
+            <p className="font-medium text-lg text-text-secondary">No se encontraron productos</p>
+            <p className="text-sm text-text-muted mt-1">
+               Intenta ajustar los filtros o agrega uno nuevo.
+            </p>
          </div>
       );
    }
 
    return (
-      <div className="flex flex-col h-full w-full bg-zinc-900/50 border border-zinc-800 rounded-xl overflow-hidden shadow-sm">
+      // SIN BORDE EXTERNO
+      <div className="flex flex-col h-full w-full bg-surface rounded-xl overflow-hidden shadow-sm">
          <div className="flex-1 overflow-x-auto overflow-y-hidden custom-scrollbar">
             <div className="min-w-[800px] flex flex-col h-full">
-               {/* 1. HEADER */}
-               <div className="border-b border-zinc-800 bg-zinc-950/50 shrink-0">
+               {/* 1. HEADER - border-b sutil */}
+               <div className="border-b border-border/40 bg-surface-highlight/50 backdrop-blur-sm shadow-sm shrink-0 z-10 select-none">
                   <div
-                     className={`${GRID_LAYOUT} py-4 text-xs font-bold text-zinc-500 uppercase tracking-wider`}
+                     className={cn(
+                        GRID_LAYOUT,
+                        'py-4 text-[10px] font-bold text-text-muted uppercase tracking-wider',
+                     )}
                   >
                      <SortableHeader
-                        label="Producto / SKU"
+                        label="Producto"
                         sortKey="description"
                         currentSortKey={sortConfig.key}
                         sortDirection={sortConfig.direction}
                         onSort={setSort}
+                        offset={8}
                      />
                      <SortableHeader
                         label="Costo"
@@ -203,6 +216,7 @@ export const InventoryList = ({ products, isLoading, onEdit, onDelete }: Invento
                         sortDirection={sortConfig.direction}
                         onSort={setSort}
                         align="right"
+                        offset={4}
                      />
                      <SortableHeader
                         label="Precio Venta"
@@ -211,9 +225,10 @@ export const InventoryList = ({ products, isLoading, onEdit, onDelete }: Invento
                         sortDirection={sortConfig.direction}
                         onSort={setSort}
                         align="right"
+                        offset={4}
                      />
                      <SortableHeader
-                        label="Ganancia"
+                        label="Margen"
                         sortKey="margin"
                         currentSortKey={sortConfig.key}
                         sortDirection={sortConfig.direction}
@@ -233,7 +248,7 @@ export const InventoryList = ({ products, isLoading, onEdit, onDelete }: Invento
                </div>
 
                {/* 2. VIRTUOSO LIST */}
-               <div className="flex-1">
+               <div className="flex-1 bg-surface">
                   <Virtuoso
                      data={products}
                      itemContent={Row}

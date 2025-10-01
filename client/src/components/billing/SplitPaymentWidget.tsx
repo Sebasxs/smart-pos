@@ -1,56 +1,53 @@
-import { HiOutlineBanknotes, HiOutlineCreditCard, HiOutlineWallet } from 'react-icons/hi2';
 import { HiX } from 'react-icons/hi';
 import { SmartNumberInput } from '../ui/SmartNumberInput';
-import { SmartNumber } from '../ui/SmartNumber';
 import { useBillingStore, type PaymentMethodType } from '../../store/billingStore';
+import { CustomSelect } from '../ui/CustomSelect';
+import { HiOutlineBanknotes, HiOutlineCreditCard, HiOutlineWallet } from 'react-icons/hi2';
+import { Button } from '../ui/Button';
 
 type PaymentWidgetProps = {
    total: number;
 };
 
-const PAYMENT_METHODS: {
-   value: PaymentMethodType;
-   label: string;
-   icon: React.ElementType;
-   color: string;
-   bgColor: string;
-   borderColor: string;
-   shadowColor: string;
-   btnClass: string;
-}[] = [
-   {
-      value: 'cash',
+const METHOD_CONFIG: Record<
+   string,
+   { label: string; icon: any; bgClass: string; borderClass: string; textClass: string }
+> = {
+   cash: {
       label: 'Efectivo',
       icon: HiOutlineBanknotes,
-      color: 'text-emerald-400',
-      bgColor: 'bg-emerald-500/10',
-      borderColor: 'border-emerald-500/50',
-      shadowColor: 'shadow-[0_0_20px_-5px_rgba(16,185,129,0.2)]',
-      btnClass:
-         'text-emerald-400 bg-emerald-500/5 border-emerald-500/20 hover:bg-emerald-500/10 hover:border-emerald-500/40',
+      bgClass: 'bg-emerald-500/5',
+      borderClass: 'border-emerald-500/20',
+      textClass: 'text-emerald-400',
    },
-   {
-      value: 'bank_transfer',
-      label: 'Transfer.',
+   bank_transfer: {
+      label: 'Transferencia',
       icon: HiOutlineCreditCard,
-      color: 'text-purple-400',
-      bgColor: 'bg-purple-500/10',
-      borderColor: 'border-purple-500/50',
-      shadowColor: 'shadow-[0_0_20px_-5px_rgba(168,85,247,0.2)]',
-      btnClass:
-         'text-purple-400 bg-purple-500/5 border-purple-500/20 hover:bg-purple-500/10 hover:border-purple-500/40',
+      bgClass: 'bg-purple-500/5',
+      borderClass: 'border-purple-500/20',
+      textClass: 'text-purple-400',
    },
-   {
-      value: 'account_balance',
-      label: 'Saldo',
+   credit_card: {
+      label: 'Tarjeta',
+      icon: HiOutlineCreditCard,
+      bgClass: 'bg-blue-500/5',
+      borderClass: 'border-blue-500/20',
+      textClass: 'text-blue-400',
+   },
+   account_balance: {
+      label: 'Saldo a Favor',
       icon: HiOutlineWallet,
-      color: 'text-blue-400',
-      bgColor: 'bg-blue-500/10',
-      borderColor: 'border-blue-500/50',
-      shadowColor: 'shadow-[0_0_20px_-5px_rgba(59,130,246,0.2)]',
-      btnClass:
-         'text-blue-400 bg-blue-500/5 border-blue-500/20 hover:bg-blue-500/10 hover:border-blue-500/40',
+      bgClass: 'bg-amber-500/5',
+      borderClass: 'border-amber-500/20',
+      textClass: 'text-amber-400',
    },
+};
+
+const PAYMENT_OPTIONS = [
+   { value: 'cash', label: 'Efectivo' },
+   { value: 'bank_transfer', label: 'Transferencia Bancaria' },
+   { value: 'credit_card', label: 'Tarjeta Crédito / Débito' },
+   { value: 'account_balance', label: 'Saldo a Favor' },
 ];
 
 export const SplitPaymentWidget = ({ total }: PaymentWidgetProps) => {
@@ -58,106 +55,85 @@ export const SplitPaymentWidget = ({ total }: PaymentWidgetProps) => {
    const { payments, customer } = checkoutData;
 
    const totalPaid = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
-
    const balance = total - totalPaid;
    const remaining = Math.max(0, balance);
    const change = balance < 0 ? Math.abs(balance) : 0;
 
-   const handleAddPayment = (method: PaymentMethodType) => {
+   const handleAddPayment = (method: string) => {
       const amountToAdd = remaining > 0 ? remaining : 0;
 
       if (method === 'account_balance') {
          const maxBalance = customer.accountBalance || 0;
          if (maxBalance <= 0) return;
-         addPayment(method, Math.min(amountToAdd, maxBalance));
+         addPayment(method as PaymentMethodType, Math.min(amountToAdd, maxBalance));
       } else {
-         addPayment(method, amountToAdd > 0 ? amountToAdd : null);
+         addPayment(method as PaymentMethodType, amountToAdd > 0 ? amountToAdd : null);
       }
    };
 
-   const getPaymentMethodInfo = (method: PaymentMethodType) => {
-      return PAYMENT_METHODS.find(pm => pm.value === method);
-   };
+   const availableOptions = PAYMENT_OPTIONS.filter(opt => {
+      if (payments.some(p => p.method === opt.value)) return false;
+      if (opt.value === 'account_balance') {
+         return (customer.accountBalance || 0) > 0;
+      }
+      return true;
+   });
 
    return (
-      <div className="flex flex-col overflow-hidden">
-         <div className="py-3 px-4 border-y border-zinc-800 bg-zinc-800/50 flex justify-between items-center">
-            <h2 className="text-zinc-500 text-[11px] font-bold uppercase tracking-wider">
-               Métodos de Pago
+      <div className="flex flex-col">
+         {/* HEADER CONSISTENTE CON RESUMEN E INVOICE TABLE */}
+         <div className="h-[48px] px-5 bg-surface-highlight/50 backdrop-blur-sm border-b border-border/40 flex items-center justify-between shrink-0">
+            <h2 className="text-text-muted text-[10px] font-bold uppercase tracking-wider">
+               Medios de Pago
             </h2>
+            {(customer.accountBalance || 0) > 0 &&
+               !payments.some(p => p.method === 'account_balance') && (
+                  <span className="text-[10px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded border border-amber-500/20 font-bold">
+                     Saldo: ${customer.accountBalance}
+                  </span>
+               )}
          </div>
 
-         <div className="p-4 flex flex-col gap-4">
-            {/* Add Payment Buttons - ABOVE */}
-            <div className="grid grid-cols-3 gap-2">
-               {PAYMENT_METHODS.map(method => {
-                  const alreadyHasMethod = payments.some(p => p.method === method.value);
-                  const isDisabled =
-                     (method.value === 'account_balance' && (customer.accountBalance || 0) <= 0) ||
-                     alreadyHasMethod;
-
-                  return (
-                     <button
-                        key={method.value}
-                        onClick={() => handleAddPayment(method.value)}
-                        disabled={isDisabled}
-                        className={`
-                           p-2.5 rounded-lg border transition-all duration-300 flex items-center justify-center
-                           relative overflow-hidden group
-                           ${
-                              isDisabled
-                                 ? 'bg-zinc-800/20 border-zinc-800/50 text-zinc-600 cursor-not-allowed'
-                                 : `${method.btnClass} cursor-pointer`
-                           }
-                        `}
-                        title={
-                           alreadyHasMethod
-                              ? `${method.label} ya está agregado`
-                              : method.value === 'account_balance' &&
-                                (customer.accountBalance || 0) <= 0
-                              ? 'Cliente no tiene saldo disponible'
-                              : `Agregar ${method.label}`
-                        }
-                     >
-                        <span
-                           className={`text-[10px] uppercase font-bold tracking-wider transition-opacity duration-300 ${
-                              isDisabled ? 'opacity-40' : 'opacity-100'
-                           }`}
-                        >
-                           {method.label}
-                        </span>
-                     </button>
-                  );
-               })}
+         <div className="px-5 pb-2 pt-5 flex flex-col gap-4">
+            {/* SELECT CON ESTILO SÓLIDO/ACTIVO */}
+            <div>
+               <CustomSelect
+                  value=""
+                  onChange={handleAddPayment}
+                  options={availableOptions}
+                  placeholder={
+                     availableOptions.length > 0 ? 'Añadir medio de pago...' : 'No hay más opciones'
+                  }
+                  color="dark"
+               />
             </div>
 
-            {/* Payment Entries - BELOW */}
-            {payments.length > 0 && (
-               <div className="space-y-2">
-                  {payments.map(payment => {
-                     const info = getPaymentMethodInfo(payment.method);
-                     if (!info) return null;
-
-                     const Icon = info.icon;
+            <div className="flex flex-col gap-2">
+               {payments.length > 0 ? (
+                  payments.map(payment => {
+                     const config = METHOD_CONFIG[payment.method] || METHOD_CONFIG.cash;
+                     const Icon = config.icon;
 
                      return (
                         <div
                            key={payment.id}
-                           className={`p-3 rounded-lg border animate-in fade-in slide-in-from-top-2 duration-300 ${info.borderColor} ${info.bgColor} flex flex-col gap-2`}
+                           className={`p-3 rounded-xl border flex flex-col gap-1.5 animate-in fade-in slide-in-from-top-1 duration-200 group transition-colors ${config.bgClass} ${config.borderClass}`}
                         >
                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                 <Icon size={16} className={info.color} />
-                                 <span className={`text-sm font-medium ${info.color}`}>
-                                    {info.label}
+                              <div className={`flex items-center gap-2 ${config.textClass}`}>
+                                 <Icon size={16} />
+                                 <span className="text-xs font-bold tracking-wide uppercase">
+                                    {config.label}
                                  </span>
                               </div>
-                              <button
+                              <Button
+                                 variant="ghost"
+                                 size="icon"
                                  onClick={() => removePayment(payment.id)}
-                                 className="p-1 text-zinc-500 hover:text-red-400 transition-colors"
+                                 className="text-text-dim hover:text-danger-text h-6 w-6 p-0 transition-opacity opacity-60 hover:opacity-100"
                               >
                                  <HiX size={14} />
-                              </button>
+                              </Button>
                            </div>
 
                            <SmartNumberInput
@@ -166,48 +142,45 @@ export const SplitPaymentWidget = ({ total }: PaymentWidgetProps) => {
                               variant="currency"
                               showPrefix={true}
                               placeholder="0"
-                              onKeyDown={e => {
-                                 if (e.key === 'Enter') {
-                                    (e.target as HTMLInputElement).blur();
-                                 }
-                              }}
-                              className="[\u0026\u003einput]:w-full [\u0026\u003einput]:bg-transparent [\u0026\u003einput]:text-right [\u0026\u003einput]:text-xl [\u0026\u003einput]:font-mono [\u0026\u003einput]:font-bold [\u0026\u003einput]:text-white [\u0026\u003einput]:outline-none [\u0026\u003einput]:placeholder:text-zinc-700 [\u0026\u003einput]:border-0 [\u0026\u003einput]:px-2 [\u0026\u003einput]:py-1 [\u0026\u003einput]:focus:ring-0"
+                              className="[&>input]:bg-transparent [&>input]:border-none [&>input]:text-right [&>input]:text-lg [&>input]:font-mono [&>input]:font-black [&>input]:text-text-main [&>input]:p-0 [&>input]:h-auto [&>input]:focus:ring-0 [&>input]:placeholder:text-white/10"
                            />
                         </div>
                      );
-                  })}
-               </div>
-            )}
+                  })
+               ) : (
+                  <div className="flex flex-col items-center justify-center text-text-dim/40 border-2 border-dashed border-border/40 rounded-xl py-6">
+                     <span className="text-xs font-medium uppercase tracking-widest">
+                        Esperando pago
+                     </span>
+                  </div>
+               )}
+            </div>
 
-            {/* Remaining/Complete Indicator */}
-            <div
-               className={`
-                  flex justify-between items-center px-3 py-2.5 rounded-xl border transition-all duration-300
+            {/* Diferencia/Faltante */}
+            {remaining > 0 || change > 0 ? (
+               <div
+                  className={`
+                  flex justify-between items-center px-4 py-3 rounded-xl border transition-all duration-300 shadow-sm
                   ${
                      remaining > 0
-                        ? 'bg-amber-500/10 border-amber-500/30'
-                        : change > 0
-                        ? 'bg-emerald-500/10 border-emerald-500/30'
-                        : 'bg-zinc-500/10 border-zinc-500/30'
+                        ? 'bg-warning-bg/10 border-warning/20'
+                        : 'bg-success-bg/10 border-success/20'
                   }
                `}
-            >
-               <span className="text-xs font-bold text-zinc-400 uppercase tracking-wide">
-                  {remaining > 0 ? 'Faltante' : change > 0 ? 'Cambio' : 'Pago Completo'}
-               </span>
+               >
+                  <span className="text-xs font-bold text-text-muted uppercase tracking-wide">
+                     {remaining > 0 ? 'Faltante' : 'Cambio'}
+                  </span>
 
-               <SmartNumber
-                  value={remaining > 0 ? remaining : change}
-                  variant="currency"
-                  className={`text-2xl font-mono font-bold ${
-                     remaining > 0
-                        ? 'text-amber-400'
-                        : change > 0
-                        ? 'text-emerald-400'
-                        : 'text-zinc-400'
-                  }`}
-               />
-            </div>
+                  <span
+                     className={`text-xl font-mono font-black ${
+                        remaining > 0 ? 'text-warning-text' : 'text-success-text'
+                     }`}
+                  >
+                     $ {new Intl.NumberFormat('es-CO').format(remaining > 0 ? remaining : change)}
+                  </span>
+               </div>
+            ) : null}
          </div>
       </div>
    );

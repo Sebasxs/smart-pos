@@ -97,7 +97,7 @@ export const useInventoryStore = create<InventoryState>()(
 
             // 2. Filter by Type
             if (activeFilter === 'lowStock') {
-               filtered = filtered.filter(p => p.stock <= 5);
+               filtered = filtered.filter(p => p.stock <= 3);
             } else if (activeFilter === 'discounted') {
                filtered = filtered.filter(p => p.discountPercentage > 0);
             }

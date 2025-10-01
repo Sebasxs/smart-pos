@@ -1,13 +1,15 @@
 import { useMemo, useState } from 'react';
-import { HiOutlineComputerDesktop } from 'react-icons/hi2';
+import { HiOutlineUserPlus, HiXMark } from 'react-icons/hi2';
 import { CgSpinner } from 'react-icons/cg';
 
 // Components
+import { PageHeader } from '../components/layout/PageHeader';
 import { InvoiceTable } from '../components/billing/InvoiceTable';
 import { ShiftOpeningScreen } from '../components/billing/ShiftOpeningScreen';
 import { BillingModalsWrapper } from '../components/billing/BillingModalsWrapper';
 import { CheckoutSidebar } from '../components/billing/CheckoutSidebar';
 import { ShortcutLegend } from '../components/billing/ShortcutLegend';
+import { Button } from '../components/ui/Button';
 
 // Stores & Hooks
 import { useBillingStore } from '../store/billingStore';
@@ -17,7 +19,6 @@ import { useBillingModals } from '../hooks/useBillingModals';
 import { useBillingHotkeys } from '../hooks/useBillingHotKeys';
 
 export const Billing = () => {
-   // Global Store
    const {
       items,
       discount,
@@ -34,15 +35,10 @@ export const Billing = () => {
    } = useBillingStore();
 
    const { isOpen, loading: shiftLoading } = useCashShiftStore();
-
-   // Local Hooks
    const { modals, toggleModal } = useBillingModals();
-
-   // Local State
    const [createClientName, setCreateClientName] = useState('');
    const [errorMessage, setErrorMessage] = useState('');
 
-   // Calculations
    const subtotal = useMemo(
       () => items.reduce((acc, item) => acc + item.price * item.quantity, 0),
       [items],
@@ -64,7 +60,6 @@ export const Billing = () => {
    const isPaymentValid =
       items.length > 0 && totalPaid >= total && checkoutData.payments.length > 0;
 
-   // Payment Logic Hook
    const {
       processPayment,
       isProcessing,
@@ -79,8 +74,6 @@ export const Billing = () => {
          toggleModal('error', true);
       },
    });
-
-   // --- Handlers ---
 
    const handleProductSelect = (product: any) => {
       addItem(product);
@@ -128,7 +121,6 @@ export const Billing = () => {
    };
 
    const handleSmartEnter = () => {
-      // Smart enter: add full cash payment or update it automatically
       const { payments } = checkoutData;
       if (payments.length === 0) {
          addPayment('cash', total);
@@ -139,7 +131,6 @@ export const Billing = () => {
       }
    };
 
-   // --- Hotkeys ---
    useBillingHotkeys({
       modals,
       itemsLength: items.length,
@@ -152,14 +143,12 @@ export const Billing = () => {
       onSmartEnter: handleSmartEnter,
    });
 
-   // --- Render ---
-
    if (shiftLoading && !isOpen) {
       return (
-         <div className="flex h-full w-full items-center justify-center bg-zinc-950">
+         <div className="flex h-full w-full items-center justify-center bg-canvas">
             <div className="flex flex-col items-center gap-3">
                <CgSpinner className="h-8 w-8 animate-spin text-blue-500" />
-               <p className="text-sm text-zinc-500 font-medium">Verificando turno de caja...</p>
+               <p className="text-sm text-text-dim font-medium">Verificando turno de caja...</p>
             </div>
          </div>
       );
@@ -170,25 +159,86 @@ export const Billing = () => {
    }
 
    return (
-      <div className="relative w-full flex flex-col gap-4 lg:h-full lg:max-h-screen">
-         {/* HEADER */}
-         <div className="flex flex-col md:flex-row md:items-end justify-between relative">
-            <div className="flex items-center gap-3">
-               <div className="p-3 bg-blue-500/10 rounded-xl text-blue-400">
-                  <HiOutlineComputerDesktop size={24} />
-               </div>
-               <div>
-                  <h1 className="text-2xl font-bold text-white">Facturar</h1>
-                  <p className="text-zinc-400">Punto de venta</p>
+      <div className="flex flex-col w-full h-full bg-canvas overflow-hidden">
+         <PageHeader>
+            {/* Grupo Izquierda crece para empujar la info de sede/caja a la derecha */}
+            <div className="flex-1 flex items-center gap-3 min-w-0">
+               <h1 className="text-xl font-bold text-text-main tracking-tight shrink-0">
+                  Facturar
+               </h1>
+
+               <div className="h-6 w-px bg-border/40 hidden sm:block" />
+
+               {/* Selector de Cliente */}
+               <div className="flex items-center min-w-0">
+                  {!checkoutData.customer.id ? (
+                     <Button
+                        variant="secondary"
+                        onClick={() => toggleModal('clientSearch', true)}
+                        className="flex items-center gap-2 px-3 py-2 bg-surface-highlight/60 hover:bg-surface-active text-text-secondary hover:text-text-main rounded-xl transition-all border-none outline-none group h-auto active:scale-100"
+                     >
+                        <HiOutlineUserPlus
+                           size={18}
+                           className="text-text-dim group-hover:text-primary-text transition-colors"
+                        />
+                        <span className="text-sm font-semibold hidden sm:inline">Cliente</span>
+                     </Button>
+                  ) : (
+                     <div
+                        onClick={() => toggleModal('clientSearch', true)}
+                        className="flex items-center bg-surface-highlight/60 hover:bg-surface-active rounded-xl px-3 py-1.5 gap-3 transition-all cursor-pointer group animate-in fade-in zoom-in duration-300"
+                     >
+                        <div className="flex flex-col leading-tight">
+                           <span className="text-[10px] font-bold text-text-dim uppercase tracking-tighter group-hover:text-primary-text">
+                              Cliente
+                           </span>
+                           <span className="text-sm font-bold text-text-main truncate max-w-[150px]">
+                              {checkoutData.customer.name}
+                           </span>
+                        </div>
+                        <div className="h-6 w-px bg-border/40" />
+                        <div className="flex flex-col leading-tight">
+                           <span className="text-[10px] font-medium text-text-dim uppercase">
+                              ID
+                           </span>
+                           <span className="text-xs font-mono text-text-secondary">
+                              {checkoutData.customer.taxId}
+                           </span>
+                        </div>
+                        <Button
+                           variant="ghost"
+                           size="icon"
+                           onClick={e => {
+                              e.stopPropagation();
+                              resetCustomer();
+                           }}
+                           className="ml-1 h-7 w-7 hover:bg-danger-bg hover:text-danger-text p-0"
+                           title="Quitar cliente"
+                        >
+                           <HiXMark size={16} />
+                        </Button>
+                     </div>
+                  )}
                </div>
             </div>
-         </div>
 
-         {/* MAIN CONTENT */}
-         <div className="flex flex-col lg:flex-row gap-4 lg:flex-1 lg:min-h-0 lg:overflow-hidden pb-2">
-            {/* PRODUCT TABLE */}
-            <div className="h-[500px] lg:h-full flex-1 flex flex-col bg-zinc-900/50 rounded-xl border border-zinc-800 shadow-sm overflow-hidden min-h-0 shrink-0">
-               <div className="flex-1 relative bg-zinc-900/50 h-full min-h-0">
+            <div className="flex items-center gap-3 shrink-0">
+               <div className="hidden lg:flex items-center gap-3">
+                  <span className="text-[10px] bg-surface-highlight/40 text-text-dim px-2.5 py-1.5 rounded-lg font-bold uppercase tracking-widest">
+                     Sede principal
+                  </span>
+                  <span className="text-[10px] bg-surface-highlight/40 text-text-dim px-2.5 py-1.5 rounded-lg font-bold uppercase tracking-widest">
+                     Caja 01
+                  </span>
+               </div>
+            </div>
+         </PageHeader>
+
+         {/* Contenedor principal */}
+         <main className="flex-1 p-4 md:p-6 flex flex-col gap-4 min-h-0 max-w-[1600px] mx-auto w-full">
+            <div className="flex flex-col lg:flex-row gap-4 flex-1 lg:overflow-hidden">
+               {/* Tabla de Productos */}
+               <div className="flex-1 flex flex-col bg-surface rounded-2xl shadow-sm overflow-hidden min-h-0">
                   <InvoiceTable
                      items={items}
                      onUpdateItem={updateItem}
@@ -196,30 +246,24 @@ export const Billing = () => {
                      onAddProductClick={() => toggleModal('productSearch', true)}
                   />
                </div>
+
+               {/* Sidebar de Pago (Sin prop checkoutData) */}
+               <CheckoutSidebar
+                  subtotal={subtotal}
+                  discount={discount}
+                  discountAmount={discountAmount}
+                  total={total}
+                  itemsLength={items.length}
+                  isPaymentValid={isPaymentValid}
+                  isProcessing={isProcessing}
+                  onOpenDiscount={() => toggleModal('discount', true)}
+                  onDiscard={() => toggleModal('discardConfirm', true)}
+                  onProcessPayment={handlePaymentProcess}
+               />
             </div>
+            <ShortcutLegend />
+         </main>
 
-            {/* SIDEBAR COMPONENT */}
-            <CheckoutSidebar
-               checkoutData={checkoutData}
-               subtotal={subtotal}
-               discount={discount}
-               discountAmount={discountAmount}
-               total={total}
-               itemsLength={items.length}
-               isPaymentValid={isPaymentValid}
-               isProcessing={isProcessing}
-               onResetCustomer={resetCustomer}
-               onOpenClientSearch={() => toggleModal('clientSearch', true)}
-               onOpenDiscount={() => toggleModal('discount', true)}
-               onDiscard={() => toggleModal('discardConfirm', true)}
-               onProcessPayment={handlePaymentProcess}
-            />
-         </div>
-
-         {/* LEGEND */}
-         <ShortcutLegend />
-
-         {/* MODALS WRAPPER */}
          <BillingModalsWrapper
             modals={modals}
             toggleModal={toggleModal}

@@ -34,13 +34,10 @@ export const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message }: Con
             </div>
 
             <h3 className="text-xl font-bold mb-2 text-white">{title}</h3>
-            <p className="w-80 text-zinc-400 mb-6">{message}</p>
+            <p className="w-80 text-text-muted mb-6">{message}</p>
 
             <div className="flex gap-3 justify-center">
-               <Button
-                  variant="secondary"
-                  onClick={onClose}
-               >
+               <Button variant="secondary" onClick={onClose}>
                   Cancelar
                </Button>
                <Button

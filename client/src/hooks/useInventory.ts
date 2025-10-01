@@ -8,6 +8,7 @@ export type InventoryFilter = 'all' | 'lowStock' | 'discounted';
 export const useInventory = () => {
    const {
       products,
+      allProducts, // <--- IMPORTANTE: Traemos el listado completo
       isLoading,
       search,
       setSearch,
@@ -39,39 +40,49 @@ export const useInventory = () => {
       }
    };
 
+   // CORRECCIÓN: Calculamos stats sobre 'allProducts' (filtrando solo por búsqueda de texto)
+   // Esto permite que los botones muestren cuántos items hay en cada categoría
+   // independientemente de cuál filtro esté activo visualmente.
    const stats = useMemo(() => {
+      const normalize = (str: string) =>
+         str
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase();
+
+      const term = normalize(search);
+
+      // El "Universo" actual son todos los productos que coinciden con la búsqueda
+      const currentUniverse = allProducts.filter(
+         p =>
+            normalize(p.description).includes(term) ||
+            (p.sku && p.sku.toLowerCase().includes(term)),
+      );
+
       return {
-         totalProducts: products.length,
-         totalValue: products.reduce((acc, curr) => acc + curr.cost * curr.stock, 0),
-         lowStock: products.filter(p => p.stock <= 3).length,
-         outOfStock: products.filter(p => p.stock <= 0).length,
-         discounted: products.filter(p => p.discountPercentage > 0).length,
+         totalProducts: currentUniverse.length,
+         totalValue: currentUniverse.reduce((acc, curr) => acc + curr.cost * curr.stock, 0),
+         // Unificamos criterio de stock crítico a <= 3
+         lowStock: currentUniverse.filter(p => p.stock <= 3).length,
+         outOfStock: currentUniverse.filter(p => p.stock <= 0).length,
+         discounted: currentUniverse.filter(p => p.discountPercentage > 0).length,
          averageDiscount:
-            products.filter(p => p.discountPercentage > 0).length > 0
+            currentUniverse.filter(p => p.discountPercentage > 0).length > 0
                ? Math.round(
-                    products
+                    currentUniverse
                        .filter(p => p.discountPercentage > 0)
                        .reduce((acc, curr) => acc + curr.discountPercentage, 0) /
-                       products.filter(p => p.discountPercentage > 0).length,
+                       currentUniverse.filter(p => p.discountPercentage > 0).length,
                  )
                : 0,
       };
-   }, [products]);
+   }, [allProducts, search]);
 
-   const filteredProducts = useMemo(() => {
-      let result = products;
-
-      if (activeFilter === 'lowStock') {
-         result = result.filter(p => p.stock <= 3);
-      } else if (activeFilter === 'discounted') {
-         result = result.filter(p => p.discountPercentage > 0);
-      }
-
-      return result;
-   }, [products, activeFilter]);
+   // ELIMINADO: const filteredProducts = useMemo(...)
+   // Ya no filtramos localmente porque el Store ya nos entrega 'products' filtrado correctamente.
 
    return {
-      products: filteredProducts,
+      products, // Usamos directamente lo que el store procesó
       isLoading,
       error,
       search,

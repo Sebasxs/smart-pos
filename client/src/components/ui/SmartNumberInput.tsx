@@ -14,6 +14,7 @@ interface SmartNumberInputProps extends Omit<NumericFormatProps, 'value' | 'onVa
    showPrefix?: boolean;
    label?: string;
    error?: string;
+   focusVariant?: 'neutral' | 'primary' | 'none';
 }
 
 export function SmartNumberInput({
@@ -28,6 +29,7 @@ export function SmartNumberInput({
    disabled,
    placeholder,
    showPrefix = true,
+   focusVariant = 'neutral',
    ...props
 }: SmartNumberInputProps) {
    const { preferences } = usePreferencesStore();
@@ -41,14 +43,10 @@ export function SmartNumberInput({
 
    if (variant === 'currency') {
       decimalScale = maxDecimals ?? preferences.currencyDecimalPreference;
-      if (shouldShowPrefix) {
-         prefix = '$ ';
-      }
+      if (shouldShowPrefix) prefix = '$ ';
    } else if (variant === 'quantity') {
       decimalScale = maxDecimals ?? (dianUnitCode ? getDecimalScaleByUnit(dianUnitCode) : 2);
-      if (showPrefix) {
-         prefix = '';
-      }
+      if (showPrefix) prefix = '';
    } else if (variant === 'percentage') {
       decimalScale = maxDecimals ?? 2;
       suffix = ' %';
@@ -57,7 +55,7 @@ export function SmartNumberInput({
    return (
       <div className={twMerge('w-full flex flex-col', className)}>
          {label && (
-            <label className="block text-sm font-medium text-zinc-400 mb-1.5">{label}</label>
+            <label className="block text-sm font-medium text-text-muted mb-1.5">{label}</label>
          )}
          <NumericFormat
             value={value}
@@ -82,16 +80,21 @@ export function SmartNumberInput({
             disabled={disabled}
             placeholder={placeholder}
             className={clsx(
-               'w-full bg-zinc-800/50 border border-zinc-800 text-zinc-200 placeholder:text-zinc-500',
+               // Estilo unificado
+               'w-full bg-surface-highlight border border-border text-text-main placeholder:text-text-dim',
                'rounded-lg px-3 py-2.5 outline-none',
-               'focus:border-blue-500/70 focus:bg-zinc-800',
-               'hover:border-zinc-700 hover:bg-zinc-800',
-               'transition-all text-sm',
-               error && 'border-red-500 focus:ring-red-500',
+
+               // Focus Variant
+               focusVariant === 'neutral' && 'focus:border-border-focus',
+               focusVariant === 'primary' && 'focus:border-primary/50',
+
+               'hover:border-border-hover',
+               'transition-colors text-sm',
+               error && 'border-danger focus:border-danger',
             )}
             {...props}
          />
-         {error && <span className="text-xs text-red-500">{error}</span>}
+         {error && <span className="text-xs text-danger-text mt-1">{error}</span>}
       </div>
    );
 }

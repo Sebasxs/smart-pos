@@ -1,11 +1,18 @@
 import { useState, useRef, useEffect } from 'react';
 import { useInventory } from '../hooks/useInventory';
-import { InventoryHeader } from '../components/inventory/InventoryHeader';
-import { InventoryStats } from '../components/inventory/InventoryStats';
+import { PageHeader } from '../components/layout/PageHeader';
+import { InventoryFilterBar } from '../components/inventory/InventoryFilterBar';
 import { InventoryList } from '../components/inventory/InventoryList';
 import { ProductModal } from '../components/inventory/ProductModal';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
-import { HiOutlineArrowPath, HiOutlineArchiveBox } from 'react-icons/hi2';
+import {
+   HiOutlineArrowPath,
+   HiOutlineMagnifyingGlass,
+   HiOutlineXMark,
+   HiOutlinePlus,
+} from 'react-icons/hi2';
+import { cn } from '../utils/cn';
+import { Button } from '../components/ui/Button';
 
 // Types
 import { type Product } from '../types/inventory';
@@ -34,10 +41,26 @@ export const Inventory = () => {
    const [isRefreshing, setIsRefreshing] = useState(false);
    const touchStartY = useRef(0);
    const containerRef = useRef<HTMLDivElement>(null);
+   const inputRef = useRef<HTMLInputElement>(null);
 
    const PULL_THRESHOLD = 80;
 
-   // Pull to refresh logic
+   // Atajo de teclado
+   useEffect(() => {
+      const handleKeyDown = (e: KeyboardEvent) => {
+         if (
+            (e.ctrlKey && e.key === 'k') ||
+            (e.key === '/' && document.activeElement !== inputRef.current)
+         ) {
+            e.preventDefault();
+            inputRef.current?.focus();
+         }
+      };
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
+   }, []);
+
+   // Pull to refresh
    useEffect(() => {
       const container = containerRef.current;
       if (!container) return;
@@ -47,8 +70,6 @@ export const Inventory = () => {
          const containerRect = container.getBoundingClientRect();
          const relativeY = touch.clientY - containerRect.top;
 
-         // Solo permitir el gesto de refrescar si se inicia en la parte superior (header/stats)
-         // o fuera del área de la lista, para no interferir con el scroll de los productos.
          if (relativeY < 240) {
             touchStartY.current = touch.clientY;
             setIsPulling(true);
@@ -61,13 +82,11 @@ export const Inventory = () => {
          const currentY = e.touches[0].clientY;
          const distance = currentY - touchStartY.current;
 
-         // Solo interceptamos si el movimiento es hacia abajo (pull down)
          if (distance > 0) {
             e.preventDefault();
             const resistedDistance = Math.min(distance * 0.5, PULL_THRESHOLD * 1.5);
             setPullDistance(resistedDistance);
          } else if (distance < -10) {
-            // Si el usuario desliza hacia arriba, cancelamos el modo pulling para permitir scroll normal
             setIsPulling(false);
             setPullDistance(0);
          }
@@ -138,10 +157,9 @@ export const Inventory = () => {
    return (
       <div
          ref={containerRef}
-         className="flex flex-col h-full max-h-screen overflow-hidden relative overscroll-contain"
+         className="flex flex-col h-[100dvh] md:h-full overflow-hidden relative overscroll-contain"
          style={{ touchAction: 'pan-x pan-y' }}
       >
-         {/* Pull-to-refresh indicator */}
          {showPullIndicator && (
             <div
                className="absolute top-4 left-0 right-0 flex justify-center items-center z-50 pointer-events-none"
@@ -150,12 +168,13 @@ export const Inventory = () => {
                   opacity: pullProgress,
                }}
             >
-               <div className="bg-zinc-800/90 backdrop-blur-sm border border-zinc-700 rounded-full p-3 shadow-lg">
+               <div className="bg-surface border border-border rounded-full p-3 shadow-lg ring-1 ring-black/10">
                   <HiOutlineArrowPath
                      size={24}
-                     className={`text-blue-500 ${
-                        isRefreshing || pullProgress >= 1 ? 'animate-spin' : ''
-                     }`}
+                     className={cn(
+                        'text-primary',
+                        isRefreshing || pullProgress >= 1 ? 'animate-spin' : '',
+                     )}
                      style={{
                         transform:
                            !isRefreshing && pullProgress < 1
@@ -167,66 +186,88 @@ export const Inventory = () => {
             </div>
          )}
 
-         {/* CONTENT WRAPPER */}
          <div
-            className="flex flex-col h-full gap-4 transition-transform duration-300 ease-out p-1"
+            className="flex flex-col h-full transition-transform duration-300 ease-out"
             style={{ transform: isPulling ? `translateY(${pullDistance}px)` : undefined }}
          >
-            {/* 1. HEADER ROW: Title + Refresh */}
-            <div className="flex items-center justify-between shrink-0 mb-1">
-               <div className="flex items-center gap-3">
-                  <div className="p-2.5 bg-teal-500/10 rounded-xl text-teal-400 border border-teal-500/20">
-                     <HiOutlineArchiveBox size={22} />
-                  </div>
-                  <div>
-                     <h1 className="text-xl font-bold text-white leading-tight">Inventario</h1>
-                     <p className="text-xs text-zinc-400 font-medium">Gestión de productos</p>
+            <PageHeader>
+               {/* Izquierda: Título (shrink-0 para que no le robe espacio al input) */}
+               <h1 className="hidden lg:block text-xl font-bold text-text-main tracking-tight shrink-0">
+                  Inventario
+               </h1>
+
+               {/* Centro: El "Slot Flexible" que crece */}
+               <div className="flex-1 flex justify-start lg:justify-center min-w-0">
+                  <div className="relative group h-10 w-full lg:max-w-[480px] transition-all duration-300">
+                     <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-primary transition-colors pointer-events-none z-10">
+                        <HiOutlineMagnifyingGlass size={18} />
+                     </div>
+                     <input
+                        ref={inputRef}
+                        value={search}
+                        onChange={e => setSearch(e.target.value)}
+                        placeholder="Buscar producto, SKU..."
+                        className="w-full h-full bg-surface-highlight/40 border border-transparent text-sm text-text-main placeholder:text-text-dim rounded-xl pl-10 pr-10 outline-none transition-all focus:bg-surface-active/60 focus:border-border-focus focus:shadow-sm hover:border-border-hover"
+                     />
+                     {search && (
+                        <Button
+                           variant="ghost"
+                           size="icon"
+                           onClick={() => setSearch('')}
+                           className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7"
+                        >
+                           <HiOutlineXMark size={16} />
+                        </Button>
+                     )}
+                     <div className="absolute right-4 top-1/2 -translate-y-1/2 hidden md:flex items-center gap-1 pointer-events-none opacity-50">
+                        <kbd className="bg-surface-active text-text-muted px-1.5 py-0.5 rounded text-[10px] font-mono border border-border">
+                           ESPACIO
+                        </kbd>
+                     </div>
                   </div>
                </div>
+               <div className="flex items-center gap-2 shrink-0">
+                  <Button
+                     variant="secondary"
+                     size="icon"
+                     onClick={() => refresh()}
+                     className="hidden md:flex h-10 w-10"
+                     title="Actualizar lista"
+                  >
+                     <HiOutlineArrowPath className={cn('w-5 h-5', isLoading && 'animate-spin')} />
+                  </Button>
 
-               <button
-                  onClick={() => refresh()}
-                  className={`
-                     p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all cursor-pointer border border-transparent hover:border-zinc-700
-                     ${isLoading ? 'animate-spin text-blue-400' : ''}
-                  `}
-                  title="Actualizar lista"
-               >
-                  <HiOutlineArrowPath size={20} />
-               </button>
-            </div>
+                  <Button variant="primary" onClick={handleAddClick} className="h-10 px-4">
+                     <HiOutlinePlus size={18} className="block sm:hidden" />
+                     <span className="hidden sm:inline">Nuevo Producto</span>
+                  </Button>
+               </div>
+            </PageHeader>
 
-            {/* 2. STATS / FILTER ROW */}
-            <div className="shrink-0">
-               <InventoryStats
-                  stats={stats}
-                  activeFilter={activeFilter}
-                  onToggleFilter={toggleFilter}
-               />
-            </div>
+            <main className="flex-1 min-h-0 p-4 md:p-6 flex flex-col gap-4 max-w-[1600px] mx-auto w-full">
+               <div className="shrink-0">
+                  <InventoryFilterBar
+                     activeFilter={activeFilter}
+                     onToggleFilter={toggleFilter}
+                     counts={{
+                        total: stats.totalProducts,
+                        lowStock: stats.lowStock,
+                        discounted: stats.discounted,
+                     }}
+                  />
+               </div>
 
-            {/* 3. TOOLBAR ROW */}
-            <div className="shrink-0">
-               <InventoryHeader
-                  search={search}
-                  onSearchChange={setSearch}
-                  onAddClick={handleAddClick}
-               />
-            </div>
-
-            {/* 4. TABLE AREA (Filling remaining space) */}
-            <div className="flex-1 min-h-0 bg-zinc-900/30 border border-zinc-800 rounded-xl overflow-hidden shadow-sm relative">
-               {/* La tabla se mantiene intacta, solo envuelta en el nuevo contenedor */}
-               <InventoryList
-                  products={products}
-                  isLoading={isLoading}
-                  onEdit={handleEditClick}
-                  onDelete={handleDeleteClick}
-               />
-            </div>
+               <div className="flex-1 min-h-0 bg-surface/30 border border-border rounded-xl overflow-hidden shadow-sm relative backdrop-blur-sm">
+                  <InventoryList
+                     products={products}
+                     isLoading={isLoading}
+                     onEdit={handleEditClick}
+                     onDelete={handleDeleteClick}
+                  />
+               </div>
+            </main>
          </div>
 
-         {/* MODALS */}
          <ProductModal
             isOpen={productModalOpen}
             onClose={() => setProductModalOpen(false)}
@@ -238,7 +279,7 @@ export const Inventory = () => {
             onClose={() => setDeleteModalOpen(false)}
             onConfirm={handleConfirmDelete}
             title="¿Eliminar producto?"
-            message={`Estás a punto de eliminar "${productToDelete?.description}".`}
+            message={`Estás a punto de eliminar "${productToDelete?.description}". Esta acción no se puede deshacer.`}
          />
       </div>
    );

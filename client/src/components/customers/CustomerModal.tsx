@@ -10,10 +10,11 @@ import {
 } from 'react-icons/hi2';
 import { DOCUMENT_TYPES } from '../../utils/documentTypes';
 import { CustomerNameAutocomplete } from './CustomerNameAutocomplete';
+import { CustomSelect } from '../ui/CustomSelect';
+import { cn } from '../../utils/cn';
 
 // Types
 import { type Customer } from '../../types/customer';
-import { CustomSelect } from '../ui/CustomSelect';
 
 type CustomerModalProps = {
    isOpen: boolean;
@@ -106,27 +107,21 @@ export const CustomerModal = ({ isOpen, onClose, customerToEdit }: CustomerModal
       <Modal
          isOpen={isOpen}
          onClose={onClose}
-         className={`
-            w-fit max-w-md bg-zinc-950 border shadow-2xl transition-colors duration-500
-            ${
-               justSwitched
-                  ? 'border-blue-500 shadow-blue-900/20'
-                  : 'border-zinc-800/50 shadow-blue-500/10'
-            }
-         `}
+         className={cn(
+            'w-full max-w-md bg-canvas border shadow-2xl transition-all duration-500 rounded-2xl',
+            justSwitched ? 'border-primary shadow-primary/20' : 'border-border shadow-black/50',
+         )}
       >
          <div className="p-6">
             {/* Header */}
-            <div className="flex items-center gap-4 mb-2 pb-4 border-b border-zinc-800/50">
+            <div className="flex items-center gap-4 mb-2 pb-4 border-b border-border/50">
                <div
-                  className={`
-                     w-10 h-10 rounded-xl flex items-center justify-center transition-colors duration-300 shadow-inner
-                     ${
-                        isEditing
-                           ? 'bg-blue-500/10 text-blue-400 shadow-blue-500/20'
-                           : 'bg-indigo-500/10 text-indigo-400 shadow-indigo-500/20'
-                     }
-                  `}
+                  className={cn(
+                     'w-10 h-10 rounded-xl flex items-center justify-center transition-colors duration-300 shadow-inner',
+                     isEditing
+                        ? 'bg-primary-subtle text-primary-text border border-primary/20'
+                        : 'bg-surface-highlight text-text-muted border border-border',
+                  )}
                >
                   {isEditing ? (
                      <HiOutlinePencilSquare size={20} />
@@ -138,12 +133,12 @@ export const CustomerModal = ({ isOpen, onClose, customerToEdit }: CustomerModal
                   <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
                      {isEditing ? 'Editar Cliente' : 'Nuevo Cliente'}
                      {justSwitched && (
-                        <span className="text-[10px] bg-blue-500 text-white px-2 py-0.5 rounded-full animate-in fade-in zoom-in">
+                        <span className="text-[10px] bg-primary text-white px-2 py-0.5 rounded-full animate-in fade-in zoom-in font-bold uppercase">
                            Cargado
                         </span>
                      )}
                   </h2>
-                  <p className="text-zinc-400 text-xs mt-0.5">
+                  <p className="text-text-muted text-xs mt-0.5">
                      {isEditing
                         ? 'Estás modificando un cliente existente'
                         : 'Registra un nuevo cliente en el sistema'}
@@ -153,7 +148,7 @@ export const CustomerModal = ({ isOpen, onClose, customerToEdit }: CustomerModal
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                {error && (
-                  <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 flex items-center gap-2 text-red-400 text-sm">
+                  <div className="bg-danger-bg border border-danger/20 rounded-lg p-3 flex items-center gap-2 text-danger-text text-sm">
                      <HiOutlineExclamationCircle size={18} />
                      <span>{error}</span>
                   </div>
@@ -178,8 +173,8 @@ export const CustomerModal = ({ isOpen, onClose, customerToEdit }: CustomerModal
                {/* 2. Document Type and ID */}
                <div className="grid grid-cols-[auto_1fr] gap-3">
                   <div>
-                     <label className="block text-sm font-medium text-zinc-400 mb-1.5">
-                        Tipo de Documento
+                     <label className="block text-sm font-medium text-text-muted mb-1.5">
+                        Tipo
                      </label>
                      <CustomSelect
                         value={form.document_type}
@@ -243,12 +238,12 @@ export const CustomerModal = ({ isOpen, onClose, customerToEdit }: CustomerModal
                </div>
 
                {/* Footer */}
-               <div className="flex gap-3 justify-end border-t border-zinc-800/50 mt-3 pt-3">
-                  <Button type="button" variant="secondary" onClick={onClose}>
+               <div className="flex gap-3 justify-end border-t border-border/50 mt-3 pt-3">
+                  <Button type="button" variant="outline" onClick={onClose}>
                      Cancelar
                   </Button>
                   <Button type="submit" isLoading={isSubmitting}>
-                     Guardar
+                     {isEditing ? 'Guardar Cambios' : 'Crear Cliente'}
                   </Button>
                </div>
             </form>

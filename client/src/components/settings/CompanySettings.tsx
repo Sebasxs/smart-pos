@@ -37,7 +37,6 @@ export const CompanySettings = () => {
       invoice_footer: '',
    });
 
-   // Verificamos rol estrictamente
    const isSuperAdmin = user?.role === 'super_admin';
 
    useEffect(() => {
@@ -83,23 +82,24 @@ export const CompanySettings = () => {
    };
 
    if (isLoading && !settings)
-      return <div className="p-4 text-zinc-500 animate-pulse">Cargando información...</div>;
+      return <div className="p-8 text-text-dim animate-pulse text-sm">Cargando información...</div>;
 
    return (
       <form
          onSubmit={handleSubmit}
-         className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300"
+         className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-300 max-w-4xl"
       >
-         <div className="flex justify-between items-start">
+         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-               <h2 className="text-xl font-bold text-white mb-1">Datos de la Empresa</h2>
-               <p className="text-zinc-400 text-sm">
+               <h2 className="text-lg font-bold text-text-main mb-1">Datos de la Empresa</h2>
+               <p className="text-text-muted text-sm">
                   Información legal que aparecerá en facturas y reportes.
                </p>
                {!isSuperAdmin && (
-                  <span className="inline-block mt-2 px-2 py-1 bg-amber-500/10 text-amber-400 text-xs rounded border border-amber-500/20">
-                     Solo lectura. Contacta al propietario para editar.
-                  </span>
+                  <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 bg-warning-bg text-warning-text text-xs font-medium rounded-full border border-warning/20">
+                     <HiOutlineExclamationCircle />
+                     <span>Modo lectura. Contacta al propietario para editar.</span>
+                  </div>
                )}
             </div>
             {isSuperAdmin && (
@@ -108,24 +108,23 @@ export const CompanySettings = () => {
                   isLoading={isSaving}
                   disabled={isSaving || saveStatus !== 'idle'}
                   className={cn(
-                     'min-w-[140px] transition-all duration-300',
-                     saveStatus !== 'idle' && 'opacity-100 disabled:opacity-100 text-white',
+                     'min-w-[150px] transition-all duration-300 shadow-lg',
                      saveStatus === 'success' &&
-                        'bg-emerald-500 hover:bg-emerald-500 border-emerald-400 shadow-lg shadow-emerald-500/30',
+                        'bg-success hover:bg-success border-transparent disabled:opacity-100 text-white',
                      saveStatus === 'error' &&
-                        'bg-red-500 hover:bg-red-500 border-red-400 shadow-lg shadow-red-500/30',
+                        'bg-danger hover:bg-danger border-transparent disabled:opacity-100 text-white',
                   )}
                >
                   {saveStatus === 'success' ? (
-                     <>
+                     <div className="flex items-center gap-2">
                         <HiOutlineCheck size={18} />
-                        ¡Guardado!
-                     </>
+                        <span>¡Guardado!</span>
+                     </div>
                   ) : saveStatus === 'error' ? (
-                     <>
+                     <div className="flex items-center gap-2">
                         <HiOutlineExclamationCircle size={18} />
-                        Error
-                     </>
+                        <span>Error</span>
+                     </div>
                   ) : (
                      'Guardar Cambios'
                   )}
@@ -133,99 +132,122 @@ export const CompanySettings = () => {
             )}
          </div>
 
-         <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-6 space-y-6">
-            <div className="flex items-center gap-3 mb-2 pb-4 border-b border-zinc-800">
-               <div className="p-2 bg-indigo-500/10 rounded-lg text-indigo-400">
-                  <HiOutlineBuildingOffice2 size={20} />
+         {/* SECCIÓN FISCAL - SIN BORDE */}
+         <div className="bg-surface rounded-xl shadow-sm overflow-hidden">
+            {/* Header Glassy */}
+            <div className="h-[54px] px-6 bg-surface-highlight/50 backdrop-blur-sm border-b border-border/40 flex items-center gap-3">
+               <div className="p-1.5 bg-info-bg rounded-lg text-info-text border border-info/20">
+                  <HiOutlineBuildingOffice2 size={16} />
                </div>
-               <h3 className="font-medium text-zinc-200">Información Fiscal</h3>
+               <h3 className="text-[10px] font-bold text-text-muted uppercase tracking-wider">
+                  Información Fiscal
+               </h3>
             </div>
 
-            <fieldset
-               disabled={!isSuperAdmin}
-               className="grid md:grid-cols-2 gap-4 disabled:opacity-70"
-            >
-               <div className="md:col-span-2">
+            <div className="p-6">
+               <fieldset
+                  disabled={!isSuperAdmin}
+                  className="grid md:grid-cols-2 gap-x-6 gap-y-5 disabled:opacity-60"
+               >
+                  <div className="md:col-span-2">
+                     <Input
+                        label="Razón Social / Nombre Comercial"
+                        name="company_name"
+                        value={formData.company_name}
+                        onChange={handleChange}
+                        required
+                        className="font-bold text-text-main"
+                     />
+                  </div>
                   <Input
-                     label="Razón Social / Nombre Comercial"
-                     name="company_name"
-                     value={formData.company_name}
+                     label="NIT / Identificación"
+                     name="tax_id"
+                     value={formData.tax_id}
                      onChange={handleChange}
-                     required
+                     placeholder="Ej: 900.123.456-1"
                   />
-               </div>
-               <Input
-                  label="NIT / Identificación"
-                  name="tax_id"
-                  value={formData.tax_id}
-                  onChange={handleChange}
-               />
-               <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-zinc-400">Régimen Tributario</label>
-                  <CustomSelect
-                     value={formData.tax_regime}
-                     onChange={val =>
-                        isSuperAdmin && setFormData(prev => ({ ...prev, tax_regime: val }))
-                     }
-                     options={TAX_REGIMES}
-                     color="indigo"
-                  />
-               </div>
-            </fieldset>
+                  <div className="space-y-1.5">
+                     <label className="text-xs font-bold text-text-muted mb-1.5 uppercase tracking-wide ml-1">
+                        Régimen Tributario
+                     </label>
+                     <CustomSelect
+                        value={formData.tax_regime}
+                        onChange={val =>
+                           isSuperAdmin && setFormData(prev => ({ ...prev, tax_regime: val }))
+                        }
+                        options={TAX_REGIMES}
+                        color="flat"
+                     />
+                  </div>
+               </fieldset>
 
-            <fieldset
-               disabled={!isSuperAdmin}
-               className="grid md:grid-cols-2 gap-4 pt-2 disabled:opacity-70"
-            >
-               <Input
-                  label="Dirección Física"
-                  name="address"
-                  value={formData.address}
-                  onChange={handleChange}
-               />
-               <Input label="Ciudad" name="city" value={formData.city} onChange={handleChange} />
-               <Input
-                  label="Teléfono de Contacto"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-               />
-               <Input
-                  label="Correo Electrónico Público"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  type="email"
-               />
-            </fieldset>
+               <div className="mt-6 pt-6 border-t border-border/40">
+                  <fieldset
+                     disabled={!isSuperAdmin}
+                     className="grid md:grid-cols-2 gap-x-6 gap-y-5 disabled:opacity-60"
+                  >
+                     <Input
+                        label="Dirección Física"
+                        name="address"
+                        value={formData.address}
+                        onChange={handleChange}
+                     />
+                     <Input
+                        label="Ciudad"
+                        name="city"
+                        value={formData.city}
+                        onChange={handleChange}
+                     />
+                     <Input
+                        label="Teléfono de Contacto"
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleChange}
+                     />
+                     <Input
+                        label="Email Público"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        type="email"
+                     />
+                  </fieldset>
+               </div>
+            </div>
          </div>
 
-         {/* SECCIÓN FOOTER / IMPRESIÓN */}
-         <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-6 space-y-4">
-            <div className="flex items-center gap-3 mb-2 pb-4 border-b border-zinc-800">
-               <div className="p-2 bg-blue-500/10 rounded-lg text-blue-400">
-                  <HiOutlinePrinter size={20} />
+         {/* SECCIÓN IMPRESIÓN - SIN BORDE */}
+         <div className="bg-surface rounded-xl shadow-sm overflow-hidden">
+            {/* Header Glassy */}
+            <div className="h-[54px] px-6 bg-surface-highlight/50 backdrop-blur-sm border-b border-border/40 flex items-center gap-3">
+               <div className="p-1.5 bg-primary-subtle rounded-lg text-primary-text border border-primary/20">
+                  <HiOutlinePrinter size={16} />
                </div>
-               <h3 className="font-medium text-zinc-200">Configuración de Ticket</h3>
+               <h3 className="text-[10px] font-bold text-text-muted uppercase tracking-wider">
+                  Configuración de Ticket
+               </h3>
             </div>
 
-            <fieldset disabled={!isSuperAdmin} className="space-y-2 disabled:opacity-70">
-               <label className="block text-sm font-medium text-zinc-400 mb-1.5">
-                  Mensaje al pie de Factura
-               </label>
-               <textarea
-                  name="invoice_footer"
-                  value={formData.invoice_footer}
-                  onChange={handleChange}
-                  rows={4}
-                  className="w-full bg-zinc-800/50 border border-zinc-800 text-zinc-200 placeholder:text-zinc-600 rounded-lg px-3 py-2.5 outline-none focus:border-blue-500/70 focus:bg-zinc-800 hover:border-zinc-700 transition-all text-sm resize-none"
-                  placeholder={`Ej:\nGracias por su compra.\nNo se hacen devoluciones de dinero.\nHorario: Lunes a Sábado 8am - 6pm`}
-               />
-               <p className="text-xs text-zinc-500">
-                  Puedes usar múltiples líneas. Esta información aparecerá al final de la tirilla de
-                  impresión.
-               </p>
-            </fieldset>
+            <div className="p-6">
+               <fieldset disabled={!isSuperAdmin} className="space-y-3 disabled:opacity-60">
+                  <label className="block text-xs font-bold text-text-muted mb-1.5 uppercase tracking-wide ml-1">
+                     Mensaje al pie de Factura
+                  </label>
+                  <div className="relative">
+                     <textarea
+                        name="invoice_footer"
+                        value={formData.invoice_footer}
+                        onChange={handleChange}
+                        rows={4}
+                        className="w-full bg-surface-highlight/40 border border-transparent hover:border-border-hover text-text-main placeholder:text-text-dim rounded-xl px-4 py-3 outline-none focus:border-border-focus focus:bg-surface-active/60 transition-all text-sm resize-none"
+                        placeholder={`Ej:\nGracias por su compra.\nNo se hacen devoluciones de dinero.\nHorario: Lunes a Sábado 8am - 6pm`}
+                     />
+                     <div className="absolute right-3 bottom-3 text-[10px] text-text-dim font-medium bg-surface/50 px-2 py-1 rounded">
+                        Visible en impresión
+                     </div>
+                  </div>
+               </fieldset>
+            </div>
          </div>
       </form>
    );

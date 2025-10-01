@@ -2,6 +2,7 @@ import React from 'react';
 import { usePreferencesStore } from '../../store/usePreferencesStore';
 import { SmartNumberInput } from '../ui/SmartNumberInput';
 import { HiOutlineCalculator, HiOutlineBanknotes, HiOutlineCurrencyDollar } from 'react-icons/hi2';
+import { cn } from '../../utils/cn';
 
 interface ToggleOption {
    label: string;
@@ -18,7 +19,7 @@ const ToggleSwitch = ({
    onChange: (val: any) => void;
 }) => {
    return (
-      <div className="flex bg-zinc-950 p-1 rounded-lg border border-zinc-800 w-fit shrink-0">
+      <div className="flex bg-surface-highlight/50 p-1 rounded-lg w-fit shrink-0 shadow-inner gap-x-1">
          {options.map(option => {
             const isActive = value === option.value;
             return (
@@ -26,14 +27,12 @@ const ToggleSwitch = ({
                   key={String(option.value)}
                   type="button"
                   onClick={() => onChange(option.value)}
-                  className={`
-                     px-4 py-1.5 text-xs font-medium rounded-md transition-colors duration-200 whitespace-nowrap
-                     ${
-                        isActive
-                           ? 'bg-zinc-700 text-white shadow-sm ring-1 ring-white/5'
-                           : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50'
-                     }
-                  `}
+                  className={cn(
+                     'px-4 py-1.5 text-xs font-bold rounded-md transition-all duration-200 whitespace-nowrap cursor-pointer',
+                     isActive
+                        ? 'bg-surface-active text-text-main shadow-sm ring-1 ring-white/5'
+                        : 'text-text-dim hover:text-text-secondary hover:bg-surface-active/50',
+                  )}
                >
                   {option.label}
                </button>
@@ -57,10 +56,14 @@ const PreferenceRow = ({
    children: React.ReactNode;
 }) => {
    return (
-      <div className="flex items-start gap-4">
+      // SIN BORDE
+      <div className="flex items-start gap-5 p-5 bg-surface rounded-xl transition-all hover:bg-surface-highlight/20 shadow-sm">
          {/* Icono */}
          <div
-            className={`p-2.5 bg-zinc-800 rounded-lg border border-zinc-700 shrink-0 ${iconColorClass}`}
+            className={cn(
+               'p-3 rounded-xl border shrink-0 bg-surface-highlight/30 border-transparent',
+               iconColorClass,
+            )}
          >
             <Icon size={22} />
          </div>
@@ -69,8 +72,10 @@ const PreferenceRow = ({
          <div className="flex-1 w-full">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                <div className="max-w-xl">
-                  <h4 className="font-medium text-zinc-200">{title}</h4>
-                  <p className="text-sm text-zinc-500 mt-1 leading-relaxed">{description}</p>
+                  <h4 className="font-bold text-text-main text-sm">{title}</h4>
+                  <p className="text-xs text-text-muted mt-1 leading-relaxed opacity-90">
+                     {description}
+                  </p>
                </div>
 
                {/* Control (Input o Toggle) */}
@@ -85,73 +90,69 @@ export const PersonalSettings = () => {
    const { preferences, setPreference } = usePreferencesStore();
 
    return (
-      <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300 mb-10">
-         {/* HEADER */}
-         <div className="border-b border-zinc-800 pb-4 mb-2">
-            <h2 className="text-lg font-semibold text-white">Preferencias de Usuario</h2>
-            <p className="text-zinc-400 text-sm mt-1">
-               Personaliza cómo interactúas con el punto de venta. Estos ajustes son únicos para ti.
+      <div className="space-y-8 max-w-3xl">
+         <div>
+            <h2 className="text-lg font-bold text-text-main mb-1">Preferencias de Usuario</h2>
+            <p className="text-text-muted text-sm">
+               Personaliza tu experiencia en el punto de venta. Estos ajustes son locales para tu
+               usuario.
             </p>
          </div>
 
          {/* AGILITY */}
-         <section className="space-y-4">
-            <h3 className="text-sm font-medium text-zinc-500 uppercase tracking-wider ml-1">
-               Agilidad
+         <section className="space-y-3">
+            <h3 className="text-[11px] font-bold text-text-dim uppercase tracking-wider ml-1">
+               Caja y Turnos
             </h3>
 
-            <div className="bg-zinc-900/30 border border-zinc-800 rounded-xl p-5 hover:border-zinc-700 transition-colors">
-               <PreferenceRow
-                  icon={HiOutlineBanknotes}
-                  iconColorClass="text-green-400"
-                  title="Base de Efectivo Automática"
-                  description="Al abrir un turno, este valor se llenará automáticamente. Útil si siempre recibes la caja con el mismo monto."
-               >
-                  <div className="w-32 lg:w-40">
-                     <SmartNumberInput
-                        value={preferences.defaultOpeningCash}
-                        onValueChange={val => setPreference('defaultOpeningCash', val || 0)}
-                        variant="currency"
-                        className="[&>input]:bg-zinc-950 [&>input]:border-zinc-800 text-right"
-                        placeholder="0"
-                     />
-                  </div>
-               </PreferenceRow>
-            </div>
+            <PreferenceRow
+               icon={HiOutlineBanknotes}
+               iconColorClass="text-success-text"
+               title="Base de Efectivo Automática"
+               description="Valor sugerido al abrir un nuevo turno de caja. Útil si siempre inicias con el mismo monto fijo."
+            >
+               <div className="w-32 lg:w-40">
+                  <SmartNumberInput
+                     value={preferences.defaultOpeningCash}
+                     onValueChange={val => setPreference('defaultOpeningCash', val || 0)}
+                     variant="currency"
+                     className="[&>input]:text-right [&>input]:font-mono [&>input]:text-text-main"
+                     placeholder="0"
+                  />
+               </div>
+            </PreferenceRow>
          </section>
 
          {/* VISUALIZATION */}
-         <section className="space-y-4">
-            <h3 className="text-sm font-medium text-zinc-500 uppercase tracking-wider ml-1">
+         <section className="space-y-3">
+            <h3 className="text-[11px] font-bold text-text-dim uppercase tracking-wider ml-1">
                Visualización
             </h3>
 
-            <div className="bg-zinc-900/30 border border-zinc-800 rounded-xl p-5 hover:border-zinc-700 transition-colors space-y-6">
+            <div className="space-y-3">
                {/* 1. DECIMALS */}
                <PreferenceRow
                   icon={HiOutlineCalculator}
-                  iconColorClass="text-blue-400"
-                  title="Decimales en Moneda"
-                  description="Define si deseas ver centavos en los precios (ej: $500 vs $500,00)."
+                  iconColorClass="text-primary-text"
+                  title="Precisión Decimal"
+                  description="Controla cuántos decimales se muestran en los precios y totales de la interfaz."
                >
                   <ToggleSwitch
                      value={preferences.currencyDecimalPreference}
                      onChange={val => setPreference('currencyDecimalPreference', val)}
                      options={[
-                        { label: 'Sin Decimales', value: 0 },
-                        { label: 'Con Decimales', value: 2 },
+                        { label: 'Redondeado', value: 0 },
+                        { label: 'Dos decimales', value: 2 },
                      ]}
                   />
                </PreferenceRow>
 
-               <div className="border-t border-zinc-800/50" />
-
                {/* 2. CURRENCY SYMBOL */}
                <PreferenceRow
                   icon={HiOutlineCurrencyDollar}
-                  iconColorClass="text-emerald-400"
-                  title="Símbolo de Moneda ($)"
-                  description="Ocultar el símbolo ayuda a reducir el ruido visual en listas largas o pantallas pequeñas."
+                  iconColorClass="text-warning-text"
+                  title="Símbolo de Moneda"
+                  description="Muestra u oculta el signo '$' en los listados para reducir ruido visual."
                >
                   <ToggleSwitch
                      value={preferences.showCurrencySymbol}

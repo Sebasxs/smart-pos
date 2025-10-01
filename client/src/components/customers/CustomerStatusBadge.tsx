@@ -22,7 +22,8 @@ const getStatus = (customer: Customer): StatusType => {
 const BADGE_STYLES: Record<StatusType, BadgeConfig> = {
    new: {
       label: 'Nuevo',
-      className: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+      // COLOR CORREGIDO: Cyan para match con stat card
+      className: 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20',
    },
    regular: {
       label: 'Regular',
@@ -38,7 +39,7 @@ export const CustomerStatusBadge = ({ customer }: { customer: Customer }) => {
 
    return (
       <span
-         className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-md border ${config.className}`}
+         className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-md ${config.className}`}
       >
          {config.label}
       </span>

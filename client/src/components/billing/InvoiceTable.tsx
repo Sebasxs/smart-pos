@@ -4,6 +4,7 @@ import {
    HiOutlineExclamationTriangle,
    HiOutlinePlus,
 } from 'react-icons/hi2';
+import { Button } from '../ui/Button';
 import { QuantitySelector } from '../ui/QuantitySelector';
 import { SmartNumberInput } from '../ui/SmartNumberInput';
 import { SmartNumber } from '../ui/SmartNumber';
@@ -31,25 +32,25 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
    const isModified = item.isPriceEdited || item.isDescriptionEdited;
    const isOverStock = item.quantity > item.stock;
 
-   let rowStyle = 'bg-transparent hover:bg-zinc-800/30';
+   let rowStyle = 'bg-transparent hover:bg-surface-highlight/30 text-text-secondary';
    let indicatorColor = 'bg-transparent';
 
    if (isOverStock) {
-      rowStyle = 'bg-amber-500/[0.02] hover:bg-amber-500/[0.05]';
-      indicatorColor = 'bg-amber-500/50';
+      rowStyle = 'bg-warning-bg/30 hover:bg-warning-bg/50 text-text-main';
+      indicatorColor = 'bg-warning';
    } else if (isModified) {
-      rowStyle = 'bg-indigo-500/[0.04] hover:bg-indigo-500/[0.08]';
-      indicatorColor = 'bg-indigo-500';
+      rowStyle = 'bg-info-bg/30 hover:bg-info-bg/50 text-text-main';
+      indicatorColor = 'bg-info';
    } else if (hasInventoryDiscount) {
-      rowStyle = 'bg-emerald-500/[0.04] hover:bg-emerald-500/[0.08]';
-      indicatorColor = 'bg-emerald-500';
+      rowStyle = 'bg-success-bg/30 hover:bg-success-bg/50 text-text-main';
+      indicatorColor = 'bg-success';
    }
 
    return (
       <div
          className={`
             ${GRID_LAYOUT} 
-            group relative px-6 py-2 border-b border-zinc-800/50 transition-all duration-200
+            group relative px-6 py-2.5 border-b border-border/30 transition-all duration-200
             ${rowStyle}
          `}
       >
@@ -65,28 +66,28 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
                   type="text"
                   value={item.description}
                   onChange={e => onUpdate(item.id, { description: e.target.value })}
-                  className="w-full bg-transparent border-b border-transparent focus:border-indigo-500 pb-0.5 outline-none truncate transition-colors duration-200 font-medium text-[14px] tracking-wide placeholder:text-zinc-600 text-zinc-100 capitalize"
+                  className="w-full bg-transparent border-b border-transparent focus:border-primary/50 pb-0.5 outline-none truncate transition-colors duration-200 font-medium text-[14px] tracking-wide placeholder:text-text-dim text-inherit capitalize"
                />
                {isOverStock && (
                   <div
-                     title={`Stock insuficiente:  ${item.stock}`}
-                     className="text-amber-500 shrink-0 cursor-help"
+                     title={`Stock insuficiente: ${item.stock}`}
+                     className="text-warning shrink-0 cursor-help"
                   >
-                     <HiOutlineExclamationTriangle size={14} />
+                     <HiOutlineExclamationTriangle size={16} />
                   </div>
                )}
             </div>
 
             {(isModified || hasInventoryDiscount) && (
-               <div className="flex items-center gap-2 mt-0.5 h-4">
+               <div className="flex items-center gap-2 mt-1 h-4">
                   {isModified && (
-                     <div className="flex items-center gap-1 text-[9px] px-1.5 py-px rounded-md font-bold bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 leading-none shrink-0">
+                     <div className="flex items-center gap-1 text-[9px] px-1.5 py-px rounded-md font-bold bg-info-bg border border-info/30 text-info-text leading-none shrink-0">
                         <HiOutlinePencilSquare size={10} />
                         <span>Editado</span>
                      </div>
                   )}
                   {hasInventoryDiscount && !item.isPriceEdited && (
-                     <span className="text-[9px] font-bold text-emerald-500 bg-emerald-500/10 px-1.5 rounded-sm leading-none py-0.5 border border-emerald-500/20">
+                     <span className="text-[9px] font-bold text-success-text bg-success-bg px-1.5 rounded-sm leading-none py-0.5 border border-success/30">
                         -{item.discountPercentage}% Oferta
                      </span>
                   )}
@@ -110,23 +111,15 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
                   className={`
                      w-full
                      [&>input]:text-right [&>input]:bg-transparent [&>input]:py-1 [&>input]:px-0
-                     
-                     /* Reset de estilos del input base */
                      [&>input]:h-auto [&>input]:rounded-none [&>input]:border-0 
                      [&>input]:focus:ring-0 [&>input]:focus:ring-offset-0
-                     
-                     /* Borde inferior interactivo */
                      [&>input]:border-b [&>input]:border-transparent 
-                     
-                     /* Tipografía */
                      [&>input]:outline-none [&>input]:font-mono [&>input]:font-medium [&>input]:tracking-tight 
                      [&>input]:transition-all [&>input]:duration-200
-                     
-                     /* Colores dinámicos */
                      ${
                         hasInventoryDiscount
-                           ? '[&>input]:text-emerald-400 [&>input]:font-bold [&>input]:focus:border-emerald-500'
-                           : '[&>input]:text-zinc-300 [&>input]:text-[14px] [&>input]:focus:border-indigo-500'
+                           ? '[&>input]:text-success-text [&>input]:font-bold [&>input]:focus:border-success'
+                           : '[&>input]:text-text-main [&>input]:text-[14px] [&>input]:focus:border-primary'
                      }
                   `}
                />
@@ -134,7 +127,7 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
 
             {hasInventoryDiscount && !item.isPriceEdited && (
                <div className="flex items-center gap-1 mt-0.5 justify-end w-full">
-                  <span className="text-[10px] text-zinc-500 line-through decoration-zinc-600 font-mono">
+                  <span className="text-[10px] text-text-dim line-through decoration-text-dim/50 font-mono">
                      <SmartNumber value={item.originalPrice} variant="currency" />
                   </span>
                </div>
@@ -154,21 +147,23 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
 
          {/* Subtotal */}
          <div className="flex flex-col items-end w-full">
-            <span className="font-bold text-white tracking-tight text-[15px] font-mono tabular-nums">
+            <span className="font-bold text-text-main tracking-tight text-[15px] font-mono tabular-nums">
                <SmartNumber value={item.quantity * item.price} variant="currency" />
             </span>
          </div>
 
          {/* Actions */}
          <div className="flex justify-end opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-            <button
+            <Button
+               variant="ghost"
+               size="icon"
                onClick={() => onRemove(item.id)}
-               className="p-1.5 text-zinc-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all duration-200 cursor-pointer active:scale-95"
+               className="h-7 w-7 text-text-dim hover:text-danger-text hover:bg-danger-bg p-0"
                title="Eliminar producto"
                tabIndex={-1}
             >
                <HiOutlineTrash size={16} />
-            </button>
+            </Button>
          </div>
       </div>
    );
@@ -209,16 +204,23 @@ export const InvoiceTable = ({
    const isEmptyList = items.length === 0;
 
    return (
-      <div className="flex flex-col h-full bg-zinc-950/50 overflow-hidden rounded-xl">
+      <div className="flex flex-col h-full bg-surface rounded-xl shadow-sm overflow-hidden">
          <div
             ref={scrollContainerRef}
             className={`flex-1 custom-scrollbar relative ${
                isEmptyList ? 'overflow-hidden' : 'overflow-auto'
             }`}
          >
-            <div className="min-w-[640px] flex flex-col min-h-full">
+            <div className="min-w-[640px] flex flex-col min-h-0">
                <div
-                  className={`sticky top-0 z-20 ${GRID_LAYOUT} py-2 px-6 mb-0 text-[10px] font-bold text-zinc-500 uppercase tracking-wider border-b border-zinc-800 bg-zinc-900/95 backdrop-blur-sm shrink-0 select-none shadow-sm`}
+                  className={`
+                     sticky top-0 z-20 ${GRID_LAYOUT} 
+                     py-4 px-6 mb-0 
+                     bg-surface-highlight/50 backdrop-blur-sm
+                     text-[10px] font-bold text-text-muted uppercase tracking-wider 
+                     border-b border-border/40 
+                     shrink-0 select-none shadow-sm
+                  `}
                >
                   <div className="pl-2">Producto</div>
                   <div className="text-right">Valor Und.</div>
@@ -227,7 +229,7 @@ export const InvoiceTable = ({
                   <div></div>
                </div>
 
-               <div className="flex flex-col flex-1 pb-2">
+               <div className="flex flex-col flex-1 pb-2 bg-surface">
                   {items.map(item => (
                      <InvoiceItemRow
                         key={item.id}
@@ -238,59 +240,36 @@ export const InvoiceTable = ({
                   ))}
 
                   <div
-                     className="sticky left-0 z-10 max-w-full overflow-hidden self-start transition-[width] duration-100 ease-linear"
+                     className="sticky left-0 z-10 max-w-full overflow-hidden self-start mt-auto pb-4"
                      style={{ width: 'var(--sticky-width, 100vw)' }}
                   >
                      <div className="px-6 py-4">
-                        <div
+                        <Button
+                           variant="ghost"
                            onClick={onAddProductClick}
                            className={`
-                              group cursor-pointer w-full py-3 rounded-lg
-                              border-2 border-dashed border-blue-500/30 
-                              bg-blue-500/5 hover:bg-blue-500/10 
-                              text-blue-400 hover:text-blue-300
-                              flex items-center justify-center gap-2 
-                              transition-all duration-200
-                              font-medium text-sm
-                           `}
+                               group cursor-pointer w-full py-5 rounded-xl block h-auto
+                               border border-dashed border-primary/30 
+                               bg-primary-subtle/30 hover:bg-primary-subtle 
+                               text-primary-text hover:text-primary-hover
+                               flex items-center justify-center gap-2 
+                               transition-all duration-200
+                               font-medium text-sm active:scale-100
+                            `}
                         >
                            <HiOutlinePlus
                               size={16}
                               className="group-hover:scale-110 transition-transform"
                            />
                            <span>Nuevo producto</span>
-                           <span className="hidden sm:inline-block text-[10px] opacity-50 ml-2 font-mono border border-blue-500/30 px-1 rounded">
+                           <span className="hidden sm:inline-block text-[10px] opacity-70 ml-2 font-mono border border-primary/30 px-1 rounded bg-primary/10">
                               ESPACIO
                            </span>
-                        </div>
+                        </Button>
                      </div>
                   </div>
                </div>
             </div>
-
-            {isEmptyList && (
-               <div
-                  className="
-               absolute top-16 bottom-[120px] left-0 right-0
-               hidden lg:flex flex-col items-center justify-start
-               min-h-full overflow-hidden
-               mt-[20vh]
-               text-zinc-600 pointer-events-none"
-               >
-                  <div className="relative">
-                     <div className="absolute inset-0 bg-indigo-500/20 blur-xl rounded-full opacity-20" />
-                     <div className="relative bg-zinc-900/50 p-6 rounded-3xl border border-zinc-800/70 mb-4 shadow-xl">
-                        <HiOutlinePencilSquare size={32} className="text-zinc-700" />
-                     </div>
-                  </div>
-                  <p className="text-zinc-500 font-bold mb-1 text-lg">Factura Nueva</p>
-                  <p className="text-zinc-600 text-sm mb-6">Comienza agregando productos arriba</p>
-                  <span className="text-xs bg-zinc-900/80 px-4 py-2 rounded-full border border-zinc-800/70 text-zinc-600 shadow-sm">
-                     Presiona <kbd className="font-bold text-zinc-500 font-sans mx-1">ESPACIO</kbd>{' '}
-                     para buscar
-                  </span>
-               </div>
-            )}
          </div>
       </div>
    );

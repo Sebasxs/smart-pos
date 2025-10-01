@@ -1,6 +1,9 @@
 import { useEffect, useRef } from 'react';
 import { HiOutlineMinus, HiOutlinePlus } from 'react-icons/hi2';
 import { SmartNumberInput } from './SmartNumberInput';
+import { cn } from '../../utils/cn';
+
+import { Button } from './Button';
 
 type QuantitySelectorProps = {
    value: number;
@@ -48,63 +51,62 @@ export const QuantitySelector = ({
       }, 400);
    };
 
-   const btnBaseClass =
-      'p-1.5 rounded-full transition-colors focus:outline-none text-zinc-400 hover:text-zinc-100 active:bg-zinc-700/50';
-
    const isOverStock = value > stock;
 
    return (
       <div
-         className={`flex items-center justify-center gap-x-0.5 bg-zinc-800/50 rounded-lg p-0.5 border border-zinc-700/50 ${
-            isOverStock ? 'border-amber-500/30 bg-amber-500/5' : ''
-         }`}
+         className={cn(
+            'flex items-center justify-center gap-x-0.5 bg-surface-highlight rounded-lg p-0.5 border border-border-hover/50',
+            isOverStock && 'border-warning/30 bg-warning-bg/10',
+         )}
       >
-         <button
+         <Button
+            variant="ghost"
+            size="icon"
             onMouseDown={() => startAction('dec')}
             onMouseUp={stopAction}
             onMouseLeave={stopAction}
             tabIndex={-1}
             disabled={value <= 1}
-            className={`${btnBaseClass} ${
-               value <= 1
-                  ? 'opacity-30 cursor-not-allowed'
-                  : 'cursor-pointer hover:bg-red-500/20 hover:text-red-400'
-            }`}
+            className={cn(
+               'h-6 w-6 p-0 rounded-full',
+               value <= 1 ? 'opacity-30' : 'hover:bg-danger-bg hover:text-danger-text',
+            )}
             onDragStart={e => e.preventDefault()}
          >
             <HiOutlineMinus size={12} />
-         </button>
+         </Button>
 
          <div className="w-12">
             <SmartNumberInput
                value={value}
                onValueChange={v => {
                   const newValue = v ?? 1;
-                  // Permitimos superar el stock manualmente, no usamos Math.min aquí
                   onQuantityChange(Math.max(1, newValue));
                }}
                variant="quantity"
                dianUnitCode={dianUnitCode}
                showPrefix={false}
-               className={`
-                  [&>input]:w-full [&>input]:text-center [&>input]:bg-transparent [&>input]:border-0 
-                  [&>input]:font-bold [&>input]:h-auto [&>input]:p-0 [&>input]:text-sm [&>input]:focus:ring-0
-                  ${isOverStock ? '[&>input]:text-amber-400' : '[&>input]:text-zinc-200'}
-               `}
+               className={cn(
+                  '[&>input]:w-full [&>input]:text-center [&>input]:bg-transparent [&>input]:border-0',
+                  '[&>input]:font-bold [&>input]:h-auto [&>input]:p-0 [&>input]:text-sm [&>input]:focus:ring-0',
+                  isOverStock ? '[&>input]:text-warning-text' : '[&>input]:text-text-main',
+               )}
             />
          </div>
 
-         <button
+         <Button
+            variant="ghost"
+            size="icon"
             onMouseDown={() => startAction('inc')}
             onMouseUp={stopAction}
             onMouseLeave={stopAction}
             tabIndex={-1}
-            // Eliminado el disabled={value >= stock} para permitir sobreventa
-            className={`${btnBaseClass} cursor-pointer hover:bg-emerald-500/20 hover:text-emerald-400`}
+            className="h-6 w-6 p-0 rounded-full hover:bg-success-bg hover:text-success-text"
             onDragStart={e => e.preventDefault()}
          >
             <HiOutlinePlus size={12} />
-         </button>
+         </Button>
       </div>
    );
 };

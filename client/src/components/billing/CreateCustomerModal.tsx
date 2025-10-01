@@ -9,6 +9,8 @@ import { HiOutlineMail, HiX } from 'react-icons/hi';
 import { CustomSelect } from '../ui/CustomSelect';
 import { DOCUMENT_TYPES } from '../../utils/documentTypes';
 import { useAuthStore } from '../../store/authStore';
+import { Input } from '../ui/Input';
+import { cn } from '../../utils/cn';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -28,39 +30,6 @@ type CreateCustomerModalProps = {
       account_balance: number;
    }) => void;
 };
-
-const FormInput = ({
-   value,
-   onChange,
-   icon: Icon,
-   placeholder,
-   type = 'text',
-   required = false,
-   autoFocus = false,
-}: {
-   value: string;
-   onChange: (val: string) => void;
-   icon: React.ElementType;
-   placeholder: string;
-   type?: string;
-   required?: boolean;
-   autoFocus?: boolean;
-}) => (
-   <div className="relative group w-full">
-      <div className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none transition-colors group-focus-within:text-blue-500/80">
-         <Icon size={18} />
-      </div>
-      <input
-         type={type}
-         value={value}
-         onChange={e => onChange(e.target.value)}
-         placeholder={placeholder}
-         required={required}
-         autoFocus={autoFocus}
-         className="w-full bg-zinc-800/50 hover:bg-zinc-800 focus:bg-zinc-800 border border-zinc-800 focus:border-blue-500/50 rounded-lg py-2.5 text-sm text-zinc-200 placeholder:text-zinc-500 outline-none transition-all duration-200 pl-10 pr-3"
-      />
-   </div>
-);
 
 export const CreateCustomerModal = ({
    isOpen,
@@ -146,140 +115,147 @@ export const CreateCustomerModal = ({
    if (!isOpen) return null;
 
    return (
-      <div className="fixed inset-0 z-[100] flex items-center justify-center">
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
          {/* Backdrop */}
          <div
-            className="absolute inset-0 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
             onClick={handleClose}
          />
 
          {/* Modal */}
-         <div className="relative w-full max-w-2xl mx-4 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl animate-in zoom-in-95 duration-200">
+         <div className="relative w-full max-w-2xl bg-canvas border border-border rounded-2xl shadow-2xl animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-surface rounded-t-2xl shrink-0">
                <div>
                   <h2 className="text-xl font-bold text-white">Agregar Cliente</h2>
-                  <p className="text-sm text-zinc-400 mt-0.5">Complete los datos del cliente</p>
+                  <p className="text-sm text-text-muted mt-0.5">Complete los datos del cliente</p>
                </div>
                <button
                   onClick={handleClose}
-                  className="p-2 text-zinc-500 hover:text-white hover:bg-zinc-800 rounded-lg transition-all cursor-pointer"
+                  className="p-2 text-text-dim hover:text-white hover:bg-surface-highlight rounded-lg transition-all cursor-pointer"
                >
                   <HiX size={20} />
                </button>
             </div>
 
-            {/* Form */}
-            <form onSubmit={handleSubmit} className="p-6">
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Name */}
-                  <div className="md:col-span-2">
-                     <FormInput
-                        value={formData.name}
-                        onChange={val => setFormData(prev => ({ ...prev, name: val }))}
-                        icon={HiOutlineIdentification}
-                        placeholder="Nombre / Razón Social"
-                        required
-                        autoFocus
-                     />
-                  </div>
-
-                  {/* Document Type */}
-                  <div className="relative group">
-                     <div className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none transition-colors group-focus-within:text-blue-500/80 z-10">
-                        <HiOutlineIdentification size={18} />
+            {/* Form Scrollable */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
+               <form id="create-customer-form" onSubmit={handleSubmit} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     {/* Name */}
+                     <div className="md:col-span-2">
+                        <Input
+                           value={formData.name}
+                           onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                           startIcon={<HiOutlineIdentification size={18} />}
+                           placeholder="Nombre / Razón Social"
+                           required
+                           autoFocus
+                        />
                      </div>
-                     <CustomSelect
-                        value={formData.documentType}
-                        onChange={val => setFormData(prev => ({ ...prev, documentType: val }))}
-                        options={DOCUMENT_TYPES.map(({ code, label }) => ({
-                           value: code,
-                           label,
-                        }))}
-                        className="pl-10 border-zinc-800 bg-zinc-800/50 hover:bg-zinc-800 w-full"
-                        color="flat"
-                     />
+
+                     {/* Document Type */}
+                     <div>
+                        <CustomSelect
+                           value={formData.documentType}
+                           onChange={val => setFormData(prev => ({ ...prev, documentType: val }))}
+                           options={DOCUMENT_TYPES.map(({ code, label }) => ({
+                              value: code,
+                              label,
+                           }))}
+                           color="flat"
+                           className="bg-surface-highlight border-border h-[42px]"
+                        />
+                     </div>
+
+                     {/* Tax ID */}
+                     <div>
+                        <Input
+                           value={formData.taxId}
+                           onChange={e => setFormData(prev => ({ ...prev, taxId: e.target.value }))}
+                           startIcon={<HiOutlineIdentification size={18} />}
+                           placeholder="Identificación"
+                           required
+                        />
+                     </div>
+
+                     {/* Email */}
+                     <div className="md:col-span-2">
+                        <Input
+                           value={formData.email}
+                           onChange={e => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                           startIcon={<HiOutlineMail size={18} />}
+                           placeholder="Correo Electrónico"
+                           type="email"
+                           required
+                        />
+                     </div>
+
+                     {/* Phone */}
+                     <div>
+                        <Input
+                           value={formData.phone}
+                           onChange={e => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                           startIcon={<HiOutlinePhone size={18} />}
+                           placeholder="Teléfono"
+                        />
+                     </div>
+
+                     {/* City */}
+                     <div>
+                        <Input
+                           value={formData.city}
+                           onChange={e => setFormData(prev => ({ ...prev, city: e.target.value }))}
+                           startIcon={<HiOutlineMapPin size={18} />}
+                           placeholder="Ciudad / Ubicación"
+                        />
+                     </div>
+
+                     {/* Address */}
+                     <div className="md:col-span-2">
+                        <Input
+                           value={formData.address}
+                           onChange={e =>
+                              setFormData(prev => ({ ...prev, address: e.target.value }))
+                           }
+                           startIcon={<HiOutlineHome size={18} />}
+                           placeholder="Dirección"
+                        />
+                     </div>
                   </div>
 
-                  {/* Tax ID */}
-                  <div>
-                     <FormInput
-                        value={formData.taxId}
-                        onChange={val => setFormData(prev => ({ ...prev, taxId: val }))}
-                        icon={HiOutlineIdentification}
-                        placeholder="Identificación"
-                        required
-                     />
-                  </div>
+                  {/* Error Message */}
+                  {error && (
+                     <div className="p-3 bg-danger-bg border border-danger/20 rounded-lg text-danger-text text-sm animate-in zoom-in duration-200">
+                        {error}
+                     </div>
+                  )}
+               </form>
+            </div>
 
-                  {/* Email */}
-                  <div className="md:col-span-2">
-                     <FormInput
-                        value={formData.email}
-                        onChange={val => setFormData(prev => ({ ...prev, email: val }))}
-                        icon={HiOutlineMail}
-                        placeholder="Correo Electrónico"
-                        type="email"
-                        required
-                     />
-                  </div>
-
-                  {/* Phone */}
-                  <div>
-                     <FormInput
-                        value={formData.phone}
-                        onChange={val => setFormData(prev => ({ ...prev, phone: val }))}
-                        icon={HiOutlinePhone}
-                        placeholder="Teléfono"
-                     />
-                  </div>
-
-                  {/* City */}
-                  <div>
-                     <FormInput
-                        value={formData.city}
-                        onChange={val => setFormData(prev => ({ ...prev, city: val }))}
-                        icon={HiOutlineMapPin}
-                        placeholder="Ciudad / Ubicación"
-                     />
-                  </div>
-
-                  {/* Address */}
-                  <div className="md:col-span-2">
-                     <FormInput
-                        value={formData.address}
-                        onChange={val => setFormData(prev => ({ ...prev, address: val }))}
-                        icon={HiOutlineHome}
-                        placeholder="Dirección"
-                     />
-                  </div>
-               </div>
-
-               {/* Error Message */}
-               {error && (
-                  <div className="mt-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
-                     {error}
-                  </div>
-               )}
-
-               {/* Actions */}
-               <div className="flex gap-3 mt-6">
-                  <button
-                     type="button"
-                     onClick={handleClose}
-                     className="flex-1 px-4 py-2.5 text-sm font-medium text-zinc-400 bg-zinc-800/50 hover:bg-zinc-800 border border-zinc-700 rounded-lg transition-all cursor-pointer"
-                  >
-                     Cancelar
-                  </button>
-                  <button
-                     type="submit"
-                     disabled={isSubmitting || !formData.name.trim()}
-                     className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 disabled:bg-zinc-700 disabled:text-zinc-500 disabled:cursor-not-allowed rounded-lg transition-all cursor-pointer"
-                  >
-                     {isSubmitting ? 'Creando...' : 'Crear Cliente'}
-                  </button>
-               </div>
-            </form>
+            {/* Actions */}
+            <div className="flex gap-3 px-6 py-4 border-t border-border bg-surface rounded-b-2xl shrink-0">
+               <button
+                  type="button"
+                  onClick={handleClose}
+                  className="flex-1 px-4 py-2.5 text-sm font-medium text-text-muted bg-surface-highlight hover:bg-surface-active border border-border hover:border-border-hover rounded-xl transition-all cursor-pointer"
+               >
+                  Cancelar
+               </button>
+               <button
+                  type="submit"
+                  form="create-customer-form"
+                  disabled={isSubmitting || !formData.name.trim()}
+                  className={cn(
+                     'flex-1 px-4 py-2.5 text-sm font-bold text-white rounded-xl transition-all cursor-pointer shadow-lg',
+                     isSubmitting || !formData.name.trim()
+                        ? 'bg-disabled-bg text-disabled-text cursor-not-allowed shadow-none'
+                        : 'bg-primary hover:bg-primary-hover shadow-primary/20',
+                  )}
+               >
+                  {isSubmitting ? 'Guardando...' : 'Crear Cliente'}
+               </button>
+            </div>
          </div>
       </div>
    );

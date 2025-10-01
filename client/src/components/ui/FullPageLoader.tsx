@@ -6,11 +6,26 @@ type FullPageLoaderProps = {
 
 export const FullPageLoader = ({ message = 'Cargando sistema...' }: FullPageLoaderProps) => {
    return (
-      <div className="fixed inset-0 z-50 bg-zinc-950 flex flex-col items-center justify-center gap-4 animate-in fade-in duration-300">
-         <div className="w-16 h-16 bg-blue-600/20 rounded-2xl flex items-center justify-center border border-blue-500/20 shadow-lg shadow-blue-900/10">
-            <CgSpinner className="w-8 h-8 text-blue-500 animate-spin" />
+      <div className="fixed inset-0 z-50 bg-canvas flex flex-col items-center justify-center gap-5 animate-in fade-in duration-300">
+         <div className="relative">
+            {/* Efecto de brillo detrás del spinner */}
+            <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full" />
+
+            <div className="relative w-16 h-16 bg-surface-highlight rounded-2xl flex items-center justify-center border border-border shadow-2xl">
+               <CgSpinner className="w-8 h-8 text-primary animate-spin" />
+            </div>
          </div>
-         <p className="text-zinc-500 text-sm font-medium tracking-wide animate-pulse">{message}</p>
+
+         <div className="flex flex-col items-center gap-1">
+            <p className="text-text-main font-medium tracking-wide animate-pulse text-sm">
+               {message}
+            </p>
+            <div className="flex gap-1 mt-1">
+               <span className="w-1.5 h-1.5 rounded-full bg-primary/40 animate-bounce [animation-delay:-0.3s]" />
+               <span className="w-1.5 h-1.5 rounded-full bg-primary/40 animate-bounce [animation-delay:-0.15s]" />
+               <span className="w-1.5 h-1.5 rounded-full bg-primary/40 animate-bounce" />
+            </div>
+         </div>
       </div>
    );
 };

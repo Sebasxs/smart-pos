@@ -1,4 +1,5 @@
 import { HiChevronUp, HiChevronDown } from 'react-icons/hi2';
+import { cn } from '../../utils/cn';
 
 type SortableHeaderProps<T extends string> = {
    label: string;
@@ -30,9 +31,10 @@ export const SortableHeader = <T extends string>({
 
    return (
       <div
-         className={`flex items-center gap-1 transition-colors select-none ${justifyClass} ${
-            canSort ? 'cursor-pointer hover:text-zinc-300' : ''
-         }`}
+         className={cn(
+            `flex items-center gap-1 transition-colors select-none ${justifyClass}`,
+            canSort ? 'cursor-pointer hover:text-text-main group/header' : '',
+         )}
          style={offsetStyle}
          onClick={canSort ? () => onSort(sortKey) : undefined}
       >
@@ -42,15 +44,21 @@ export const SortableHeader = <T extends string>({
                <>
                   <HiChevronUp
                      size={10}
-                     className={`${
-                        isActive && sortDirection === 'asc' ? 'text-blue-400' : 'text-zinc-700'
-                     }`}
+                     className={cn(
+                        'transition-colors',
+                        isActive && sortDirection === 'asc'
+                           ? 'text-primary-text'
+                           : 'text-text-dim group-hover/header:text-text-muted',
+                     )}
                   />
                   <HiChevronDown
                      size={10}
-                     className={`${
-                        isActive && sortDirection === 'desc' ? 'text-blue-400' : 'text-zinc-700'
-                     }`}
+                     className={cn(
+                        'transition-colors',
+                        isActive && sortDirection === 'desc'
+                           ? 'text-primary-text'
+                           : 'text-text-dim group-hover/header:text-text-muted',
+                     )}
                      style={{ marginTop: -4 }}
                   />
                </>

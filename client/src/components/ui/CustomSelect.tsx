@@ -8,16 +8,7 @@ type Option = {
    label: string;
 };
 
-type ColorVariant =
-   | 'purple'
-   | 'blue'
-   | 'indigo'
-   | 'emerald'
-   | 'rose'
-   | 'amber'
-   | 'cyan'
-   | 'gray'
-   | 'flat';
+type ColorVariant = 'primary' | 'flat' | 'neutral' | 'dark';
 
 type CustomSelectProps = {
    label?: string;
@@ -30,88 +21,57 @@ type CustomSelectProps = {
    color?: ColorVariant;
 };
 
-const colorStyles: Record<
-   ColorVariant,
-   {
-      border: string;
-      text: string;
-      background: string;
-      shadow: string;
-      optionSelected: string;
-      check: string;
-   }
-> = {
-   purple: {
-      border: 'border-purple-500',
-      text: 'text-purple-400',
-      background: 'bg-gradient-to-r from-purple-600 to-purple-500',
-      shadow: 'shadow-purple-500/20',
-      optionSelected: 'text-purple-300',
-      check: 'text-purple-400',
+type ColorStyle = {
+   activeItemBg: string;
+   activeItemText: string;
+   triggerBg: string;
+   triggerBorder: string;
+   triggerActive: string;
+   triggerText: string;
+   triggerPlaceholder: string;
+   triggerIcon: string;
+};
+
+const colorStyles: Record<ColorVariant, ColorStyle> = {
+   primary: {
+      activeItemBg: 'bg-primary-subtle',
+      activeItemText: 'text-primary-text',
+      triggerBg: 'bg-primary/5 hover:bg-primary/10',
+      triggerBorder: 'border-primary/20 hover:border-primary/40',
+      triggerActive: 'border-primary/50 bg-primary/10 shadow-md shadow-primary/5',
+      triggerText: 'text-primary-text',
+      triggerPlaceholder: 'text-primary-text/40',
+      triggerIcon: 'text-primary-text/60',
    },
-   blue: {
-      border: 'border-blue-500',
-      text: 'text-blue-400',
-      background: 'bg-gradient-to-r from-blue-600 to-blue-500',
-      shadow: 'shadow-blue-500/20',
-      optionSelected: 'text-blue-300',
-      check: 'text-blue-400',
-   },
-   indigo: {
-      border: 'border-indigo-500',
-      text: 'text-indigo-400',
-      background: 'bg-gradient-to-r from-indigo-600 to-indigo-500',
-      shadow: 'shadow-indigo-500/20',
-      optionSelected: 'text-indigo-300',
-      check: 'text-indigo-400',
-   },
-   emerald: {
-      border: 'border-emerald-500',
-      text: 'text-emerald-400',
-      background: 'bg-gradient-to-r from-emerald-600 to-emerald-500',
-      shadow: 'shadow-emerald-500/20',
-      optionSelected: 'text-emerald-300',
-      check: 'text-emerald-400',
-   },
-   rose: {
-      border: 'border-rose-500',
-      text: 'text-rose-400',
-      background: 'bg-gradient-to-r from-rose-600 to-rose-500',
-      shadow: 'shadow-rose-500/20',
-      optionSelected: 'text-rose-300',
-      check: 'text-rose-400',
-   },
-   amber: {
-      border: 'border-amber-500',
-      text: 'text-amber-400',
-      background: 'bg-gradient-to-r from-amber-600 to-amber-500',
-      shadow: 'shadow-amber-500/20',
-      optionSelected: 'text-amber-300',
-      check: 'text-amber-400',
-   },
-   cyan: {
-      border: 'border-cyan-500',
-      text: 'text-cyan-400',
-      background: 'bg-gradient-to-r from-cyan-600 to-cyan-500',
-      shadow: 'shadow-cyan-500/20',
-      optionSelected: 'text-cyan-300',
-      check: 'text-cyan-400',
-   },
-   gray: {
-      border: 'border-zinc-800',
-      text: 'text-zinc-500',
-      background: 'bg-zinc-800',
-      shadow: 'shadow-black/20',
-      optionSelected: 'text-zinc-200',
-      check: 'text-blue-400',
+   neutral: {
+      activeItemBg: 'bg-surface-active',
+      activeItemText: 'text-text-main',
+      triggerBg: 'bg-surface-highlight/40 hover:bg-surface-highlight/70',
+      triggerBorder: 'border-border/40 hover:border-border/60',
+      triggerActive: 'border-border-focus bg-surface-active/60 shadow-md shadow-black/10',
+      triggerText: 'text-text-main',
+      triggerPlaceholder: 'text-text-dim',
+      triggerIcon: 'text-text-muted',
    },
    flat: {
-      border: 'border-zinc-500/70',
-      text: 'text-zinc-400',
-      background: 'bg-zinc-700/50',
-      shadow: '',
-      optionSelected: 'text-zinc-300',
-      check: 'text-blue-400',
+      activeItemBg: 'bg-surface-active',
+      activeItemText: 'text-text-main',
+      triggerBg: 'bg-transparent hover:bg-surface-highlight/30',
+      triggerBorder: 'border-transparent hover:border-border/30',
+      triggerActive: 'border-border/40 bg-surface-highlight/40 shadow-none',
+      triggerText: 'text-text-main',
+      triggerPlaceholder: 'text-text-dim/70',
+      triggerIcon: 'text-text-dim',
+   },
+   dark: {
+      activeItemBg: 'bg-surface-active',
+      activeItemText: 'text-text-main',
+      triggerBg: 'bg-canvas/50 hover:bg-canvas',
+      triggerBorder: 'border-transparent hover:border-border/30',
+      triggerActive: 'border-border/60 bg-canvas shadow-none',
+      triggerText: 'text-white',
+      triggerPlaceholder: 'text-text-secondary/60',
+      triggerIcon: 'text-text-secondary/60',
    },
 };
 
@@ -123,8 +83,9 @@ export const CustomSelect = ({
    placeholder = '-- Seleccionar --',
    className = '',
    containerClassName = '',
-   color = 'blue',
+   color = 'neutral',
 }: CustomSelectProps) => {
+   // ... (Lógica de estado y refs) ...
    const [isOpen, setIsOpen] = useState(false);
    const [highlightedIndex, setHighlightedIndex] = useState(0);
    const containerRef = useRef<HTMLDivElement>(null);
@@ -136,7 +97,7 @@ export const CustomSelect = ({
    const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
 
    const selectedOption = options.find(opt => opt.value === value);
-   const styles = colorStyles[color];
+   const styles = colorStyles[color] || colorStyles.neutral;
 
    useEffect(() => {
       const handleClickOutside = (e: MouseEvent) => {
@@ -144,24 +105,14 @@ export const CustomSelect = ({
             setIsOpen(false);
          }
       };
-
-      const handleWindowBlur = () => {
-         setIsOpen(false);
-      };
-
       if (isOpen) {
          document.addEventListener('click', handleClickOutside);
-         window.addEventListener('blur', handleWindowBlur);
-         return () => {
-            document.removeEventListener('click', handleClickOutside);
-            window.removeEventListener('blur', handleWindowBlur);
-         };
+         return () => document.removeEventListener('click', handleClickOutside);
       }
    }, [isOpen]);
 
    useEffect(() => {
       if (!isOpen) return;
-
       const handleKeyDown = (e: KeyboardEvent) => {
          switch (e.key) {
             case 'Escape':
@@ -186,7 +137,6 @@ export const CustomSelect = ({
                break;
          }
       };
-
       document.addEventListener('keydown', handleKeyDown, true);
       return () => document.removeEventListener('keydown', handleKeyDown, true);
    }, [isOpen, highlightedIndex, options, onChange]);
@@ -196,118 +146,87 @@ export const CustomSelect = ({
          const highlightedElement = scrollContainerRef.current.children[
             highlightedIndex
          ] as HTMLElement;
-         if (highlightedElement) {
+         if (highlightedElement)
             highlightedElement.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-         }
       }
    }, [highlightedIndex, isOpen]);
 
    const handleToggle = () => {
-      if (!isOpen) {
-         if (buttonRef.current) {
-            const rect = buttonRef.current.getBoundingClientRect();
-            const spaceBelow = window.innerHeight - rect.bottom;
-            const spaceAbove = rect.top;
-            const minSpaceNeeded = 200;
-
-            const isUp = spaceBelow < minSpaceNeeded && spaceAbove > spaceBelow;
-
-            setDropdownDir(isUp ? 'up' : 'down');
-            setMaxHeight(Math.min(280, isUp ? spaceAbove - 20 : spaceBelow - 20));
-
-            // Calculate styles for fixed positioning
-            setDropdownStyle({
-               position: 'fixed',
-               left: rect.left,
-               width: rect.width,
-               top: isUp ? 'auto' : rect.bottom,
-               bottom: isUp ? window.innerHeight - rect.top : 'auto',
-               zIndex: 9999, // Ensure it's on top of everything
-            });
-         }
-         const selectedIndex = options.findIndex(opt => opt.value === value);
-         setHighlightedIndex(selectedIndex >= 0 ? selectedIndex : 0);
+      if (!isOpen && buttonRef.current) {
+         const rect = buttonRef.current.getBoundingClientRect();
+         const spaceBelow = window.innerHeight - rect.bottom;
+         const spaceAbove = rect.top;
+         const isUp = spaceBelow < 200 && spaceAbove > spaceBelow;
+         setDropdownDir(isUp ? 'up' : 'down');
+         setMaxHeight(Math.min(280, isUp ? spaceAbove - 20 : spaceBelow - 20));
+         setDropdownStyle({
+            position: 'fixed',
+            left: rect.left,
+            width: rect.width,
+            top: isUp ? 'auto' : rect.bottom,
+            bottom: isUp ? window.innerHeight - rect.top : 'auto',
+            zIndex: 9999,
+         });
       }
       setIsOpen(!isOpen);
    };
 
-   // Close on scroll or resize to prevent detached dropdowns
-   useEffect(() => {
-      if (!isOpen) return;
-      const handleGlobalEvents = (e: Event) => {
-         // Don't close if scrolling inside the dropdown itself
-         if (dropdownRef.current && dropdownRef.current.contains(e.target as Node)) {
-            return;
-         }
-         setIsOpen(false);
-      };
-
-      window.addEventListener('scroll', handleGlobalEvents, true);
-      window.addEventListener('resize', handleGlobalEvents);
-
-      return () => {
-         window.removeEventListener('scroll', handleGlobalEvents, true);
-         window.removeEventListener('resize', handleGlobalEvents);
-      };
-   }, [isOpen]);
-
-   const handleSelect = (optionValue: string) => {
-      onChange(optionValue);
-      setIsOpen(false);
-   };
-
    return (
-      <div className={cn('w-full relative', containerClassName)}>
+      <div className={cn('w-full relative group/select', containerClassName)}>
          {label && (
-            <div className="block text-sm font-medium text-zinc-400 mb-1.5 cursor-default">
+            <div className="block text-xs font-bold text-text-muted mb-1.5 uppercase tracking-wide ml-1 transition-colors group-focus-within/select:text-text-secondary">
                {label}
             </div>
          )}
 
          <div className="relative" ref={containerRef}>
-            {/* Select Button */}
             <button
                ref={buttonRef}
                type="button"
                onClick={handleToggle}
                className={cn(
-                  'w-full min-h-[42px] bg-zinc-800/50 border text-zinc-200 cursor-pointer',
-                  'rounded-xl px-3 py-2 outline-none transition-[color,background-color,border-color,box-shadow] duration-200 text-sm text-left',
-                  'flex items-center relative',
-                  isOpen
-                     ? `${styles.border} focus:${styles.border} ${
-                          dropdownDir === 'down'
-                             ? 'rounded-b-none border-b-transparent'
-                             : 'rounded-t-none border-t-transparent'
-                       }`
-                     : 'border-zinc-800 hover:border-zinc-700',
+                  // BASE
+                  'w-full min-h-[42px] px-4 py-2.5 rounded-xl outline-none transition-all duration-300 text-sm text-left flex items-center justify-between relative font-medium cursor-pointer',
+
+                  // DYNAMIC STYLES FROM colorStyles
+                  styles.triggerBg,
+                  styles.triggerBorder,
+                  'border',
+
+                  // ACTIVE STATE
+                  isOpen && styles.triggerActive,
+
                   className,
                )}
             >
-               <span className={selectedOption && value !== '' ? 'text-zinc-200' : 'text-zinc-400'}>
+               <span
+                  className={cn(
+                     'truncate mr-2 transition-colors duration-300',
+                     selectedOption && value !== ''
+                        ? styles.triggerText
+                        : styles.triggerPlaceholder,
+                  )}
+               >
                   {selectedOption ? selectedOption.label : placeholder}
                </span>
                <HiChevronDown
                   className={cn(
-                     'absolute right-3 transition-transform duration-200',
-                     styles.text,
-                     isOpen && 'rotate-180',
+                     'transition-all duration-300 shrink-0',
+                     styles.triggerIcon,
+                     isOpen && 'rotate-180 brightness-125',
                   )}
-                  size={20}
+                  size={18}
                />
             </button>
 
-            {/* Dropdown Menu - Portaled */}
             {isOpen &&
                createPortal(
                   <div
                      ref={dropdownRef}
                      style={dropdownStyle}
                      className={cn(
-                        'bg-zinc-900 border shadow-2xl shadow-black/50 overflow-hidden animate-in fade-in duration-200',
-                        dropdownDir === 'down'
-                           ? `-mt-[1px] border-x border-b rounded-b-xl ${styles.border}`
-                           : `bottom-full mb-[1px] border-x border-t rounded-t-xl ${styles.border}`,
+                        'bg-surface border border-border/60 overflow-hidden animate-in fade-in duration-200 shadow-2xl rounded-xl backdrop-blur-xl',
+                        dropdownDir === 'up' ? 'mb-1 origin-bottom' : 'mt-1 origin-top',
                      )}
                   >
                      <div
@@ -318,29 +237,26 @@ export const CustomSelect = ({
                         {options.map((option, index) => {
                            const isSelected = option.value === value;
                            const isHighlighted = index === highlightedIndex;
-
                            return (
                               <div
                                  key={option.value}
-                                 onClick={() => handleSelect(option.value)}
+                                 onClick={() => {
+                                    onChange(option.value);
+                                    setIsOpen(false);
+                                 }}
                                  onMouseEnter={() => setHighlightedIndex(index)}
                                  className={cn(
-                                    'px-4 py-2 cursor-pointer transition-all duration-150 flex items-center justify-between',
+                                    'px-4 py-2.5 cursor-pointer transition-colors duration-150 flex items-center justify-between text-sm',
                                     isHighlighted
-                                       ? `${styles.background} text-white font-medium shadow-lg ${styles.shadow}`
-                                       : 'text-zinc-300 hover:bg-zinc-800/50',
+                                       ? `${styles.activeItemBg} ${styles.activeItemText}`
+                                       : 'text-text-secondary hover:bg-surface-highlight/50',
                                     isSelected &&
                                        !isHighlighted &&
-                                       `bg-zinc-800/40 ${styles.optionSelected} font-medium`,
+                                       'text-primary-text font-bold bg-primary/5',
                                  )}
                               >
-                                 <span className="text-sm">{option.label}</span>
-                                 {isSelected && (
-                                    <HiCheck
-                                       className={isHighlighted ? 'text-white' : styles.check}
-                                       size={18}
-                                    />
-                                 )}
+                                 <span>{option.label}</span>
+                                 {isSelected && <HiCheck className="text-primary-text" size={16} />}
                               </div>
                            );
                         })}

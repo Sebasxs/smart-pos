@@ -1,176 +1,117 @@
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react'; // Importamos useRef
 import { NavLink, useLocation } from 'react-router-dom';
-import { createPortal } from 'react-dom';
 import { HiOutlineChevronDown } from 'react-icons/hi2';
 import { type NavGroup } from '../../../config/navigation';
+import { cn } from '../../../utils/cn';
 
 type SidebarGroupProps = {
    group: NavGroup;
-   variant: 'mobile' | 'desktop';
-   isXlScreen: boolean;
+   isCollapsed: boolean;
+   setIsCollapsed: (v: boolean) => void;
    openGroupName: string | null;
    setOpenGroupName: (name: string | null) => void;
 };
 
 export const SidebarGroup = ({
    group,
-   variant,
-   isXlScreen,
+   isCollapsed,
+   setIsCollapsed,
    openGroupName,
    setOpenGroupName,
 }: SidebarGroupProps) => {
    const location = useLocation();
    const isExpanded = openGroupName === group.name;
    const isActiveGroup = group.items.some(item => item.path === location.pathname);
-   const buttonRef = useRef<HTMLButtonElement>(null);
-   const popoverRef = useRef<HTMLDivElement>(null);
-   const [popoverCoords, setPopoverCoords] = useState<{ top: number; left: number } | null>(null);
 
-   const handleToggle = () => setOpenGroupName(isExpanded ? null : group.name);
+   // Ref para rastrear la última ubicación procesada
+   const lastPathname = useRef(location.pathname);
 
-   const handleOpenOnHover = () => {
-      if (isXlScreen) return;
-      if (buttonRef.current) {
-         const rect = buttonRef.current.getBoundingClientRect();
-         setPopoverCoords({ top: rect.top, left: rect.right + 8 });
+   const handleToggle = () => {
+      if (isCollapsed) {
+         setIsCollapsed(false);
+         setOpenGroupName(group.name);
+      } else {
+         setOpenGroupName(isExpanded ? null : group.name);
       }
-      setOpenGroupName(group.name);
-   };
-
-   const handleCloseOnLeave = () => {
-      if (!isXlScreen) setOpenGroupName(null);
    };
 
    useEffect(() => {
-      if (!isExpanded) {
-         setPopoverCoords(null);
-         return;
+      // 1. Si el sidebar está colapsado, no hacemos nada.
+      if (isCollapsed) return;
+
+      // 2. Solo forzamos la apertura si la RUTA ha cambiado
+      // (el usuario navegó) y este grupo es el nuevo dueño de la ruta.
+      if (isActiveGroup && lastPathname.current !== location.pathname) {
+         setOpenGroupName(group.name);
       }
-      const handleKeyDown = (e: KeyboardEvent) => e.key === 'Escape' && setOpenGroupName(null);
-      const handleClickOutside = (e: MouseEvent) => {
-         if (
-            popoverRef.current &&
-            !popoverRef.current.contains(e.target as Node) &&
-            buttonRef.current &&
-            !buttonRef.current.contains(e.target as Node)
-         ) {
-            setOpenGroupName(null);
-         }
-      };
-      document.addEventListener('keydown', handleKeyDown);
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => {
-         document.removeEventListener('keydown', handleKeyDown);
-         document.removeEventListener('mousedown', handleClickOutside);
-      };
-   }, [isExpanded, setOpenGroupName]);
+
+      // Actualizamos el ref siempre
+      lastPathname.current = location.pathname;
+   }, [location.pathname, isCollapsed, isActiveGroup, group.name, setOpenGroupName]);
 
    return (
-      <div
-         className="flex flex-col mx-2 mb-1"
-         onMouseEnter={handleOpenOnHover}
-         onMouseLeave={handleCloseOnLeave}
-      >
+      <div className="flex flex-col mx-2 overflow-hidden">
          <button
-            ref={buttonRef}
             onClick={handleToggle}
-            className={`flex items-center h-11 rounded-xl transition-colors duration-100 w-full relative cursor-pointer ${
+            className={cn(
+               'flex items-center h-9 rounded-lg transition-colors duration-200 w-full relative cursor-pointer overflow-hidden group select-none outline-none',
                isActiveGroup || isExpanded
-                  ? 'text-zinc-200 bg-zinc-900/50'
-                  : 'text-zinc-500 hover:bg-zinc-900 hover:text-zinc-200'
-            }`}
-            title={group.name}
-         >
-            {isActiveGroup && (
-               <div className="absolute left-0 top-2 bottom-2 w-1 bg-blue-500 rounded-r-full xl:hidden" />
+                  ? 'text-text-main'
+                  : 'text-text-muted hover:bg-surface hover:text-text-main',
             )}
-            <div className="w-[56px] min-w-[56px] flex items-center justify-center shrink-0">
+            title={isCollapsed ? group.name : undefined}
+         >
+            <div className="w-[44px] min-w-[44px] flex items-center justify-center shrink-0 z-10">
                {group.icon}
             </div>
-            <div className="whitespace-nowrap overflow-hidden flex-1 flex items-center justify-between pr-3">
-               <span
-                  className={`text-sm font-medium tracking-wide transition-opacity duration-100 ${
-                     variant === 'desktop'
-                        ? 'opacity-0 w-0 xl:w-auto xl:opacity-100'
-                        : 'opacity-100 w-auto'
-                  }`}
-               >
-                  {group.name}
-               </span>
-               <div
-                  className={`transition-transform duration-100 ${
-                     variant === 'desktop'
-                        ? 'opacity-0 w-0 xl:w-auto xl:opacity-100'
-                        : 'opacity-100 w-auto'
-                  } ${isExpanded ? 'rotate-0' : '-rotate-90'}`}
-               >
-                  <HiOutlineChevronDown size={16} />
-               </div>
+
+            <div
+               className={cn(
+                  'flex items-center justify-between whitespace-nowrap overflow-hidden absolute left-[44px] right-0 top-0 bottom-0 pr-2 transition-opacity',
+                  isCollapsed
+                     ? 'opacity-0 duration-300 ease-in-out pointer-events-none'
+                     : 'opacity-100 duration-300 delay-100 ease-in-out',
+               )}
+            >
+               <span className="text-sm font-medium tracking-wide truncate">{group.name}</span>
+               <HiOutlineChevronDown
+                  size={14}
+                  className={cn(
+                     'transition-transform duration-300 text-text-dim shrink-0',
+                     isExpanded ? 'rotate-0' : '-rotate-90',
+                  )}
+               />
             </div>
          </button>
+
          <div
-            className={`overflow-hidden transition-all duration-100 ease-in-out flex flex-col gap-1 ${
-               isExpanded ? 'max-h-[500px] opacity-100 mt-1' : 'max-h-0 opacity-0'
-            } ${variant === 'desktop' ? 'xl:block hidden' : 'block'}`}
-         >
-            {group.items.map(item => (
-               <NavLink
-                  key={item.path}
-                  to={item.path}
-                  className={({ isActive }) =>
-                     `flex items-center h-10 px-3 ml-[40px] rounded-lg transition-all duration-100 ${
-                        isActive
-                           ? 'text-blue-400 bg-blue-500/10 font-medium'
-                           : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800'
-                     }`
-                  }
-               >
-                  <span className="text-sm truncate">{item.name}</span>
-               </NavLink>
-            ))}
-         </div>
-         {variant === 'desktop' &&
-            isExpanded &&
-            popoverCoords &&
-            !isXlScreen &&
-            createPortal(
-               <div
-                  ref={popoverRef}
-                  style={{
-                     position: 'fixed',
-                     top: popoverCoords.top,
-                     left: popoverCoords.left,
-                     zIndex: 60,
-                  }}
-                  className="bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl p-2 w-52 origin-left animate-in fade-in zoom-in-95 duration-100"
-               >
-                  <div className="absolute -left-1.5 top-3.5 w-3 h-3 bg-zinc-900 border-l border-t border-zinc-800 transform rotate-[-45deg] rounded-sm" />
-                  <div className="px-3 py-2 border-b border-zinc-800 mb-2 bg-zinc-900/50 rounded-t-lg">
-                     <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-2">
-                        {group.icon} {group.name}
-                     </span>
-                  </div>
-                  <div className="flex flex-col gap-1">
-                     {group.items.map(item => (
-                        <NavLink
-                           key={item.path}
-                           to={item.path}
-                           onClick={() => setOpenGroupName(null)}
-                           className={({ isActive }) =>
-                              `flex items-center h-10 px-3 rounded-lg transition-all duration-100 ${
-                                 isActive
-                                    ? 'text-blue-400 bg-blue-500/10 font-medium'
-                                    : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800'
-                              }`
-                           }
-                        >
-                           <span className="text-sm">{item.name}</span>
-                        </NavLink>
-                     ))}
-                  </div>
-               </div>,
-               document.body,
+            className={cn(
+               'grid transition-[grid-template-rows] duration-300 ease-in-out overflow-hidden',
+               isExpanded && !isCollapsed
+                  ? 'grid-rows-[1fr] opacity-100 mt-0.5'
+                  : 'grid-rows-[0fr] opacity-0 mt-0',
             )}
+         >
+            <div className="min-h-0 flex flex-col gap-0.5 pl-0">
+               {group.items.map(item => (
+                  <NavLink
+                     key={item.path}
+                     to={item.path}
+                     className={({ isActive }) =>
+                        cn(
+                           'flex items-center h-8 px-3 ml-[44px] rounded-md transition-all duration-200',
+                           isActive
+                              ? 'text-primary-text bg-primary-subtle font-medium shadow-sm'
+                              : 'text-text-muted hover:text-text-main hover:bg-surface',
+                           'text-sm whitespace-nowrap overflow-hidden',
+                        )
+                     }
+                  >
+                     <span className="truncate">{item.name}</span>
+                  </NavLink>
+               ))}
+            </div>
+         </div>
       </div>
    );
 };

@@ -1,25 +1,46 @@
-import { HiOutlineClipboardDocumentList } from 'react-icons/hi2';
+import { HiOutlineSearch } from 'react-icons/hi';
+import { HiOutlineCube } from 'react-icons/hi2';
+import { PageHeader } from '../components/layout/PageHeader';
 
 export const Kardex = () => {
    return (
-      <div className="flex flex-col h-full text-zinc-200">
-         <div className="flex items-center gap-3 mb-6">
-            <div className="p-3 bg-purple-500/10 rounded-xl text-purple-400">
-               <HiOutlineClipboardDocumentList size={24} />
-            </div>
-            <div>
-               <h1 className="text-2xl font-bold text-white">Kardex</h1>
-               <p className="text-zinc-400">Auditoría de movimientos de inventario</p>
-            </div>
-         </div>
+      <div className="flex flex-col h-full w-full bg-canvas overflow-hidden">
+         {/* HEADER */}
+         <PageHeader>
+            <h1 className="text-xl font-bold text-text-main tracking-tight">Kardex</h1>
+         </PageHeader>
 
-         <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-6 max-w-2xl">
-            <h3 className="text-lg font-medium text-white mb-2">Detalles Técnicos</h3>
-            <p className="text-zinc-400 leading-relaxed">
-               Auditoría de <code>inventory_movements</code>. Visualización detallada de todas las
-               entradas y salidas de productos, permitiendo rastrear el historial de stock y costos.
-            </p>
-         </div>
+         {/* CONTENT */}
+         <main className="flex-1 p-4 md:p-6 min-h-0 overflow-y-auto custom-scrollbar flex flex-col gap-4 max-w-[1600px] mx-auto w-full animate-in fade-in duration-300">
+            {/* Search Bar Area */}
+            <div className="bg-surface rounded-2xl p-6 shadow-sm shrink-0">
+               <label className="block text-sm font-medium text-text-secondary mb-3">
+                  Consultar producto
+               </label>
+               <div className="relative group max-w-xl">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-primary transition-colors">
+                     <HiOutlineSearch size={20} />
+                  </div>
+                  <input
+                     type="text"
+                     placeholder="Escribe el nombre o código del producto para ver su historial..."
+                     className="w-full h-12 bg-surface-highlight/40 hover:bg-surface-highlight/60 rounded-xl pl-11 pr-4 text-sm text-text-main placeholder:text-text-dim outline-none focus:bg-surface-active/60 focus:shadow-md transition-all"
+                  />
+               </div>
+            </div>
+
+            {/* Empty State / Results Area */}
+            <div className="flex-1 bg-surface/30 rounded-2xl flex flex-col items-center justify-center p-8 text-center backdrop-blur-sm shadow-sm">
+               <div className="w-16 h-16 bg-surface rounded-full flex items-center justify-center mb-4 text-text-dim shadow-sm">
+                  <HiOutlineCube size={32} />
+               </div>
+               <p className="text-text-secondary font-medium">Esperando consulta...</p>
+               <p className="text-xs text-text-dim mt-1 max-w-xs">
+                  Selecciona un producto arriba para ver todas sus entradas, salidas y el cálculo de
+                  costo promedio ponderado.
+               </p>
+            </div>
+         </main>
       </div>
    );
 };

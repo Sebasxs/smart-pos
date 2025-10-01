@@ -1,6 +1,7 @@
 import { HiOutlineMagnifyingGlass, HiOutlinePlus, HiOutlineXMark } from 'react-icons/hi2';
 import { Button } from '../ui/Button';
 import { useEffect, useRef } from 'react';
+import { cn } from '../../utils/cn';
 
 type CustomerHeaderProps = {
    search: string;
@@ -27,10 +28,10 @@ export const CustomerHeader = ({ search, onSearchChange, onAddClick }: CustomerH
    }, []);
 
    return (
-      <div className="flex gap-3 w-full items-center">
+      <div className="flex flex-col sm:flex-row gap-3 w-full items-center">
          {/* Search Input */}
-         <div className="relative group flex-1 h-12">
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10 text-zinc-500 group-focus-within:text-blue-400 transition-colors pointer-events-none">
+         <div className="relative group w-full sm:flex-1 h-11 sm:h-12">
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10 text-text-muted group-focus-within:text-primary transition-colors pointer-events-none">
                <HiOutlineMagnifyingGlass size={20} />
             </div>
             <input
@@ -38,18 +39,23 @@ export const CustomerHeader = ({ search, onSearchChange, onAddClick }: CustomerH
                value={search}
                onChange={e => onSearchChange(e.target.value)}
                placeholder="Buscar por nombre, documento o email..."
-               className="w-full h-full bg-zinc-900/50 hover:bg-zinc-900 focus:bg-zinc-900 border border-zinc-800 focus:border-blue-500/50 rounded-xl py-2 pl-11 pr-10 text-sm text-zinc-200 placeholder:text-zinc-500 outline-none transition-all duration-200 shadow-sm"
+               className={cn(
+                  'w-full h-full bg-surface border border-border text-sm text-text-main placeholder:text-text-dim rounded-xl',
+                  'pl-11 pr-10 outline-none transition-all duration-200',
+                  'focus:bg-surface-highlight focus:border-border-focus',
+                  'hover:border-border-hover',
+               )}
             />
             {search ? (
                <button
                   onClick={() => onSearchChange('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white bg-zinc-800/50 hover:bg-zinc-700 p-1 rounded-full transition-all cursor-pointer"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-text-dim hover:text-text-main bg-transparent hover:bg-surface-active p-1 rounded-full transition-all cursor-pointer"
                >
-                  <HiOutlineXMark size={14} />
+                  <HiOutlineXMark size={16} />
                </button>
             ) : (
                <div className="absolute right-4 top-1/2 -translate-y-1/2 hidden md:flex items-center gap-1 pointer-events-none opacity-50">
-                  <kbd className="bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded text-[10px] font-mono border border-zinc-700">
+                  <kbd className="bg-surface-active text-text-muted px-1.5 py-0.5 rounded text-[10px] font-mono border border-border">
                      /
                   </kbd>
                </div>
@@ -60,10 +66,10 @@ export const CustomerHeader = ({ search, onSearchChange, onAddClick }: CustomerH
          <Button
             onClick={onAddClick}
             variant="primary"
-            className="h-12 px-6 rounded-xl shadow-lg shadow-blue-900/20 whitespace-nowrap text-sm font-semibold shrink-0"
+            className="w-full sm:w-auto h-11 sm:h-12 px-6 rounded-xl shadow-lg shadow-primary/20 whitespace-nowrap text-sm font-semibold shrink-0"
          >
             <HiOutlinePlus size={20} />
-            <span className="hidden sm:inline">Nuevo Cliente</span>
+            <span className="inline">Nuevo Cliente</span>
          </Button>
       </div>
    );

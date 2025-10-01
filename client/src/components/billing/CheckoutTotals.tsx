@@ -24,55 +24,64 @@ export const CheckoutTotals = ({
    total,
    isPaymentValid,
    isProcessing,
-   onOpenDiscount,
+   onOpenDiscount: onOpenDiscount,
    onDiscard,
    onProcessPayment,
 }: CheckoutTotalsProps) => {
    return (
-      <div className="w-full shrink-0 flex flex-col">
-         <div className="py-3 px-4 border-b border-zinc-800 bg-zinc-800/50 flex justify-between items-center">
-            <h2 className="text-zinc-500 text-[11px] font-bold uppercase tracking-wider">
+      <div className="w-full flex flex-col bg-surface relative">
+         {/* Sombra superior para indicar scroll bajo el contenido */}
+         <div className="absolute top-0 left-0 right-0 h-4 pointer-events-none" />
+
+         {/* Header Estandarizado */}
+         <div className="h-[48px] px-5 bg-surface-highlight/50 backdrop-blur-sm border-b border-border/40 flex justify-between items-center">
+            <h2 className="text-text-muted text-[10px] font-bold uppercase tracking-wider">
                Resumen
             </h2>
-            <button
+            <Button
+               variant="ghost"
+               size="icon"
                onClick={onDiscard}
-               className="text-zinc-600 hover:text-red-400 transition-colors p-1 cursor-pointer"
+               className="h-8 w-8 text-text-dim hover:text-danger-text hover:bg-danger-bg"
                title="Limpiar todo"
             >
                <HiOutlineTrash size={16} />
-            </button>
+            </Button>
          </div>
 
-         <div className="p-5 flex flex-col h-full gap-4">
-            <div className="space-y-3">
+         <div className="px-5 py-5 flex flex-col gap-5">
+            {/* Detalles Numéricos */}
+            <div className="space-y-2.5">
                <div className="flex justify-between items-center text-sm">
-                  <span className="text-zinc-400 font-medium">Subtotal</span>
+                  <span className="text-text-muted font-medium">Subtotal</span>
                   <SmartNumber
                      value={subtotal}
                      variant="currency"
-                     className="font-mono font-medium text-zinc-300"
+                     className="font-mono font-medium text-text-secondary"
                   />
                </div>
 
                <div className="flex justify-between items-center text-sm">
-                  <button
+                  <Button
+                     variant="ghost"
+                     size="sm"
                      onClick={onOpenDiscount}
-                     className="flex items-center gap-1.5 text-blue-400 hover:text-blue-300 transition-colors text-xs font-bold uppercase tracking-wide group cursor-pointer"
+                     className="h-auto p-0 flex items-center gap-1.5 text-primary-text hover:text-primary-hover transition-colors text-xs font-bold uppercase tracking-wide group active:scale-100"
                   >
-                     <HiOutlineTag />
-                     <span className="border-b border-blue-500/30 group-hover:border-blue-400">
+                     <HiOutlineTag size={14} />
+                     <span className="border-b border-dashed border-primary/30 group-hover:border-primary-text">
                         Descuento
                      </span>
-                  </button>
+                  </Button>
                   <div className="flex items-center gap-2">
                      {discount.value > 0 && (
-                        <span className="text-zinc-500 text-md">
-                           ({discount.type === 'percentage' ? `${discount.value}%` : '$'})
+                        <span className="text-text-main text-[10px] font-bold bg-surface-highlight px-1.5 py-0.5 rounded border border-border">
+                           {discount.type === 'percentage' ? `${discount.value}%` : '$'}
                         </span>
                      )}
                      <span
                         className={`font-mono font-medium ${
-                           discountAmount > 0 ? 'text-red-400' : 'text-zinc-500'
+                           discountAmount > 0 ? 'text-danger-text' : 'text-text-dim'
                         }`}
                      >
                         -
@@ -82,9 +91,13 @@ export const CheckoutTotals = ({
                </div>
             </div>
 
-            <div className="mt-auto pt-4 border-t border-zinc-800 border-dashed">
-               <div className="flex justify-between items-end mb-4">
-                  <span className="text-lg font-bold text-zinc-300">Total</span>
+            {/* Divisor */}
+            <div className="border-t border-dashed border-border-hover" />
+
+            {/* Total & Action */}
+            <div className="flex flex-col gap-4">
+               <div className="flex justify-between items-end">
+                  <span className="text-lg font-bold text-text-main pb-1">Total</span>
                   <SmartNumber
                      value={total}
                      variant="currency"
@@ -96,21 +109,16 @@ export const CheckoutTotals = ({
                   onClick={onProcessPayment}
                   disabled={!isPaymentValid || isProcessing}
                   isLoading={isProcessing}
-                  variant={isPaymentValid ? 'primary' : 'disabled'}
-                  className="w-full py-4 text-lg shadow-blue-900/20 mt-5"
+                  variant="primary"
+                  className="w-full py-4 text-lg"
                >
                   {!isProcessing && (
-                     <>
+                     <div className="flex items-center justify-center gap-3">
                         <span>Confirmar Venta</span>
                         {isPaymentValid && (
-                           <HiOutlineCheckCircle
-                              className={`transition-colors ${
-                                 isPaymentValid ? 'text-blue-200' : 'text-zinc-600'
-                              }`}
-                              size={24}
-                           />
+                           <HiOutlineCheckCircle className="text-white/90" size={24} />
                         )}
-                     </>
+                     </div>
                   )}
                </Button>
             </div>

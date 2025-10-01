@@ -1,99 +1,120 @@
-import { useState } from 'react';
-import { HiOutlineUser, HiOutlineBuildingOffice, HiOutlineCog } from 'react-icons/hi2';
-import { HiOutlineReceiptTax } from 'react-icons/hi';
-import { useAuthStore } from '../store/authStore';
+import { useState, useEffect } from 'react';
+import { HiOutlineUser, HiOutlineBuildingOffice2, HiOutlineCog6Tooth } from 'react-icons/hi2';
 import { PersonalSettings } from '../components/settings/PersonalSettings';
 import { CompanySettings } from '../components/settings/CompanySettings';
+import { PageHeader } from '../components/layout/PageHeader';
+import { useAuthStore } from '../store/authStore';
+import { useOrganizationStore } from '../store/organizationStore';
+import { cn } from '../utils/cn';
+import { Button } from '../components/ui/Button';
 
-type TabType = 'personal' | 'company' | 'billing';
-
-const NavButton = ({ active, onClick, icon, label }: any) => (
-   <button
-      onClick={onClick}
-      className={`
-         w-full text-left px-4 py-2.5 rounded-xl flex items-center gap-3 transition-all duration-200 group
-         ${
-            active
-               ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20'
-               : 'text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-200'
-         }
-      `}
-   >
-      <div
-         className={`transition-colors ${
-            active ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-300'
-         }`}
-      >
-         {icon}
-      </div>
-      <span className="font-medium text-sm">{label}</span>
-   </button>
-);
+type Tab = 'personal' | 'company';
 
 export const Settings = () => {
    const { user } = useAuthStore();
+   const { settings, fetchSettings } = useOrganizationStore();
+   const [activeTab, setActiveTab] = useState<Tab>('personal');
+
+   useEffect(() => {
+      fetchSettings();
+   }, []);
+
    const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
-   const [activeTab, setActiveTab] = useState<TabType>('personal');
 
    return (
-      <div className="flex flex-col h-full gap-6 max-w-6xl mx-auto w-full p-2">
-         {/* HEADER */}
-         <div className="flex items-center gap-4 shrink-0 pb-4 border-b border-zinc-800">
-            <div className="w-12 h-12 bg-zinc-800 rounded-2xl flex items-center justify-center text-zinc-400 border border-zinc-700/50 shadow-lg">
-               <HiOutlineCog size={26} />
+      <div className="flex flex-col h-[100dvh] lg:h-full overflow-hidden bg-canvas">
+         {/* HEADER UNIFICADO */}
+         <PageHeader>
+            {/* El grupo del título crece (flex-1) */}
+            <div className="flex-1 flex items-center gap-3 min-w-0">
+               <h1 className="hidden sm:block text-xl font-bold text-text-main tracking-tight">
+                  Configuración
+               </h1>
+
+               {/* Badges de Empresa */}
+               <div className="flex items-center gap-3 bg-surface-highlight/40 px-3 py-1.5 rounded-lg overflow-hidden">
+                  <div className="flex items-center gap-2 text-text-dim font-bold uppercase tracking-widest shrink-0">
+                     <HiOutlineBuildingOffice2 size={16} />
+                     <span className="text-[10px] truncate max-w-[120px]">
+                        {settings?.company_name || 'Empresa'}
+                     </span>
+                  </div>
+                  {settings?.tax_id && (
+                     <div className="flex items-center gap-2 border-l border-border/40 pl-3">
+                        <span className="text-[10px] font-medium text-text-muted/80 tracking-wider">
+                           NIT: {settings.tax_id}
+                        </span>
+                     </div>
+                  )}
+               </div>
             </div>
-            <div>
-               <h1 className="text-2xl font-bold text-white tracking-tight">Configuración</h1>
-               <p className="text-zinc-400 text-sm">
-                  Administra las preferencias generales y de usuario
-               </p>
+
+            {/* Derecha: Indicador de versión */}
+            <div className="hidden sm:flex items-center gap-2 bg-surface-highlight/40 px-3 py-1.5 rounded-lg text-text-dim shrink-0">
+               <HiOutlineCog6Tooth size={16} className="animate-spin-slow" />
+               <span className="text-[10px] font-bold uppercase tracking-widest">Versión v1.0</span>
             </div>
-         </div>
+         </PageHeader>
 
-         <div className="grid grid-cols-1 md:grid-cols-[260px_1fr] gap-8 items-start flex-1 min-h-0">
-            <nav className="flex flex-col gap-2 shrink-0 md:sticky md:top-0 z-10 bg-zinc-950 md:bg-transparent py-2 md:py-0">
-               <p className="px-4 text-[11px] font-bold text-zinc-500 uppercase tracking-wider mb-1 mt-1">
-                  General
-               </p>
+         {/* CONTENEDOR PRINCIPAL CON MÁRGENES ESTÁNDAR */}
+         <main className="flex-1 overflow-y-auto custom-scrollbar p-4 lg:p-6 max-w-[1600px] mx-auto w-full animate-in fade-in duration-300">
+            <div className="flex flex-col lg:flex-row gap-6 h-full min-h-0">
+               {/* SIDEBAR DE NAVEGACIÓN (TABS) */}
+               <div className="w-full lg:w-64 flex flex-row lg:flex-col flex-wrap gap-2 shrink-0">
+                  <Button
+                     variant="ghost"
+                     onClick={() => setActiveTab('personal')}
+                     className={cn(
+                        'flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-sm font-medium text-left group justify-start h-auto active:scale-100 border-none',
+                        activeTab === 'personal'
+                           ? 'bg-surface text-text-main shadow-sm'
+                           : 'text-text-muted hover:text-text-main hover:bg-surface-highlight/50',
+                     )}
+                  >
+                     <HiOutlineUser
+                        size={20}
+                        className={cn(
+                           'transition-colors',
+                           activeTab === 'personal'
+                              ? 'text-primary-text'
+                              : 'text-text-dim group-hover:text-text-secondary',
+                        )}
+                     />
+                     <span>Mis Preferencias</span>
+                  </Button>
 
-               <NavButton
-                  active={activeTab === 'personal'}
-                  onClick={() => setActiveTab('personal')}
-                  icon={<HiOutlineUser size={20} />}
-                  label="Preferencias"
-               />
-
-               {isAdmin && (
-                  <NavButton
-                     active={activeTab === 'company'}
-                     onClick={() => setActiveTab('company')}
-                     icon={<HiOutlineBuildingOffice size={20} />}
-                     label="Empresa"
-                  />
-               )}
-
-               {isAdmin && (
-                  <>
-                     <div className="my-2 border-t border-zinc-800/50 mx-4" />
-                     <p className="px-4 text-[11px] font-bold text-zinc-500 uppercase tracking-wider mb-1">
-                        Facturación
-                     </p>
-                     <button
-                        className="w-full text-left px-4 py-2.5 rounded-xl flex items-center gap-3 text-zinc-500 transition-all cursor-not-allowed opacity-60"
-                        disabled
+                  {isAdmin && (
+                     <Button
+                        variant="ghost"
+                        onClick={() => setActiveTab('company')}
+                        className={cn(
+                           'flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-sm font-medium text-left group justify-start h-auto active:scale-100 border-none',
+                           activeTab === 'company'
+                              ? 'bg-surface text-text-main shadow-sm'
+                              : 'text-text-muted hover:text-text-main hover:bg-surface-highlight/50',
+                        )}
                      >
-                        <HiOutlineReceiptTax size={20} />
-                        <span className="font-medium text-sm">Resoluciones DIAN</span>
-                     </button>
-                  </>
-               )}
-            </nav>
+                        <HiOutlineBuildingOffice2
+                           size={20}
+                           className={cn(
+                              'transition-colors',
+                              activeTab === 'company'
+                                 ? 'text-brand-balances-main'
+                                 : 'text-text-dim group-hover:text-text-secondary',
+                           )}
+                        />
+                        <span>Empresa y Facturación</span>
+                     </Button>
+                  )}
+               </div>
 
-            <div className="flex flex-col min-w-0">
-               {activeTab === 'personal' && <PersonalSettings />}
-               {activeTab === 'company' && isAdmin && <CompanySettings />}
+               {/* ÁREA DE CONTENIDO */}
+               <div className="flex-1 bg-surface/50 rounded-2xl overflow-y-auto custom-scrollbar p-6 lg:p-8 backdrop-blur-sm shadow-sm">
+                  {activeTab === 'personal' && <PersonalSettings />}
+                  {activeTab === 'company' && <CompanySettings />}
+               </div>
             </div>
-         </div>
+         </main>
       </div>
    );
 };

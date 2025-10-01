@@ -1,12 +1,18 @@
 import { type ReactNode } from 'react';
 import {
-   HiOutlineSparkles,
    HiOutlineReceiptPercent,
    HiOutlineLockOpen,
    HiOutlineDocumentText,
    HiOutlineArchiveBox,
    HiOutlineUsers,
+   HiOutlineCurrencyDollar,
+   HiOutlineBookOpen,
+   HiOutlineIdentification,
+   HiOutlineTruck,
+   HiOutlineSparkles,
 } from 'react-icons/hi2';
+
+export type UserRole = 'admin' | 'super_admin' | 'cashier';
 
 export type NavItem = {
    name: string;
@@ -14,68 +20,166 @@ export type NavItem = {
    icon?: ReactNode;
    hoverColor?: string;
    activeColor?: string;
+   roles?: UserRole[];
 };
 
 export type NavGroup = {
    name: string;
    icon: ReactNode;
    items: NavItem[];
+   roles?: UserRole[];
 };
 
 export const NAVIGATION_CONFIG: (NavItem | NavGroup)[] = [
-   // Fixed Items
+   // 1. Core (Dashboard integrado con IA)
    {
-      name: 'IA Assistant',
-      path: '/chat',
-      icon: <HiOutlineSparkles size={22} />,
-      hoverColor: 'hover:bg-purple-500/10 hover:text-purple-400',
-      activeColor: 'bg-purple-500/10 text-zinc-200 ring-purple-500/20',
+      name: 'Dashboard',
+      path: '/dashboard',
+      // Usamos el icono Sparkles para denotar que ahora es "Smart"
+      icon: <HiOutlineSparkles size={20} />,
+      // Colores actualizados a la paleta Violeta/Índigo (Brand Dashboard/Copilot)
+      hoverColor: 'hover:bg-brand-dashboard-bg hover:text-brand-dashboard-main',
+      activeColor: 'bg-brand-dashboard-bg text-text-main ring-1 ring-brand-dashboard-border',
+      roles: ['admin', 'super_admin', 'cashier'],
    },
+
+   // 2. Point of Sale (Daily Operations)
    {
       name: 'Facturar',
       path: '/billing',
-      icon: <HiOutlineReceiptPercent size={22} />,
-      hoverColor: 'hover:bg-blue-500/10 hover:text-blue-400',
-      activeColor: 'bg-blue-500/10 text-zinc-200 ring-blue-500/20',
+      icon: <HiOutlineReceiptPercent size={20} />,
+      hoverColor: 'hover:bg-primary-subtle hover:text-primary-text',
+      activeColor: 'bg-primary-subtle text-text-main ring-1 ring-primary/20',
+      roles: ['admin', 'super_admin', 'cashier'],
    },
    {
-      name: 'Turno Caja',
+      name: 'Turno de caja',
       path: '/shift',
-      icon: <HiOutlineLockOpen size={22} />,
-      hoverColor: 'hover:bg-green-500/10 hover:text-green-400',
-      activeColor: 'bg-green-500/10 text-zinc-200 ring-green-500/20',
+      icon: <HiOutlineLockOpen size={20} />,
+      hoverColor: 'hover:bg-success-bg hover:text-success-text',
+      activeColor: 'bg-success-bg text-text-main ring-1 ring-success/20',
+      roles: ['admin', 'super_admin', 'cashier'],
    },
 
-   // Operations
+   // 3. Management Modules
    {
       name: 'Operaciones',
-      icon: <HiOutlineDocumentText size={22} />,
+      icon: <HiOutlineDocumentText size={20} />,
+      roles: ['admin', 'super_admin', 'cashier'],
       items: [
-         { name: 'Historial Ventas', path: '/sales' },
-         { name: 'Devoluciones', path: '/credit-notes' },
-         { name: 'Garantías', path: '/warranties' },
+         {
+            name: 'Historial de ventas',
+            path: '/sales',
+            roles: ['admin', 'super_admin', 'cashier'],
+         },
+         {
+            name: 'Cotizaciones',
+            path: '/quotes',
+            hoverColor: 'hover:text-brand-quotes-main',
+            activeColor: 'bg-brand-quotes-bg text-brand-quotes-main',
+            roles: ['admin', 'super_admin'],
+         },
+         {
+            name: 'Devoluciones',
+            path: '/credit-notes',
+            hoverColor: 'hover:text-brand-credit-main',
+            activeColor: 'bg-brand-credit-bg text-brand-credit-main',
+            roles: ['admin', 'super_admin'],
+         },
+         {
+            name: 'Garantías',
+            path: '/warranties',
+            hoverColor: 'hover:text-brand-warranties-main',
+            activeColor: 'bg-brand-warranties-bg text-brand-warranties-main',
+            roles: ['admin', 'super_admin'],
+         },
       ],
    },
-
-   // Logistics
    {
-      name: 'Logística',
-      icon: <HiOutlineArchiveBox size={22} />,
+      name: 'Inventario',
+      icon: <HiOutlineArchiveBox size={20} />,
+      roles: ['admin', 'super_admin'],
       items: [
-         { name: 'Catálogo', path: '/inventory' },
-         { name: 'Compras', path: '/purchases' },
-         { name: 'Ajustes', path: '/adjustments' },
-         { name: 'Kardex', path: '/kardex' },
+         {
+            name: 'Catálogo',
+            path: '/inventory',
+            roles: ['admin', 'super_admin'],
+         },
+         {
+            name: 'Ajustes',
+            path: '/adjustments',
+            hoverColor: 'hover:text-brand-adjustments-main',
+            activeColor: 'bg-brand-adjustments-bg text-brand-adjustments-main',
+            roles: ['admin', 'super_admin'],
+         },
+         {
+            name: 'Kardex',
+            path: '/kardex',
+            hoverColor: 'hover:text-brand-kardex-main',
+            activeColor: 'bg-brand-kardex-bg text-brand-kardex-main',
+            roles: ['admin', 'super_admin'],
+         },
+      ],
+   },
+   {
+      name: 'Finanzas',
+      icon: <HiOutlineCurrencyDollar size={20} />,
+      roles: ['admin', 'super_admin'],
+      items: [
+         {
+            name: 'Cartera',
+            path: '/balances',
+            hoverColor: 'hover:text-brand-balances-main',
+            activeColor: 'bg-brand-balances-bg text-brand-balances-main',
+            roles: ['admin', 'super_admin'],
+         },
+         {
+            name: 'Gastos',
+            path: '/expenses',
+            hoverColor: 'hover:text-brand-expenses-main',
+            activeColor: 'bg-brand-expenses-bg text-brand-expenses-main',
+            roles: ['admin', 'super_admin'],
+         },
+         {
+            name: 'Compras',
+            path: '/purchases',
+            hoverColor: 'hover:text-brand-purchases-main',
+            activeColor: 'bg-brand-purchases-bg text-brand-purchases-main',
+            roles: ['admin', 'super_admin'],
+         },
       ],
    },
 
-   // Directory
+   // 4. Data & Admin
    {
       name: 'Directorio',
-      icon: <HiOutlineUsers size={22} />,
+      icon: <HiOutlineBookOpen size={20} />,
+      roles: ['admin', 'super_admin'],
       items: [
-         { name: 'Clientes', path: '/customers' },
-         { name: 'Proveedores', path: '/suppliers' },
+         {
+            name: 'Clientes',
+            path: '/customers',
+            icon: <HiOutlineUsers size={18} />,
+            hoverColor: 'hover:text-brand-users-main',
+            activeColor: 'bg-brand-users-bg text-brand-users-main',
+            roles: ['admin', 'super_admin'],
+         },
+         {
+            name: 'Proveedores',
+            path: '/suppliers',
+            icon: <HiOutlineTruck size={18} />,
+            hoverColor: 'hover:text-brand-suppliers-main',
+            activeColor: 'bg-brand-suppliers-bg text-brand-suppliers-main',
+            roles: ['admin', 'super_admin'],
+         },
+         {
+            name: 'Usuarios',
+            path: '/users',
+            icon: <HiOutlineIdentification size={18} />,
+            hoverColor: 'hover:text-primary-hover',
+            activeColor: 'bg-primary-subtle text-primary-text',
+            roles: ['admin', 'super_admin'],
+         },
       ],
    },
 ];

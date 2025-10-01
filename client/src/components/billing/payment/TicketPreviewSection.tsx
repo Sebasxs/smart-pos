@@ -56,15 +56,18 @@ export const TicketPreviewSection = ({
    if (!isVisible) return null;
 
    return (
-      <div className="flex-1 flex flex-col min-h-0 relative border-r border-zinc-800 bg-zinc-950">
-         <div className="sticky top-0 z-20 w-full py-3 bg-zinc-950/95 backdrop-blur border-b border-zinc-900 flex items-center justify-center gap-2 text-zinc-500 text-[10px] font-bold uppercase tracking-widest select-none shadow-sm">
+      <div className="flex-1 flex flex-col min-h-0 relative bg-canvas/50">
+         {/* Header */}
+         <div className="sticky top-0 z-20 w-full py-3 bg-canvas/95 backdrop-blur border-b border-border flex items-center justify-center gap-2 text-text-dim text-[10px] font-bold uppercase tracking-widest select-none shadow-sm">
             <HiOutlinePrinter size={14} />
             <span>VISTA PREVIA</span>
          </div>
+
+         {/* Contenedor del Ticket */}
          <div className="flex-1 overflow-y-auto custom-scrollbar relative" ref={containerRef}>
             <div className="min-h-full flex flex-col items-center justify-center py-8 px-4 w-full">
                <div
-                  className="origin-top transition-transform"
+                  className="origin-top transition-transform shadow-2xl shadow-black/50"
                   style={{
                      width: TICKET_BASE_WIDTH,
                      transform: `scale(${scale})`,

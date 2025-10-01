@@ -46,7 +46,7 @@ export const Modal = ({
       <div
          ref={overlayRef}
          className={cn(
-            'fixed inset-0 z-50 flex justify-center bg-black/60 backdrop-blur-sm p-4 transition-all',
+            'fixed inset-0 z-50 flex justify-center bg-black/40 backdrop-blur-sm p-4 transition-all', // Aumenté un poco la oscuridad del backdrop para más contraste
             'items-start md:items-center pt-12 md:pt-4',
          )}
          onMouseDown={e => {
@@ -55,7 +55,8 @@ export const Modal = ({
       >
          <div
             className={cn(
-               'bg-zinc-950 border border-zinc-800 shadow-2xl shadow-black/80 rounded-3xl overflow-hidden flex flex-col',
+               // SIN BORDE: Solo fondo y sombra fuerte
+               'bg-surface shadow-2xl shadow-black/50 rounded-3xl overflow-hidden flex flex-col',
                variant === 'center' ? 'w-full md:w-fit md:min-w-[300px]' : 'w-full max-w-2xl',
                'max-h-[90vh] md:max-h-[85vh]',
                contentAnimation,

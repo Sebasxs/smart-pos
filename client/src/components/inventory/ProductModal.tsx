@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Modal } from '../ui/Modal';
 import { cn } from '../../utils/cn';
 import { SmartNumberInput } from '../ui/SmartNumberInput';
@@ -42,7 +42,7 @@ const initialForm = {
 };
 
 const UNIT_TYPE_OPTIONS = [
-   { value: 'unit', label: 'Unidad' },
+   { value: 'unit', label: 'Unidad (Und)' },
    { value: 'kg', label: 'Kilogramo (kg)' },
    { value: 'g', label: 'Gramo (g)' },
    { value: 'm', label: 'Metro (m)' },
@@ -62,6 +62,11 @@ export const ProductModal = ({ isOpen, onClose, productToEdit }: ProductModalPro
    const [form, setForm] = useState(initialForm);
    const [isSubmitting, setIsSubmitting] = useState(false);
    const [showAdvanced, setShowAdvanced] = useState(false);
+
+   // Refs para control de scroll preciso
+   const scrollContainerRef = useRef<HTMLDivElement>(null);
+   const toggleButtonRef = useRef<HTMLButtonElement>(null);
+   const advancedSectionRef = useRef<HTMLDivElement>(null);
 
    // Selects data
    const [suppliers, setSuppliers] = useState<{ id: string; name: string }[]>([]);
@@ -110,6 +115,52 @@ export const ProductModal = ({ isOpen, onClose, productToEdit }: ProductModalPro
       setShowAdvanced(false);
    }, [isOpen, productToEdit]);
 
+   // Lógica inteligente de Scroll - SIN RETRASOS
+   useEffect(() => {
+      if (
+         showAdvanced &&
+         advancedSectionRef.current &&
+         scrollContainerRef.current &&
+         toggleButtonRef.current
+      ) {
+         // requestAnimationFrame asegura que el cálculo se hace en el primer frame de renderizado
+         // eliminando el "salto" o pausa visual que causaba el setTimeout.
+         requestAnimationFrame(() => {
+            const container = scrollContainerRef.current!;
+            const section = advancedSectionRef.current!;
+            const button = toggleButtonRef.current!;
+
+            const containerRect = container.getBoundingClientRect();
+            const sectionRect = section.getBoundingClientRect();
+            const buttonRect = button.getBoundingClientRect();
+
+            // 1. ¿Cuánto falta para ver el final de la sección + un padding visual?
+            // Padding deseado: 24px (espacio para respirar al final)
+            const paddingOffset = 24;
+            const distanceToBottom = sectionRect.bottom - containerRect.bottom + paddingOffset;
+
+            // Solo scrolleamos si el contenido está oculto por debajo
+            if (distanceToBottom > 0) {
+               // 2. ¿Cuánto espacio tenemos arriba antes de ocultar el botón?
+               // Dejamos 4px de margen de seguridad.
+               const availableTopSpace = Math.max(0, buttonRect.top - containerRect.top - 4);
+
+               // 3. Scrolleamos el MENOR valor:
+               // - O lo necesario para ver el final (distanceToBottom)
+               // - O lo máximo permitido sin tapar el botón (availableTopSpace)
+               const finalScroll = Math.min(distanceToBottom, availableTopSpace);
+
+               if (finalScroll > 0) {
+                  container.scrollBy({
+                     top: finalScroll,
+                     behavior: 'smooth',
+                  });
+               }
+            }
+         });
+      }
+   }, [showAdvanced]);
+
    const loadData = (product: Product) => {
       setForm({
          description: product.description,
@@ -126,7 +177,6 @@ export const ProductModal = ({ isOpen, onClose, productToEdit }: ProductModalPro
       });
    };
 
-   // Function called when the user selects a product from the dropdown
    const handleSwitchToEdit = (product: Product) => {
       loadData(product);
       setEditingId(product.id);
@@ -146,7 +196,6 @@ export const ProductModal = ({ isOpen, onClose, productToEdit }: ProductModalPro
       if (success) onClose();
    };
 
-   // Determine if we are in edit mode
    const isEditing = !!editingId;
 
    return (
@@ -154,35 +203,33 @@ export const ProductModal = ({ isOpen, onClose, productToEdit }: ProductModalPro
          isOpen={isOpen}
          onClose={onClose}
          className={cn(
-            'w-full max-w-lg bg-zinc-950 border shadow-2xl transition-all duration-500',
-            justSwitched
-               ? 'border-indigo-500 shadow-indigo-900/20'
-               : 'border-zinc-800/50 shadow-purple-500/10',
+            'w-full max-w-lg bg-canvas border shadow-2xl transition-all duration-500 rounded-2xl',
+            justSwitched ? 'border-primary shadow-primary/20' : 'border-border shadow-black/50',
          )}
       >
-         {/* Header - Fixed at top */}
-         <div className="px-6 pt-6 pb-4 border-b border-zinc-800/50">
+         {/* Header */}
+         <div className="px-6 pt-6 pb-4 border-b border-border bg-surface shrink-0">
             <div className="flex items-center gap-4">
                <div
                   className={cn(
-                     'w-10 h-10 rounded-xl flex items-center justify-center transition-colors duration-300 shadow-inner',
+                     'w-12 h-12 rounded-2xl flex items-center justify-center transition-colors duration-300 border shadow-sm',
                      isEditing
-                        ? 'bg-indigo-500/10 text-indigo-400 shadow-indigo-500/20'
-                        : 'bg-purple-500/10 text-purple-400 shadow-purple-500/20',
+                        ? 'bg-primary-subtle text-primary-text border-primary/20'
+                        : 'bg-surface-highlight text-text-muted border-border',
                   )}
                >
-                  {isEditing ? <HiOutlinePencilSquare size={20} /> : <HiOutlineCube size={20} />}
+                  {isEditing ? <HiOutlinePencilSquare size={24} /> : <HiOutlineCube size={24} />}
                </div>
                <div>
                   <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
                      {isEditing ? 'Editar Producto' : 'Nuevo Producto'}
                      {justSwitched && (
-                        <span className="text-[10px] bg-indigo-500 text-white px-2 py-0.5 rounded-full animate-in fade-in zoom-in">
+                        <span className="text-[10px] bg-primary text-white px-2 py-0.5 rounded-full animate-in fade-in zoom-in font-bold uppercase tracking-wider">
                            Cargado
                         </span>
                      )}
                   </h2>
-                  <p className="text-zinc-400 text-xs mt-0.5">
+                  <p className="text-text-muted text-sm mt-0.5">
                      {isEditing
                         ? 'Estás modificando un producto existente'
                         : 'Registra un nuevo item en el inventario'}
@@ -192,10 +239,13 @@ export const ProductModal = ({ isOpen, onClose, productToEdit }: ProductModalPro
          </div>
 
          {/* Scrollable Body */}
-         <div className="flex-1 overflow-y-auto custom-scrollbar">
-            <form id="product-form" onSubmit={handleSubmit} className="p-6 flex flex-col gap-4">
+         <div
+            ref={scrollContainerRef}
+            className="flex-1 overflow-y-auto custom-scrollbar bg-canvas scroll-smooth"
+         >
+            <form id="product-form" onSubmit={handleSubmit} className="p-6 flex flex-col gap-5">
                {/* 1. Description with Intelligent Autocomplete */}
-               <div>
+               <div className="bg-surface/50 p-4 rounded-xl border border-border">
                   <ProductDescriptionAutocomplete
                      value={form.description}
                      onChange={val => setForm(prev => ({ ...prev, description: val }))}
@@ -204,52 +254,62 @@ export const ProductModal = ({ isOpen, onClose, productToEdit }: ProductModalPro
                      currentId={editingId}
                      autoFocus
                      required
-                     placeholder="Ej: Diadema gamer"
+                     placeholder="Ej: Diadema Gamer RGB"
                   />
                </div>
 
-               {/* 2. Financial Section (Cost and Price) */}
-               <div className="grid grid-cols-2 gap-4">
-                  <SmartNumberInput
-                     label="Costo de compra"
-                     value={form.cost}
-                     onValueChange={v => setForm(prev => ({ ...prev, cost: v ?? 0 }))}
-                     variant="currency"
-                     showPrefix={true}
-                     placeholder="0"
-                     className="[&>input]:text-zinc-400"
-                  />
-                  <SmartNumberInput
-                     label="Precio de venta"
-                     value={form.price}
-                     onValueChange={v => setForm(prev => ({ ...prev, price: v ?? 0 }))}
-                     variant="currency"
-                     showPrefix={true}
-                     placeholder="0"
-                     className="[&>input]:text-emerald-400 [&>input]:font-bold"
-                  />
+               {/* 2. Financial Section */}
+               <div>
+                  <h3 className="text-xs font-bold text-text-muted uppercase tracking-wider mb-3 ml-1">
+                     Precios y Costos
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                     <SmartNumberInput
+                        label="Costo Compra"
+                        value={form.cost}
+                        onValueChange={v => setForm(prev => ({ ...prev, cost: v ?? 0 }))}
+                        variant="currency"
+                        showPrefix={true}
+                        placeholder="0"
+                        className="[&>input]:text-text-secondary"
+                     />
+                     <SmartNumberInput
+                        label="Precio Venta"
+                        value={form.price}
+                        onValueChange={v => setForm(prev => ({ ...prev, price: v ?? 0 }))}
+                        variant="currency"
+                        showPrefix={true}
+                        placeholder="0"
+                        className="[&>input]:text-success-text [&>input]:font-bold"
+                     />
+                  </div>
                </div>
 
-               {/* 3. Logistics (Unit and Stock) */}
-               <div className="grid grid-cols-2 gap-4">
-                  <CustomSelect
-                     label="Unidad de medida"
-                     value={form.unitType}
-                     onChange={val => setForm(prev => ({ ...prev, unitType: val }))}
-                     options={UNIT_TYPE_OPTIONS}
-                     color="gray"
-                  />
-                  <SmartNumberInput
-                     label="Stock disponible"
-                     value={form.stock}
-                     onValueChange={v => setForm(prev => ({ ...prev, stock: v ?? 0 }))}
-                     variant="quantity"
-                     dianUnitCode={form.unitType === 'unit' ? 'EA' : form.unitType}
-                     placeholder="0"
-                  />
+               {/* 3. Logistics */}
+               <div>
+                  <h3 className="text-xs font-bold text-text-muted uppercase tracking-wider mb-3 ml-1">
+                     Logística
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                     <CustomSelect
+                        label="Unidad"
+                        value={form.unitType}
+                        onChange={val => setForm(prev => ({ ...prev, unitType: val }))}
+                        options={UNIT_TYPE_OPTIONS}
+                        color="neutral"
+                     />
+                     <SmartNumberInput
+                        label="Stock Inicial"
+                        value={form.stock}
+                        onValueChange={v => setForm(prev => ({ ...prev, stock: v ?? 0 }))}
+                        variant="quantity"
+                        dianUnitCode={form.unitType === 'unit' ? 'EA' : form.unitType}
+                        placeholder="0"
+                     />
+                  </div>
                </div>
 
-               {/* 4. SKU and Discount */}
+               {/* 4. Codes & Discounts */}
                <div className="grid grid-cols-2 gap-4">
                   <Input
                      label="SKU / Código"
@@ -259,7 +319,7 @@ export const ProductModal = ({ isOpen, onClose, productToEdit }: ProductModalPro
                      startIcon={<HiOutlineIdentification size={18} />}
                   />
                   <SmartNumberInput
-                     label="Descuento (%)"
+                     label="Descuento"
                      value={form.discountPercentage}
                      onValueChange={v => setForm(prev => ({ ...prev, discountPercentage: v ?? 0 }))}
                      variant="percentage"
@@ -267,96 +327,88 @@ export const ProductModal = ({ isOpen, onClose, productToEdit }: ProductModalPro
                   />
                </div>
 
-               {/* 5. Advanced Fields Toggle */}
-               <div className="border-t border-zinc-800/50 pt-1">
-                  <button
+               {/* 5. Advanced Toggle */}
+               <div className="border-t border-border pt-2 pb-2">
+                  <Button
+                     ref={toggleButtonRef}
                      type="button"
+                     variant="ghost"
                      onClick={() => setShowAdvanced(!showAdvanced)}
-                     className="flex items-center gap-2 text-zinc-500 hover:text-zinc-300 text-[11px] font-medium transition-colors py-2"
+                     className="flex items-center gap-2 text-primary hover:text-primary-hover text-xs font-bold uppercase tracking-wide py-2 w-full justify-start active:scale-100"
                   >
                      {showAdvanced ? (
                         <HiOutlineChevronUp size={14} />
                      ) : (
                         <HiOutlineChevronDown size={14} />
                      )}
-                     {showAdvanced
-                        ? 'Ocultar detalles adicionales'
-                        : 'Ver detalles adicionales (Marca, Categoría...)'}
-                  </button>
+                     <span className="hover:underline decoration-primary/30 underline-offset-4">
+                        {showAdvanced ? 'Ocultar detalles' : 'Ver clasificación avanzada'}
+                     </span>
+                  </Button>
 
                   {showAdvanced && (
-                     <div className="grid grid-cols-2 gap-4 pt-2 pb-1 animate-in fade-in slide-in-from-top-2 duration-300">
-                        <div className="col-span-2 md:col-span-1">
-                           <CustomSelect
-                              label="Tipo de producto"
-                              value={form.type}
-                              onChange={val => setForm(prev => ({ ...prev, type: val as any }))}
-                              options={[
-                                 { value: 'good', label: 'Bien' },
-                                 { value: 'service', label: 'Servicio' },
-                                 { value: 'bundle', label: 'Combo/Kit' },
-                              ]}
-                              color="gray"
-                           />
-                        </div>
-
-                        <div className="col-span-2 md:col-span-1">
-                           <CustomSelect
-                              label="Marca"
-                              value={form.brandId}
-                              onChange={val => setForm(prev => ({ ...prev, brandId: val }))}
-                              options={[
-                                 { value: '', label: '-- Ninguna --' },
-                                 ...brands.map(b => ({ value: b.id, label: b.name })),
-                              ]}
-                              color="gray"
-                           />
-                        </div>
-
-                        <div className="col-span-2 md:col-span-1">
-                           <CustomSelect
-                              label="Categoría"
-                              value={form.categoryId}
-                              onChange={val => setForm(prev => ({ ...prev, categoryId: val }))}
-                              options={[
-                                 { value: '', label: '-- Ninguna --' },
-                                 ...categories.map(c => ({ value: c.id, label: c.name })),
-                              ]}
-                              color="gray"
-                           />
-                        </div>
-
-                        <div className="col-span-2 md:col-span-1">
-                           <CustomSelect
-                              label="Proveedor"
-                              value={form.supplierId}
-                              onChange={val => setForm(prev => ({ ...prev, supplierId: val }))}
-                              options={[
-                                 { value: '', label: '-- Ninguno --' },
-                                 ...suppliers.map(s => ({ value: s.id, label: s.name })),
-                              ]}
-                              color="gray"
-                           />
-                        </div>
+                     <div
+                        ref={advancedSectionRef}
+                        className="grid grid-cols-2 gap-4 pt-4 pb-2 animate-in fade-in slide-in-from-top-2 duration-300"
+                     >
+                        <CustomSelect
+                           label="Tipo Producto"
+                           value={form.type}
+                           onChange={val => setForm(prev => ({ ...prev, type: val as any }))}
+                           options={[
+                              { value: 'good', label: 'Bien Físico' },
+                              { value: 'service', label: 'Servicio' },
+                              { value: 'bundle', label: 'Kit / Combo' },
+                           ]}
+                           color="flat"
+                        />
+                        <CustomSelect
+                           label="Marca"
+                           value={form.brandId}
+                           onChange={val => setForm(prev => ({ ...prev, brandId: val }))}
+                           options={[
+                              { value: '', label: '-- General --' },
+                              ...brands.map(b => ({ value: b.id, label: b.name })),
+                           ]}
+                           color="flat"
+                        />
+                        <CustomSelect
+                           label="Categoría"
+                           value={form.categoryId}
+                           onChange={val => setForm(prev => ({ ...prev, categoryId: val }))}
+                           options={[
+                              { value: '', label: '-- General --' },
+                              ...categories.map(c => ({ value: c.id, label: c.name })),
+                           ]}
+                           color="flat"
+                        />
+                        <CustomSelect
+                           label="Proveedor"
+                           value={form.supplierId}
+                           onChange={val => setForm(prev => ({ ...prev, supplierId: val }))}
+                           options={[
+                              { value: '', label: '-- General --' },
+                              ...suppliers.map(s => ({ value: s.id, label: s.name })),
+                           ]}
+                           color="flat"
+                        />
                      </div>
                   )}
                </div>
             </form>
          </div>
 
-         {/* Footer - Fixed at bottom */}
-         <div className="p-6 border-t border-zinc-800/50 flex gap-3 justify-end bg-zinc-950/80 backdrop-blur-sm">
-            <Button type="button" variant="secondary" onClick={onClose} className="px-6">
+         {/* Footer */}
+         <div className="p-6 border-t border-border flex gap-3 justify-end bg-surface shrink-0">
+            <Button type="button" variant="outline" onClick={onClose} className="px-6">
                Cancelar
             </Button>
             <Button
                form="product-form"
                type="submit"
+               variant={isEditing ? 'primary' : 'success'}
                isLoading={isSubmitting}
-               className={cn(
-                  'px-8',
-                  isEditing ? 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-900/20' : '',
-               )}
+               className="px-8 shadow-lg"
             >
                {isEditing ? 'Guardar Cambios' : 'Crear Producto'}
             </Button>

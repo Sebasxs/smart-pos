@@ -129,10 +129,10 @@ export const createProduct = async (req: Request, res: Response) => {
             cost: cost || 0,
             stock: stock || 0,
             discount_percentage: discountPercentage || 0,
-            sku,
-            brand_id: brandId,
-            category_id: categoryId,
-            supplier_id: supplierId,
+            sku: sku || null,
+            brand_id: brandId || null,
+            category_id: categoryId || null,
+            supplier_id: supplierId || null,
             unit_type: unitType || 'unit',
             tax_included: taxIncluded ?? true,
             type: type || 'good',
@@ -176,10 +176,11 @@ export const updateProduct = async (req: Request, res: Response) => {
             cost,
             stock,
             discount_percentage: discountPercentage,
-            sku,
-            brand_id: brandId,
-            category_id: categoryId,
-            supplier_id: supplierId,
+            sku: sku || null,
+            // SANITIZACIÓN AQUÍ TAMBIÉN:
+            brand_id: brandId || null,
+            category_id: categoryId || null,
+            supplier_id: supplierId || null,
             unit_type: unitType,
             tax_included: taxIncluded,
             type: type,
@@ -192,8 +193,8 @@ export const updateProduct = async (req: Request, res: Response) => {
       if (error) throw error;
 
       res.json(data);
-   } catch (error) {
-      console.error('Error updating product:', error);
+   } catch (error: any) {
+      console.error('Error updating product:', error); // Esto ahora mostrará el error real en la consola del server si falla
       res.status(500).json({ error: 'No se pudo actualizar el producto' });
    }
 };

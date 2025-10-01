@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Modal } from './Modal';
 import { HiOutlineExclamationCircle } from 'react-icons/hi2';
+import { Button } from './Button';
 
 type ErrorModalProps = {
    isOpen: boolean;
@@ -28,23 +29,19 @@ export const ErrorModal = ({
       <Modal isOpen={isOpen} onClose={onClose}>
          <div className="p-6 text-center w-full md:w-[400px]">
             {/* Icono animado */}
-            <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto mb-5 animate-in zoom-in duration-300 border border-red-500/20">
+            <div className="w-16 h-16 bg-danger-bg text-red-500 rounded-full flex items-center justify-center mx-auto mb-5 animate-in zoom-in duration-300 border border-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.2)]">
                <HiOutlineExclamationCircle size={36} />
             </div>
 
             <h3 className="text-xl font-bold mb-2 text-white">{title}</h3>
 
-            <div className="bg-zinc-950/50 rounded-lg p-4 border border-zinc-800 mb-6 text-sm text-zinc-400 leading-relaxed break-words">
+            <div className="bg-canvas/50 rounded-xl p-4 border border-border mb-6 text-sm text-text-secondary leading-relaxed break-words shadow-inner">
                {message}
             </div>
 
-            <button
-               onClick={onClose}
-               autoFocus
-               className="w-full py-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-bold text-sm border border-zinc-700 transition-all cursor-pointer hover:text-white active:scale-[0.98]"
-            >
+            <Button onClick={onClose} autoFocus variant="secondary" className="w-full">
                Entendido
-            </button>
+            </Button>
          </div>
       </Modal>
    );
