@@ -1,8 +1,7 @@
 import { HiOutlineTrash, HiOutlineCheckCircle, HiOutlineTag } from 'react-icons/hi2';
 import { Button } from '../ui/Button';
 import { SmartNumber } from '../ui/SmartNumber';
-
-// Types
+import { SectionHeader } from '../ui/SectionHeader';
 import { type Discount } from '../../types/billing';
 
 type CheckoutTotalsProps = {
@@ -24,33 +23,30 @@ export const CheckoutTotals = ({
    total,
    isPaymentValid,
    isProcessing,
-   onOpenDiscount: onOpenDiscount,
+   onOpenDiscount,
    onDiscard,
    onProcessPayment,
 }: CheckoutTotalsProps) => {
    return (
       <div className="w-full flex flex-col bg-surface relative">
-         {/* Sombra superior para indicar scroll bajo el contenido */}
          <div className="absolute top-0 left-0 right-0 h-4 pointer-events-none" />
 
-         {/* Header Estandarizado */}
-         <div className="h-[48px] px-5 bg-surface-highlight/50 backdrop-blur-sm border-b border-border/40 flex justify-between items-center">
-            <h2 className="text-text-muted text-[10px] font-bold uppercase tracking-wider">
-               Resumen
-            </h2>
-            <Button
-               variant="ghost"
-               size="icon"
-               onClick={onDiscard}
-               className="h-8 w-8 text-text-dim hover:text-danger-text hover:bg-danger-bg"
-               title="Limpiar todo"
-            >
-               <HiOutlineTrash size={16} />
-            </Button>
-         </div>
+         <SectionHeader
+            title="Resumen"
+            actions={
+               <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={onDiscard}
+                  className="h-8 w-8 text-text-dim hover:text-danger-text hover:bg-danger-bg"
+                  title="Limpiar todo"
+               >
+                  <HiOutlineTrash size={16} />
+               </Button>
+            }
+         />
 
          <div className="px-5 py-5 flex flex-col gap-5">
-            {/* Detalles Numéricos */}
             <div className="space-y-2.5">
                <div className="flex justify-between items-center text-sm">
                   <span className="text-text-muted font-medium">Subtotal</span>
@@ -91,10 +87,8 @@ export const CheckoutTotals = ({
                </div>
             </div>
 
-            {/* Divisor */}
             <div className="border-t border-dashed border-border-hover" />
 
-            {/* Total & Action */}
             <div className="flex flex-col gap-4">
                <div className="flex justify-between items-end">
                   <span className="text-lg font-bold text-text-main pb-1">Total</span>

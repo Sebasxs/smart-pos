@@ -5,6 +5,7 @@ import { useAuthStore } from '../../store/authStore';
 import { Input } from '../ui/Input';
 import { CustomSelect } from '../ui/CustomSelect';
 import { Button } from '../ui/Button';
+import { SectionHeader } from '../ui/SectionHeader';
 import {
    HiOutlineBuildingOffice2,
    HiOutlinePrinter,
@@ -132,17 +133,13 @@ export const CompanySettings = () => {
             )}
          </div>
 
-         {/* SECCIÓN FISCAL - SIN BORDE */}
          <div className="bg-surface rounded-xl shadow-sm overflow-hidden">
-            {/* Header Glassy */}
-            <div className="h-[54px] px-6 bg-surface-highlight/50 backdrop-blur-sm border-b border-border/40 flex items-center gap-3">
-               <div className="p-1.5 bg-info-bg rounded-lg text-info-text border border-info/20">
-                  <HiOutlineBuildingOffice2 size={16} />
-               </div>
-               <h3 className="text-[10px] font-bold text-text-muted uppercase tracking-wider">
-                  Información Fiscal
-               </h3>
-            </div>
+            <SectionHeader
+               title="Información Fiscal"
+               icon={HiOutlineBuildingOffice2}
+               iconClassName="text-info-text"
+               iconContainerClassName="bg-info-bg border border-info/20"
+            />
 
             <div className="p-6">
                <fieldset
@@ -216,17 +213,13 @@ export const CompanySettings = () => {
             </div>
          </div>
 
-         {/* SECCIÓN IMPRESIÓN - SIN BORDE */}
          <div className="bg-surface rounded-xl shadow-sm overflow-hidden">
-            {/* Header Glassy */}
-            <div className="h-[54px] px-6 bg-surface-highlight/50 backdrop-blur-sm border-b border-border/40 flex items-center gap-3">
-               <div className="p-1.5 bg-primary-subtle rounded-lg text-primary-text border border-primary/20">
-                  <HiOutlinePrinter size={16} />
-               </div>
-               <h3 className="text-[10px] font-bold text-text-muted uppercase tracking-wider">
-                  Configuración de Ticket
-               </h3>
-            </div>
+            <SectionHeader
+               title="Configuración de Ticket"
+               icon={HiOutlinePrinter}
+               iconClassName="text-primary-text"
+               iconContainerClassName="bg-primary-subtle border border-primary/20"
+            />
 
             <div className="p-6">
                <fieldset disabled={!isSuperAdmin} className="space-y-3 disabled:opacity-60">

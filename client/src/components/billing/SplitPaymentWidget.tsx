@@ -4,6 +4,7 @@ import { useBillingStore, type PaymentMethodType } from '../../store/billingStor
 import { CustomSelect } from '../ui/CustomSelect';
 import { HiOutlineBanknotes, HiOutlineCreditCard, HiOutlineWallet } from 'react-icons/hi2';
 import { Button } from '../ui/Button';
+import { SectionHeader } from '../ui/SectionHeader';
 
 type PaymentWidgetProps = {
    total: number;
@@ -81,21 +82,19 @@ export const SplitPaymentWidget = ({ total }: PaymentWidgetProps) => {
 
    return (
       <div className="flex flex-col">
-         {/* HEADER CONSISTENTE CON RESUMEN E INVOICE TABLE */}
-         <div className="h-[48px] px-5 bg-surface-highlight/50 backdrop-blur-sm border-b border-border/40 flex items-center justify-between shrink-0">
-            <h2 className="text-text-muted text-[10px] font-bold uppercase tracking-wider">
-               Medios de Pago
-            </h2>
-            {(customer.accountBalance || 0) > 0 &&
+         <SectionHeader
+            title="Medios de Pago"
+            actions={
+               (customer.accountBalance || 0) > 0 &&
                !payments.some(p => p.method === 'account_balance') && (
                   <span className="text-[10px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded border border-amber-500/20 font-bold">
                      Saldo: ${customer.accountBalance}
                   </span>
-               )}
-         </div>
+               )
+            }
+         />
 
          <div className="px-5 pb-2 pt-5 flex flex-col gap-4">
-            {/* SELECT CON ESTILO SÓLIDO/ACTIVO */}
             <div>
                <CustomSelect
                   value=""

@@ -1,4 +1,4 @@
-import { CgSpinner } from 'react-icons/cg';
+import { Spinner } from './Spinner';
 
 type FullPageLoaderProps = {
    message?: string;
@@ -8,11 +8,9 @@ export const FullPageLoader = ({ message = 'Cargando sistema...' }: FullPageLoad
    return (
       <div className="fixed inset-0 z-50 bg-canvas flex flex-col items-center justify-center gap-5 animate-in fade-in duration-300">
          <div className="relative">
-            {/* Efecto de brillo detrás del spinner */}
             <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full" />
-
             <div className="relative w-16 h-16 bg-surface-highlight rounded-2xl flex items-center justify-center border border-border shadow-2xl">
-               <CgSpinner className="w-8 h-8 text-primary animate-spin" />
+               <Spinner size="lg" variant="primary" />
             </div>
          </div>
 
