@@ -1,42 +1,28 @@
 import { useState } from 'react';
-import {
-   HiOutlinePlus,
-   HiOutlineMagnifyingGlass,
-   HiOutlineShieldCheck,
-   HiOutlineXMark,
-} from 'react-icons/hi2';
+import { HiOutlinePlus, HiOutlineShieldCheck } from 'react-icons/hi2';
 import { Button } from '../components/ui/Button';
 import { PageHeader } from '../components/layout/PageHeader';
+import { SearchInput } from '../components/ui/SearchInput';
 import { cn } from '../utils/cn';
 
-// Mock Data
 const USERS = [
    {
       id: '1',
-      full_name: 'Administrador Principal',
+      full_name: 'Administrador',
       email: 'admin@copos.app',
       role: 'super_admin',
-      job_title: 'Gerente General',
+      job_title: 'Gerente',
       status: 'active',
       avatar_initial: 'A',
    },
    {
       id: '2',
       full_name: 'Juan Pérez',
-      email: 'juan.perez@copos.app',
+      email: 'juan@copos.app',
       role: 'cashier',
-      job_title: 'Cajero Turno Mañana',
+      job_title: 'Cajero',
       status: 'active',
       avatar_initial: 'J',
-   },
-   {
-      id: '3',
-      full_name: 'María García',
-      email: 'maria.garcia@copos.app',
-      role: 'admin',
-      job_title: 'Supervisora',
-      status: 'inactive',
-      avatar_initial: 'M',
    },
 ];
 
@@ -47,10 +33,6 @@ const RoleBadge = ({ role }: { role: string }) => {
          admin: 'bg-brand-suppliers-bg text-brand-suppliers-main',
          cashier: 'bg-brand-purchases-bg text-brand-purchases-main',
       }[role] || 'bg-surface-highlight text-text-dim';
-
-   const labels =
-      { super_admin: 'Propietario', admin: 'Administrador', cashier: 'Cajero' }[role] || role;
-
    return (
       <span
          className={cn(
@@ -58,8 +40,7 @@ const RoleBadge = ({ role }: { role: string }) => {
             styles,
          )}
       >
-         <HiOutlineShieldCheck size={12} />
-         {labels}
+         <HiOutlineShieldCheck size={12} /> {role === 'super_admin' ? 'Propietario' : role}
       </span>
    );
 };
@@ -69,48 +50,28 @@ export const Users = () => {
 
    return (
       <div className="flex flex-col h-full w-full bg-canvas overflow-hidden">
-         {/* HEADER */}
-         <PageHeader>
-            <h1 className="hidden md:block text-xl font-bold text-text-main tracking-tight shrink-0">
-               Equipo
-            </h1>
+         <PageHeader
+            title="Equipo"
+            search={
+               <SearchInput
+                  value={searchTerm}
+                  onChange={e => setSearchTerm(e.target.value)}
+                  onClear={() => setSearchTerm('')}
+                  placeholder="Buscar por nombre o email..."
+               />
+            }
+            actions={
+               <Button
+                  variant="primary"
+                  className="bg-brand-users-solid hover:bg-brand-users-solid-hover text-white shadow-lg shadow-brand-users-solid/20"
+               >
+                  <HiOutlinePlus size={18} />
+                  <span className="hidden sm:inline">Nuevo Usuario</span>
+               </Button>
+            }
+         />
 
-            {/* Search Bar integrada en Header */}
-            <div className="flex-1 flex justify-start md:justify-center min-w-0">
-               <div className="relative group h-10 w-full max-w-[400px] transition-all duration-300">
-                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-primary transition-colors pointer-events-none z-10">
-                     <HiOutlineMagnifyingGlass size={18} />
-                  </div>
-                  <input
-                     type="text"
-                     placeholder="Buscar por nombre o email..."
-                     value={searchTerm}
-                     onChange={e => setSearchTerm(e.target.value)}
-                     className="w-full h-full bg-surface-highlight/40 hover:bg-surface-highlight/60 text-sm text-text-main placeholder:text-text-dim rounded-xl pl-10 pr-10 outline-none transition-all focus:bg-surface-active/60 focus:shadow-sm"
-                  />
-                  {searchTerm && (
-                     <button
-                        onClick={() => setSearchTerm('')}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-text-dim hover:text-text-main p-0.5 rounded-full cursor-pointer"
-                     >
-                        <HiOutlineXMark size={16} />
-                     </button>
-                  )}
-               </div>
-            </div>
-
-            <Button
-               variant="primary"
-               className="h-10 px-4 bg-brand-users-solid hover:bg-brand-users-solid-hover text-white shadow-lg shadow-brand-users-solid/20"
-            >
-               <HiOutlinePlus size={18} className="md:mr-2" />
-               <span className="hidden md:inline">Nuevo Usuario</span>
-            </Button>
-         </PageHeader>
-
-         {/* CONTENT */}
-         <main className="flex-1 p-4 md:p-6 min-h-0 overflow-y-auto custom-scrollbar flex flex-col gap-4 max-w-[1600px] mx-auto w-full animate-in fade-in duration-300">
-            {/* List Container */}
+         <main className="flex-1 p-4 md:p-6 min-h-0 overflow-y-auto custom-scrollbar flex flex-col gap-4 max-w-[1600px] mx-auto w-full">
             <div className="flex-1 bg-surface rounded-2xl overflow-hidden shadow-sm relative min-h-0 flex flex-col">
                <div className="overflow-x-auto custom-scrollbar flex-1">
                   <table className="w-full text-left border-collapse">
@@ -118,7 +79,6 @@ export const Users = () => {
                         <tr>
                            <th className="px-6 py-4">Usuario</th>
                            <th className="px-6 py-4">Rol / Cargo</th>
-                           <th className="px-6 py-4">Estado</th>
                            <th className="px-6 py-4 text-right">Acciones</th>
                         </tr>
                      </thead>
@@ -149,30 +109,8 @@ export const Users = () => {
                                     </span>
                                  </div>
                               </td>
-                              <td className="px-6 py-4">
-                                 <span
-                                    className={cn(
-                                       'inline-flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-full',
-                                       user.status === 'active'
-                                          ? 'bg-success-bg/50 text-success-text'
-                                          : 'bg-surface-highlight text-text-dim',
-                                    )}
-                                 >
-                                    <span
-                                       className={cn(
-                                          'w-1.5 h-1.5 rounded-full',
-                                          user.status === 'active' ? 'bg-success' : 'bg-text-dim',
-                                       )}
-                                    />
-                                    {user.status === 'active' ? 'Activo' : 'Inactivo'}
-                                 </span>
-                              </td>
                               <td className="px-6 py-4 text-right">
-                                 <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="text-text-dim hover:text-text-main font-bold text-xs active:scale-100 hover:bg-surface-active"
-                                 >
+                                 <Button variant="ghost" size="sm" className="text-xs">
                                     Editar
                                  </Button>
                               </td>

@@ -29,12 +29,7 @@ export const ProductDescriptionAutocomplete = ({
 
       const lowerTerm = value.toLowerCase();
       return products
-         .filter(
-            p =>
-               p.id !== currentId &&
-               (p.description.toLowerCase().includes(lowerTerm) ||
-                  p.sku?.toLowerCase().includes(lowerTerm)),
-         )
+         .filter(p => p.id !== currentId && p.description.toLowerCase().includes(lowerTerm))
          .slice(0, 8);
    }, [value, products, currentId]);
 
@@ -52,13 +47,8 @@ export const ProductDescriptionAutocomplete = ({
          showCustomAction={false}
          renderItem={product => (
             <>
-               <div className="flex items-center min-w-0 mr-2">
+               <div className="flex items-center min-w-0 mr-6">
                   <span className="truncate font-medium">{product.description}</span>
-                  {product.sku && (
-                     <span className="ml-2 text-[10px] text-text-dim font-mono shrink-0">
-                        {product.sku}
-                     </span>
-                  )}
                </div>
                <span className="text-xs font-mono text-text-muted shrink-0">
                   <SmartNumber value={product.price} variant="currency" showPrefix={false} />

@@ -22,7 +22,6 @@ type ComboboxProps<T> = {
    required?: boolean;
    className?: string;
 
-   // Custom Action (Optional)
    onCustomAction?: () => void;
    customActionLabel?: ReactNode;
    showCustomAction?: boolean;
@@ -67,11 +66,9 @@ export const Combobox = <T,>({
    useLayoutEffect(() => {
       if (isOpen && containerRef.current) {
          const rect = containerRef.current.getBoundingClientRect();
-         // 4px de separación (estilo shadcn)
-         const VERTICAL_GAP = 6;
 
          setCoords({
-            top: rect.bottom + window.scrollY + VERTICAL_GAP,
+            top: rect.bottom + window.scrollY,
             left: rect.left + window.scrollX,
             width: rect.width,
          });
@@ -143,10 +140,8 @@ export const Combobox = <T,>({
    const handleSelection = (index: number) => {
       if (index === -1) {
          setIsOpen(false);
-         // Si hay custom action y se dio Enter sin seleccionar nada,
-         // podríamos ejecutarla o no. Por simplicidad "Directa", cerramos y dejamos el valor.
          if (showCustomAction && onCustomAction && value.trim()) {
-            // Opcional: onCustomAction() si se desea forzar creación inmediata
+            onCustomAction();
          }
          return;
       }
@@ -193,6 +188,7 @@ export const Combobox = <T,>({
                      left: coords.left,
                      width: coords.width,
                      position: 'absolute',
+                     marginTop: '6px',
                   }}
                   className="z-[9999] bg-surface border border-border/60 rounded-lg shadow-xl shadow-black/40 overflow-hidden animate-in fade-in zoom-in-95 duration-100 flex flex-col max-h-[300px] p-1"
                   onMouseDown={e => e.stopPropagation()}

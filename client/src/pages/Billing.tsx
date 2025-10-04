@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { HiOutlineUserPlus, HiXMark } from 'react-icons/hi2';
-import { CgSpinner } from 'react-icons/cg';
+import { Spinner } from '../components/ui/Spinner';
 
 // Components
 import { PageHeader } from '../components/layout/PageHeader';
@@ -43,20 +43,18 @@ export const Billing = () => {
       () => items.reduce((acc, item) => acc + item.price * item.quantity, 0),
       [items],
    );
-
-   const discountAmount = useMemo(() => {
-      return discount.type === 'percentage'
-         ? Math.round(subtotal * (discount.value / 100))
-         : discount.value;
-   }, [subtotal, discount]);
-
+   const discountAmount = useMemo(
+      () =>
+         discount.type === 'percentage'
+            ? Math.round(subtotal * (discount.value / 100))
+            : discount.value,
+      [subtotal, discount],
+   );
    const total = Math.max(0, subtotal - discountAmount);
-
    const totalPaid = useMemo(
       () => checkoutData.payments.reduce((sum, p) => sum + (p.amount || 0), 0),
       [checkoutData.payments],
    );
-
    const isPaymentValid =
       items.length > 0 && totalPaid >= total && checkoutData.payments.length > 0;
 
@@ -75,60 +73,52 @@ export const Billing = () => {
       },
    });
 
-   const handleProductSelect = (product: any) => {
-      addItem(product);
+   const handleProductSelect = (p: any) => {
+      addItem(p);
       toggleModal('productSearch', false);
    };
-
-   const handleClientSelect = (client: any) => {
+   const handleClientSelect = (c: any) => {
       setCheckoutData({
          customer: {
-            id: client.id,
-            name: client.name,
-            email: client.email || '',
-            taxId: client.tax_id || '',
-            documentType: client.document_type || '31',
-            phone: client.phone || '',
-            city: client.city || '',
-            address: client.address || '',
-            accountBalance: client.account_balance || 0,
+            id: c.id,
+            name: c.name,
+            email: c.email || '',
+            taxId: c.tax_id || '',
+            documentType: c.document_type || '31',
+            phone: c.phone || '',
+            city: c.city || '',
+            address: c.address || '',
+            accountBalance: c.account_balance || 0,
          },
       });
       toggleModal('clientSearch', false);
    };
-
    const handleRequestCreateClient = (name: string) => {
       setCreateClientName(name);
       toggleModal('clientCreate', true);
       toggleModal('clientSearch', false);
    };
-
-   const handleClientCreated = (client: any) => {
-      handleClientSelect(client);
+   const handleClientCreated = (c: any) => {
+      handleClientSelect(c);
       toggleModal('clientCreate', false);
    };
-
    const handleFinalizeSuccess = () => {
       resetInvoice();
       resetPaymentState();
       toggleModal('success', false);
    };
-
    const handlePaymentProcess = () => {
-      if (isPaymentValid && !isProcessing) {
-         processPayment(subtotal, discountAmount, total);
-      }
+      if (isPaymentValid && !isProcessing) processPayment(subtotal, discountAmount, total);
    };
-
    const handleSmartEnter = () => {
       const { payments } = checkoutData;
-      if (payments.length === 0) {
-         addPayment('cash', total);
-      } else if (payments.length === 1 && payments[0].method === 'cash') {
-         if (Math.abs((payments[0].amount || 0) - total) > 0.01) {
-            updatePayment(payments[0].id, total);
-         }
-      }
+      if (payments.length === 0) addPayment('cash', total);
+      else if (
+         payments.length === 1 &&
+         payments[0].method === 'cash' &&
+         Math.abs((payments[0].amount || 0) - total) > 0.01
+      )
+         updatePayment(payments[0].id, total);
    };
 
    useBillingHotkeys({
@@ -145,50 +135,39 @@ export const Billing = () => {
 
    if (shiftLoading && !isOpen) {
       return (
-         <div className="flex h-full w-full items-center justify-center bg-canvas">
-            <div className="flex flex-col items-center gap-3">
-               <CgSpinner className="h-8 w-8 animate-spin text-blue-500" />
-               <p className="text-sm text-text-dim font-medium">Verificando turno de caja...</p>
-            </div>
+         <div className="flex h-full w-full items-center justify-center bg-canvas gap-3">
+            <Spinner size="lg" />
+            <p className="text-sm text-text-dim font-medium">Verificando turno de caja...</p>
          </div>
       );
    }
 
-   if (!isOpen) {
-      return <ShiftOpeningScreen />;
-   }
+   if (!isOpen) return <ShiftOpeningScreen />;
 
    return (
       <div className="flex flex-col w-full h-full bg-canvas overflow-hidden">
-         <PageHeader>
-            {/* Grupo Izquierda crece para empujar la info de sede/caja a la derecha */}
-            <div className="flex-1 flex items-center gap-3 min-w-0">
-               <h1 className="text-xl font-bold text-text-main tracking-tight shrink-0">
-                  Facturar
-               </h1>
-
-               <div className="h-6 w-px bg-border/40 hidden sm:block" />
-
-               {/* Selector de Cliente */}
-               <div className="flex items-center min-w-0">
+         <PageHeader
+            title="Facturar"
+            search={
+               <div className="w-full flex items-center justify-start md:justify-center">
                   {!checkoutData.customer.id ? (
                      <Button
                         variant="secondary"
                         onClick={() => toggleModal('clientSearch', true)}
-                        className="flex items-center gap-2 px-3 py-2 bg-surface-highlight/60 hover:bg-surface-active text-text-secondary hover:text-text-main rounded-xl transition-all border-none outline-none group h-auto active:scale-100"
+                        className="flex items-center gap-2 px-4 py-2 bg-surface-highlight/60 hover:bg-surface-active text-text-secondary hover:text-text-main rounded-xl border-none outline-none w-full md:w-auto justify-start md:justify-center"
                      >
                         <HiOutlineUserPlus
                            size={18}
                            className="text-text-dim group-hover:text-primary-text transition-colors"
                         />
-                        <span className="text-sm font-semibold hidden sm:inline">Cliente</span>
+                        <span className="text-sm font-semibold">Seleccionar Cliente</span>
                      </Button>
                   ) : (
                      <div
                         onClick={() => toggleModal('clientSearch', true)}
-                        className="flex items-center bg-surface-highlight/60 hover:bg-surface-active rounded-xl px-3 py-1.5 gap-3 transition-all cursor-pointer group animate-in fade-in zoom-in duration-300"
+                        className="flex items-center bg-surface-highlight/60 hover:bg-surface-active rounded-xl px-3 py-1.5 gap-3 transition-all cursor-pointer group animate-in fade-in zoom-in duration-300 w-full md:w-auto"
                      >
-                        <div className="flex flex-col leading-tight">
+                        <div className="flex flex-col leading-tight min-w-0">
                            <span className="text-[10px] font-bold text-text-dim uppercase tracking-tighter group-hover:text-primary-text">
                               Cliente
                            </span>
@@ -220,24 +199,21 @@ export const Billing = () => {
                      </div>
                   )}
                </div>
-            </div>
-
-            <div className="flex items-center gap-3 shrink-0">
-               <div className="hidden lg:flex items-center gap-3">
-                  <span className="text-[10px] bg-surface-highlight/40 text-text-dim px-2.5 py-1.5 rounded-lg font-bold uppercase tracking-widest">
+            }
+            info={
+               <>
+                  <span className="text-[10px] text-text-dim font-bold uppercase tracking-widest border-r border-border/20 pr-3 mr-3">
                      Sede principal
                   </span>
-                  <span className="text-[10px] bg-surface-highlight/40 text-text-dim px-2.5 py-1.5 rounded-lg font-bold uppercase tracking-widest">
+                  <span className="text-[10px] text-text-dim font-bold uppercase tracking-widest">
                      Caja 01
                   </span>
-               </div>
-            </div>
-         </PageHeader>
+               </>
+            }
+         />
 
-         {/* Contenedor principal */}
          <main className="flex-1 p-4 md:p-6 flex flex-col gap-4 min-h-0 max-w-[1600px] mx-auto w-full">
             <div className="flex flex-col lg:flex-row gap-4 flex-1 lg:overflow-hidden">
-               {/* Tabla de Productos */}
                <div className="flex-1 flex flex-col bg-surface rounded-2xl shadow-sm overflow-hidden min-h-0">
                   <InvoiceTable
                      items={items}
@@ -246,8 +222,6 @@ export const Billing = () => {
                      onAddProductClick={() => toggleModal('productSearch', true)}
                   />
                </div>
-
-               {/* Sidebar de Pago (Sin prop checkoutData) */}
                <CheckoutSidebar
                   subtotal={subtotal}
                   discount={discount}
