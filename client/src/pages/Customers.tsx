@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { useCustomers } from '../hooks/useCustomers';
 import { PageHeader } from '../components/layout/PageHeader';
 import { CustomerList } from '../components/customers/CustomerList';
@@ -8,6 +8,7 @@ import { SearchInput } from '../components/ui/SearchInput';
 import { Button } from '../components/ui/Button';
 import { HiOutlineArrowPath, HiOutlinePlus } from 'react-icons/hi2';
 import { cn } from '../utils/cn';
+import { useSearchShortcut } from '../hooks/useSearchShortcut';
 import { type Customer } from '../types/customer';
 
 export const Customers = () => {
@@ -18,19 +19,7 @@ export const Customers = () => {
    const [customerToEdit, setCustomerToEdit] = useState<Customer | null>(null);
    const inputRef = useRef<HTMLInputElement>(null);
 
-   useEffect(() => {
-      const handleKeyDown = (e: KeyboardEvent) => {
-         if (
-            (e.ctrlKey && e.key === 'k') ||
-            (e.key === '/' && document.activeElement !== inputRef.current)
-         ) {
-            e.preventDefault();
-            inputRef.current?.focus();
-         }
-      };
-      window.addEventListener('keydown', handleKeyDown);
-      return () => window.removeEventListener('keydown', handleKeyDown);
-   }, []);
+   useSearchShortcut(inputRef);
 
    return (
       <div className="flex flex-col h-[100dvh] md:h-full overflow-hidden relative">
@@ -43,7 +32,9 @@ export const Customers = () => {
                   onChange={e => setSearch(e.target.value)}
                   onClear={() => setSearch('')}
                   placeholder="Buscar por nombre, NIT o email..."
-                  shortcutLabel="/"
+                  shortcutLabel="ESPACIO"
+                  className="focus:border-brand-suppliers-solid/50 hover:border-brand-suppliers-solid/50 focus:bg-brand-suppliers-bg/10"
+                  iconClassName="group-focus-within:text-brand-suppliers-solid"
                />
             }
             actions={
@@ -63,7 +54,7 @@ export const Customers = () => {
                         setCustomerToEdit(null);
                         setCustomerModalOpen(true);
                      }}
-                     className="px-4"
+                     className="px-4 bg-brand-suppliers-solid hover:bg-brand-suppliers-solid-hover text-white shadow-brand-suppliers-solid/20"
                   >
                      <HiOutlinePlus size={18} />
                      <span className="hidden sm:inline">Nuevo Cliente</span>
@@ -73,7 +64,7 @@ export const Customers = () => {
          />
 
          <main className="flex-1 min-h-0 p-4 md:p-6 flex flex-col gap-4 max-w-[1600px] mx-auto w-full">
-            <div className="flex-1 min-h-0 bg-surface/30 border border-border rounded-xl overflow-hidden shadow-sm relative backdrop-blur-sm">
+            <div className="flex-1 min-h-0 bg-surface/30 rounded-xl overflow-hidden shadow-sm relative backdrop-blur-sm">
                <CustomerList
                   customers={customers}
                   isLoading={isLoading}
@@ -89,7 +80,7 @@ export const Customers = () => {
             </div>
          </main>
 
-         {/* Modales */}
+         {/* Modals */}
          <CustomerModal
             isOpen={customerModalOpen}
             onClose={() => setCustomerModalOpen(false)}

@@ -6,10 +6,14 @@ type SearchInputProps = React.InputHTMLAttributes<HTMLInputElement> & {
    onClear?: () => void;
    shortcutLabel?: string;
    containerClassName?: string;
+   iconClassName?: string;
 };
 
 export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
-   ({ value, onClear, shortcutLabel, containerClassName, className, ...props }, ref) => {
+   (
+      { value, onClear, shortcutLabel, containerClassName, iconClassName, className, ...props },
+      ref,
+   ) => {
       const hasValue = String(value || '').length > 0;
 
       return (
@@ -19,13 +23,19 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
                containerClassName,
             )}
          >
-            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-primary transition-colors pointer-events-none z-10">
+            <div
+               className={cn(
+                  'absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-primary transition-colors pointer-events-none z-10',
+                  iconClassName,
+               )}
+            >
                <HiOutlineMagnifyingGlass size={18} />
             </div>
 
             <input
                ref={ref}
                value={value}
+               autoComplete="off"
                className={cn(
                   'w-full h-full bg-surface-highlight/40 border border-transparent',
                   'text-sm text-text-main placeholder:text-text-dim rounded-xl',

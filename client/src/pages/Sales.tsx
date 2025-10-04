@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { HiOutlineFunnel, HiOutlineArrowDownTray } from 'react-icons/hi2';
 import { Button } from '../components/ui/Button';
 import { PageHeader } from '../components/layout/PageHeader';
 import { SearchInput } from '../components/ui/SearchInput';
 import { SmartNumber } from '../components/ui/SmartNumber';
 import { cn } from '../utils/cn';
+import { useSearchShortcut } from '../hooks/useSearchShortcut';
 
 const MOCK_SALES = [
    {
@@ -54,6 +55,8 @@ const StatusBadge = ({ status }: { status: string }) => {
 
 export const Sales = () => {
    const [searchTerm, setSearchTerm] = useState('');
+   const inputRef = useRef<HTMLInputElement>(null);
+   useSearchShortcut(inputRef);
 
    return (
       <div className="flex flex-col h-full w-full bg-canvas overflow-hidden">
@@ -61,10 +64,14 @@ export const Sales = () => {
             title="Ventas"
             search={
                <SearchInput
+                  ref={inputRef}
                   value={searchTerm}
                   onChange={e => setSearchTerm(e.target.value)}
                   onClear={() => setSearchTerm('')}
                   placeholder="Buscar factura o cliente..."
+                  shortcutLabel="ESPACIO"
+                  className="focus:border-primary/50 hover:border-primary/50 focus:bg-primary/5"
+                  iconClassName="group-focus-within:text-primary"
                />
             }
             actions={
@@ -86,7 +93,7 @@ export const Sales = () => {
          />
 
          <main className="flex-1 min-h-0 p-4 md:p-6 flex flex-col gap-4 max-w-[1600px] mx-auto w-full">
-            <div className="flex-1 bg-surface rounded-xl overflow-hidden shadow-sm relative min-h-0 flex flex-col">
+            <div className="flex-1 bg-surface rounded-xl overflow-hidden shadow-sm relative min-h-0 flex flex-col border-none">
                <div className="overflow-x-auto custom-scrollbar flex-1">
                   <table className="w-full text-left">
                      <thead className="bg-surface-highlight/50 backdrop-blur-sm text-text-muted text-[10px] uppercase tracking-wider font-bold sticky top-0 z-10">

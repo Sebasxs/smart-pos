@@ -46,9 +46,9 @@ const variants: Record<ButtonVariant, string> = {
 
 const sizes: Record<ButtonSize, string> = {
    sm: 'px-3 py-1.5 text-xs',
-   md: 'px-4 py-2 text-sm',
+   md: 'px-4 py-2.5 text-sm h-10',
    lg: 'px-6 py-3.5 text-base',
-   icon: 'p-2',
+   icon: 'w-10 h-10 p-0 flex items-center justify-center',
 };
 
 export const Button = ({

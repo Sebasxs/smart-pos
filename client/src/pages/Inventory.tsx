@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { useInventory } from '../hooks/useInventory';
 import { PageHeader } from '../components/layout/PageHeader';
 import { InventoryFilterBar } from '../components/inventory/InventoryFilterBar';
@@ -9,7 +9,7 @@ import { SearchInput } from '../components/ui/SearchInput';
 import { Button } from '../components/ui/Button';
 import { HiOutlinePlus, HiOutlineArrowPath } from 'react-icons/hi2';
 import { cn } from '../utils/cn';
-
+import { useSearchShortcut } from '../hooks/useSearchShortcut';
 import { type Product } from '../types/inventory';
 
 export const Inventory = () => {
@@ -31,20 +31,7 @@ export const Inventory = () => {
    const [productToEdit, setProductToEdit] = useState<Product | null>(null);
    const inputRef = useRef<HTMLInputElement>(null);
 
-   // Shortcuts
-   useEffect(() => {
-      const handleKeyDown = (e: KeyboardEvent) => {
-         if (
-            (e.ctrlKey && e.key === 'k') ||
-            (e.key === ' ' && document.activeElement !== inputRef.current)
-         ) {
-            e.preventDefault();
-            inputRef.current?.focus();
-         }
-      };
-      window.addEventListener('keydown', handleKeyDown);
-      return () => window.removeEventListener('keydown', handleKeyDown);
-   }, []);
+   useSearchShortcut(inputRef);
 
    return (
       <div className="flex flex-col h-[100dvh] md:h-full overflow-hidden relative">
@@ -58,6 +45,8 @@ export const Inventory = () => {
                   onClear={() => setSearch('')}
                   placeholder="Buscar producto, SKU..."
                   shortcutLabel="ESPACIO"
+                  className="focus:border-brand-kardex-solid/50 hover:border-brand-kardex-solid/50 focus:bg-brand-kardex-bg/10"
+                  iconClassName="group-focus-within:text-brand-kardex-solid"
                />
             }
             actions={
@@ -77,7 +66,7 @@ export const Inventory = () => {
                         setProductToEdit(null);
                         setProductModalOpen(true);
                      }}
-                     className="px-4"
+                     className="px-4 bg-brand-kardex-solid hover:bg-brand-kardex-solid-hover text-white shadow-brand-kardex-solid/20"
                   >
                      <HiOutlinePlus size={18} />
                      <span className="hidden sm:inline">Nuevo Producto</span>
