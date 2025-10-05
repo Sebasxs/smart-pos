@@ -2,7 +2,7 @@ import { type ReactNode } from 'react';
 import { cn } from '../../utils/cn';
 
 type SectionHeaderProps = {
-   title: string;
+   title: string | ReactNode;
    icon?: React.ElementType;
    iconClassName?: string;
    iconContainerClassName?: string;
