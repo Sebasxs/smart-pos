@@ -1,6 +1,6 @@
 import { create } from 'zustand';
+import { calculateIdealPrice } from '../utils/calculation';
 
-// Types
 import { type InvoiceItem, type Discount } from '../types/billing';
 
 export type PaymentMethodType = 'cash' | 'bank_transfer' | 'credit_card' | 'account_balance';
@@ -61,10 +61,6 @@ interface BillingState {
    resetInvoice: () => void;
 }
 
-const calculateIdealPrice = (original: number, discountPercent: number) => {
-   return Math.round(original * (1 - discountPercent / 100));
-};
-
 export const useBillingStore = create<BillingState>(set => ({
    items: [],
    discount: { value: 0, type: 'fixed' },
@@ -72,6 +68,7 @@ export const useBillingStore = create<BillingState>(set => ({
 
    addItem: product => {
       set(state => {
+         // 1. Check for duplicates (same ID)
          const existingIndex = state.items.findIndex(
             p => product.id && p.id === product.id && product.id.length > 0,
          );
@@ -82,10 +79,12 @@ export const useBillingStore = create<BillingState>(set => ({
             return { items: newItems };
          }
 
+         // 2. Prepare new item data
          const originalPrice = product.originalPrice || product.price || 0;
          const discountPercentage = product.discountPercentage || 0;
          const baseDescription = product.description || 'Producto genérico';
 
+         // Calculate correct price based on discount rules
          const idealPrice = calculateIdealPrice(originalPrice, discountPercentage);
          const finalPrice =
             product.price && product.price < originalPrice ? product.price : idealPrice;
@@ -118,6 +117,7 @@ export const useBillingStore = create<BillingState>(set => ({
 
             const updatedItem = { ...item, ...newValues };
 
+            // Track manual edits for auditing
             if (newValues.description !== undefined) {
                updatedItem.isDescriptionEdited =
                   newValues.description.trim() !== item.originalDescription.trim();
@@ -125,7 +125,7 @@ export const useBillingStore = create<BillingState>(set => ({
 
             if (newValues.price !== undefined) {
                const idealPrice = calculateIdealPrice(item.originalPrice, item.discountPercentage);
-               updatedItem.isPriceEdited = newValues.price !== idealPrice;
+               updatedItem.isPriceEdited = Math.abs(newValues.price - idealPrice) > 0.01;
             }
 
             return updatedItem;

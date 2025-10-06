@@ -11,12 +11,13 @@ import { CheckoutSidebar } from '../components/billing/CheckoutSidebar';
 import { ShortcutLegend } from '../components/billing/ShortcutLegend';
 import { Button } from '../components/ui/Button';
 
-// Stores & Hooks
+// Logic & State
 import { useBillingStore } from '../store/billingStore';
 import { useCashShiftStore } from '../store/cashShiftStore';
 import { useBillingPayment } from '../hooks/useBillingPayment';
 import { useBillingModals } from '../hooks/useBillingModals';
 import { useBillingHotkeys } from '../hooks/useBillingHotKeys';
+import { calculateInvoiceTotals, isPaymentSufficient } from '../utils/calculation';
 
 export const Billing = () => {
    const {
@@ -39,25 +40,21 @@ export const Billing = () => {
    const [createClientName, setCreateClientName] = useState('');
    const [errorMessage, setErrorMessage] = useState('');
 
-   const subtotal = useMemo(
-      () => items.reduce((acc, item) => acc + item.price * item.quantity, 0),
-      [items],
+   // Calculated values
+   const { subtotal, discountAmount, total } = useMemo(
+      () => calculateInvoiceTotals(items, discount),
+      [items, discount],
    );
-   const discountAmount = useMemo(
-      () =>
-         discount.type === 'percentage'
-            ? Math.round(subtotal * (discount.value / 100))
-            : discount.value,
-      [subtotal, discount],
-   );
-   const total = Math.max(0, subtotal - discountAmount);
+
    const totalPaid = useMemo(
       () => checkoutData.payments.reduce((sum, p) => sum + (p.amount || 0), 0),
       [checkoutData.payments],
    );
-   const isPaymentValid =
-      items.length > 0 && totalPaid >= total && checkoutData.payments.length > 0;
 
+   const isPaymentValid =
+      items.length > 0 && isPaymentSufficient(totalPaid, total) && checkoutData.payments.length > 0;
+
+   // Payment hook
    const {
       processPayment,
       isProcessing,
@@ -73,10 +70,12 @@ export const Billing = () => {
       },
    });
 
+   // Handlers
    const handleProductSelect = (p: any) => {
       addItem(p);
       toggleModal('productSearch', false);
    };
+
    const handleClientSelect = (c: any) => {
       setCheckoutData({
          customer: {
@@ -93,6 +92,7 @@ export const Billing = () => {
       });
       toggleModal('clientSearch', false);
    };
+
    const handleRequestCreateClient = (name: string) => {
       setCreateClientName(name);
       toggleModal('clientCreate', true);
@@ -102,25 +102,29 @@ export const Billing = () => {
       handleClientSelect(c);
       toggleModal('clientCreate', false);
    };
+
    const handleFinalizeSuccess = () => {
       resetInvoice();
       resetPaymentState();
       toggleModal('success', false);
    };
+
    const handlePaymentProcess = () => {
       if (isPaymentValid && !isProcessing) processPayment(subtotal, discountAmount, total);
    };
+
    const handleSmartEnter = () => {
       const { payments } = checkoutData;
-      if (payments.length === 0) addPayment('cash', total);
-      else if (
-         payments.length === 1 &&
-         payments[0].method === 'cash' &&
-         Math.abs((payments[0].amount || 0) - total) > 0.01
-      )
-         updatePayment(payments[0].id, total);
+      if (payments.length === 0) {
+         addPayment('cash', total);
+      } else if (payments.length === 1 && payments[0].method === 'cash') {
+         if (Math.abs((payments[0].amount || 0) - total) > 0.01) {
+            updatePayment(payments[0].id, total);
+         }
+      }
    };
 
+   // Hotkeys
    useBillingHotkeys({
       modals,
       itemsLength: items.length,
@@ -148,13 +152,14 @@ export const Billing = () => {
       <div className="flex flex-col w-full h-full bg-canvas overflow-hidden">
          <PageHeader
             title="Facturar"
+            // Search slot for Client Selector
             search={
                <div className="w-full flex items-center justify-start md:justify-center">
                   {!checkoutData.customer.id ? (
                      <Button
                         variant="secondary"
                         onClick={() => toggleModal('clientSearch', true)}
-                        className="flex items-center gap-2 px-4 py-2 bg-surface-highlight/60 hover:bg-surface-active text-text-secondary hover:text-text-main rounded-xl border-none outline-none w-full md:w-auto justify-start md:justify-center"
+                        className="flex items-center gap-2 px-4 py-2 bg-surface-highlight/60 hover:bg-surface-active text-text-secondary hover:text-text-main rounded-xl border-none outline-none w-full md:w-auto justify-start md:justify-center h-10"
                      >
                         <HiOutlineUserPlus
                            size={18}
@@ -165,19 +170,19 @@ export const Billing = () => {
                   ) : (
                      <div
                         onClick={() => toggleModal('clientSearch', true)}
-                        className="flex items-center bg-surface-highlight/60 hover:bg-surface-active rounded-xl px-3 py-1.5 gap-3 transition-all cursor-pointer group animate-in fade-in zoom-in duration-300 w-full md:w-auto"
+                        className="flex items-center bg-surface-highlight/60 hover:bg-surface-active rounded-xl px-3 py-1.5 gap-3 transition-all cursor-pointer group animate-in fade-in zoom-in duration-300 w-full md:w-auto h-10 border border-transparent hover:border-border-hover"
                      >
                         <div className="flex flex-col leading-tight min-w-0">
-                           <span className="text-[10px] font-bold text-text-dim uppercase tracking-tighter group-hover:text-primary-text">
+                           <span className="text-[9px] font-bold text-text-dim uppercase tracking-tighter group-hover:text-primary-text transition-colors">
                               Cliente
                            </span>
                            <span className="text-sm font-bold text-text-main truncate max-w-[150px]">
                               {checkoutData.customer.name}
                            </span>
                         </div>
-                        <div className="h-6 w-px bg-border/40" />
+                        <div className="h-5 w-px bg-border/40" />
                         <div className="flex flex-col leading-tight">
-                           <span className="text-[10px] font-medium text-text-dim uppercase">
+                           <span className="text-[9px] font-medium text-text-dim uppercase">
                               ID
                            </span>
                            <span className="text-xs font-mono text-text-secondary">
@@ -191,15 +196,16 @@ export const Billing = () => {
                               e.stopPropagation();
                               resetCustomer();
                            }}
-                           className="ml-1 h-7 w-7 hover:bg-danger-bg hover:text-danger-text p-0"
+                           className="ml-1 h-7 w-7 hover:bg-danger-bg hover:text-danger-text p-0 rounded-lg"
                            title="Quitar cliente"
                         >
-                           <HiXMark size={16} />
+                           <HiXMark size={14} />
                         </Button>
                      </div>
                   )}
                </div>
             }
+            // Info Slot
             info={
                <>
                   <span className="text-[10px] text-text-dim font-bold uppercase tracking-widest border-r border-border/20 pr-3 mr-3">
