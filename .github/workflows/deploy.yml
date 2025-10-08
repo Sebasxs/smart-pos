@@ -75,7 +75,8 @@ jobs:
          - name: Build and Push Server
            uses: docker/build-push-action@v5
            with:
-              context: ./server
+              context: .
+              file: ./server/Dockerfile
               push: true
               tags: |
                  ${{ env.REGISTRY_HOST }}/${{ env.GCP_PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/server:latest
@@ -120,7 +121,8 @@ jobs:
          - name: Build and Push Client
            uses: docker/build-push-action@v5
            with:
-              context: ./client
+              context: .
+              file: ./client/Dockerfile
               push: true
               build-args: |
                  VITE_API_URL=${{ env.DETECTED_API_URL }}
