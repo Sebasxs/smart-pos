@@ -262,7 +262,7 @@ export const Login = () => {
                      onClick={handleGoogleLogin}
                      isLoading={googleLoading}
                      disabled={loading || googleLoading}
-                     className="w-full h-11 rounded-xl text-sm border-border active:scale-[0.98]"
+                     className="w-full h-11 bg-black/20 rounded-xl text-sm border-border active:scale-[0.98]"
                   >
                      {!googleLoading && (
                         <>

@@ -31,19 +31,15 @@ export type NavGroup = {
 };
 
 export const NAVIGATION_CONFIG: (NavItem | NavGroup)[] = [
-   // 1. Core (Dashboard integrado con IA)
    {
       name: 'Dashboard',
       path: '/dashboard',
-      // Usamos el icono Sparkles para denotar que ahora es "Smart"
       icon: <HiOutlineSparkles size={20} />,
-      // Colores actualizados a la paleta Violeta/Índigo (Brand Dashboard/Copilot)
       hoverColor: 'hover:bg-brand-dashboard-bg hover:text-brand-dashboard-main',
       activeColor: 'bg-brand-dashboard-bg text-text-main ring-1 ring-brand-dashboard-border',
       roles: ['admin', 'super_admin', 'cashier'],
    },
 
-   // 2. Point of Sale (Daily Operations)
    {
       name: 'Facturar',
       path: '/billing',
@@ -61,7 +57,6 @@ export const NAVIGATION_CONFIG: (NavItem | NavGroup)[] = [
       roles: ['admin', 'super_admin', 'cashier'],
    },
 
-   // 3. Management Modules
    {
       name: 'Operaciones',
       icon: <HiOutlineDocumentText size={20} />,
@@ -150,7 +145,6 @@ export const NAVIGATION_CONFIG: (NavItem | NavGroup)[] = [
       ],
    },
 
-   // 4. Data & Admin
    {
       name: 'Directorio',
       icon: <HiOutlineBookOpen size={20} />,
