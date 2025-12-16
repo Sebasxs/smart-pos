@@ -1,7 +1,6 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { HiOutlineComputerDesktop, HiOutlineBanknotes } from 'react-icons/hi2';
 import { Loader2 } from 'lucide-react';
-import { useOrganizationStore } from '../store/organizationStore';
 
 // Components
 import { InvoiceTable } from '../components/billing/InvoiceTable';
@@ -29,13 +28,13 @@ import { type InvoiceItem } from '../types/billing';
 // Utils
 import { authenticatedFetch } from '../utils/api';
 import { useAuthStore } from '../store/authStore';
-import { TAX_REGIME_LABELS } from '../utils/constants';
-import { formatDate, formatTime } from '../utils/date';
+import { usePrinter } from '../hooks/usePrinter';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 export const Billing = () => {
    const { user } = useAuthStore();
+   const { printInvoice } = usePrinter();
    const {
       items,
       discount,
@@ -48,6 +47,7 @@ export const Billing = () => {
       resetCustomer,
       resetInvoice,
       addPayment,
+      updatePayment,
    } = useBillingStore();
    const { decreaseStockBatch } = useInventoryStore();
    const { updateCustomerAfterPurchase } = useCustomerStore();
@@ -141,8 +141,6 @@ export const Billing = () => {
       setSearchInputValue('');
    };
 
-   const { settings } = useOrganizationStore();
-
    const handlePaymentProcess = useCallback(async () => {
       if (!isPaymentValid || isProcessing) return;
 
@@ -188,7 +186,6 @@ export const Billing = () => {
             throw new Error(errorData.error || 'Error desconocido al procesar la venta');
          }
 
-         // Handle 204 No Content or empty responses
          let responseData;
          if (res.status === 204) {
             responseData = {};
@@ -198,8 +195,6 @@ export const Billing = () => {
 
          if (!responseData.invoiceId && !responseData.id) {
             console.warn('Backend returned success but no invoice ID', responseData);
-            // If we received a 204, assume success but missing data.
-            // Using a fallback ID to allow the flow to finish and clear the cart.
             if (res.status === 204 || res.status === 201 || res.status === 200) {
                responseData.invoiceId = `TEMP-${Date.now()}`;
                responseData.invoiceNumberFull = 'Procesando...';
@@ -220,28 +215,10 @@ export const Billing = () => {
          setGeneratedInvoiceNumber(responseData.invoiceNumberFull || '---');
 
          try {
-            // 1. Preparar datos de la empresa (Fallback si no han cargado)
-            const companyInfo = {
-               name: settings?.company_name || '---',
-               nit: settings?.tax_id || '---',
-               regime: TAX_REGIME_LABELS[settings?.tax_regime || 'not_responsible_iva'] || '---',
-               address: settings?.address
-                  ? `${settings.address}${settings.city ? `, ${settings.city}` : ''}`
-                  : '---',
-               phone: settings?.phone || '',
-               footer: settings?.invoice_footer || 'Gracias por su compra',
-            };
-
-            // 2. Preparar payload para la impresora (Estructura limpia)
-            const date = new Date();
-            const printPayload = {
-               company: companyInfo,
-               invoice: {
-                  number: responseData.invoiceNumberFull, // Usamos el que respondió el server
-                  date: formatDate(date),
-                  time: formatTime(date),
-                  cashier: user?.full_name || user?.nickname || '---',
-               },
+            await printInvoice({
+               invoiceNumber: responseData.invoiceNumberFull,
+               date: new Date(),
+               cashierName: user?.full_name || user?.nickname || '---',
                customer: {
                   name: checkoutData.customer.name,
                   id_number: checkoutData.customer.taxId,
@@ -263,16 +240,7 @@ export const Billing = () => {
                   method: p.method,
                   amount: p.amount || 0,
                })),
-            };
-
-            // 3. Enviar a la cola de impresión en Supabase (No bloqueante, vía Backend)
-            authenticatedFetch(`${API_URL}/api/printer/jobs`, {
-               method: 'POST',
-               body: JSON.stringify({
-                  printerName: 'POS-80',
-                  payload: printPayload,
-               }),
-            }).catch(console.error); // Catch silencioso para no bloquear UI
+            });
          } catch (err) {
             console.error('Error preparando impresión:', err);
          }
@@ -296,6 +264,8 @@ export const Billing = () => {
       toggleModal,
       decreaseStockBatch,
       updateCustomerAfterPurchase,
+      printInvoice,
+      user,
    ]);
 
    const handleFinalizeSuccess = () => {
@@ -314,7 +284,6 @@ export const Billing = () => {
       }
    }, [preferences.defaultOpeningCash]);
 
-   // Add timeout for shift loading to prevent infinite loading
    useEffect(() => {
       if (shiftLoading) {
          const timeout = setTimeout(() => {
@@ -351,31 +320,33 @@ export const Billing = () => {
                   triggerDiscard();
                   break;
 
-               // LÓGICA DE ENTER MODIFICADA
                case 'Enter':
                   event.preventDefault();
 
-                  // CASO 1: Venta lista para procesar (Pago >= Total)
-                  // Esto ocurre en el SEGUNDO Enter
                   if (isPaymentValid) {
                      handlePaymentProcess();
                      return;
                   }
 
-                  // CASO 2: Hay productos pero NO hay método de pago
-                  // Esto ocurre en el PRIMER Enter
-                  if (items.length > 0 && checkoutData.payments.length === 0) {
-                     // UX: Autocompletar con efectivo por el monto EXACTO del total
-                     // Esto habilita isPaymentValid inmediatamente para el siguiente Enter
-                     addPayment('cash', total);
-                     return;
+                  if (items.length > 0) {
+                     const { payments } = checkoutData;
+
+                     if (payments.length === 0) {
+                        addPayment('cash', total);
+                        return;
+                     }
+
+                     if (payments.length === 1 && payments[0].method === 'cash') {
+                        const currentAmount = payments[0].amount || 0;
+                        if (Math.abs(currentAmount - total) > 0.01) {
+                           updatePayment(payments[0].id, total);
+                           return;
+                        }
+                     }
                   }
                   break;
             }
          }
-
-         // Nota: Eliminamos el bloque 'if (event.code === 'Enter' ...)' anterior
-         // porque ahora está manejado dentro del switch para mayor claridad y control.
       };
 
       window.addEventListener('keydown', handleKeyDown);
@@ -386,15 +357,13 @@ export const Billing = () => {
       triggerDiscard,
       handlePaymentProcess,
       toggleModal,
-      // Nuevas dependencias necesarias para la lógica
       items.length,
-      checkoutData.payments.length,
+      checkoutData,
       total,
       addPayment,
+      updatePayment,
    ]);
 
-   // Only show loading if we're still checking AND the shift is not open
-   // This prevents infinite loading when there's a network issue
    if (shiftLoading && !isOpen) {
       return (
          <div className="flex h-full w-full items-center justify-center bg-zinc-950">
@@ -406,7 +375,6 @@ export const Billing = () => {
       );
    }
 
-   // --- CASH SHIFT BLOCKING ---
    if (!isOpen) {
       return (
          <div className="flex items-center justify-center h-full w-full bg-zinc-950 animate-in fade-in duration-500">

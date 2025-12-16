@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { supabase } from '../utils/supabase';
-import { KeyRound, LogIn, Loader2 } from 'lucide-react';
+import { KeyRound, LogIn, Loader2, AlertCircle } from 'lucide-react';
 import clsx from 'clsx';
 import { FullPageLoader } from '../components/ui/FullPageLoader';
 import { useCashShiftStore } from '../store/cashShiftStore';
@@ -11,7 +11,9 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 export const Login = () => {
    const navigate = useNavigate();
+   const location = useLocation();
    const { login, isAuthenticated } = useAuthStore();
+
    const [mode, setMode] = useState<'cashier' | 'admin'>('cashier');
    const [loading, setLoading] = useState(false);
    const [error, setError] = useState<string | null>(null);
@@ -19,15 +21,16 @@ export const Login = () => {
    const [nickname, setNickname] = useState('');
    const [pin, setPin] = useState('');
 
-   const hasRedirectParams =
+   const isProcessingOAuth =
       window.location.hash.includes('access_token') ||
       window.location.hash.includes('type=recovery');
 
    useEffect(() => {
       if (isAuthenticated) {
-         navigate('/billing', { replace: true });
+         const from = (location.state as any)?.from?.pathname || '/billing';
+         navigate(from, { replace: true });
       }
-   }, [isAuthenticated, navigate]);
+   }, [isAuthenticated, navigate, location]);
 
    useEffect(() => {
       const hash = window.location.hash;
@@ -43,35 +46,44 @@ export const Login = () => {
       }
    }, []);
 
-   const shouldShowLoader = isAuthenticated || (hasRedirectParams && !error);
-
-   if (shouldShowLoader) {
+   if (isProcessingOAuth && !error && !isAuthenticated) {
       return <FullPageLoader message="Validando credenciales..." />;
    }
 
+   if (isAuthenticated) return null;
+
    const handleCashierLogin = async (e: React.FormEvent) => {
       e.preventDefault();
+      if (loading) return;
+
       setLoading(true);
       setError(null);
 
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10_000);
+
       try {
-         const response = await fetch(`${API_URL}/api/api/auth/login/cashier`, {
+         const response = await fetch(`${API_URL}/api/auth/login/cashier`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ nickname, pin }),
+            signal: controller.signal,
          });
 
+         clearTimeout(timeoutId);
          const data = await response.json();
 
-         if (!response.ok) {
-            throw new Error(data.error || 'Error al iniciar sesión');
-         }
+         if (!response.ok) throw new Error(data.error || 'Credenciales inválidas');
 
          login(data.user, data.token);
-         await useCashShiftStore.getState().checkShiftStatus();
-         navigate('/billing', { replace: true });
+         useCashShiftStore.getState().checkShiftStatus().catch(console.error);
       } catch (err: any) {
-         setError(err.message);
+         console.error(err);
+         if (err.name === 'AbortError') {
+            setError('El servidor no responde. Verifica tu conexión a internet.');
+         } else {
+            setError(err.message || 'Error de conexión con el servidor');
+         }
       } finally {
          setLoading(false);
       }
@@ -81,11 +93,10 @@ export const Login = () => {
       setLoading(true);
       setError(null);
       try {
+         const redirectUrl = `${window.location.origin}/login`;
          const { error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
-            options: {
-               redirectTo: window.location.origin + '/login',
-            },
+            options: { redirectTo: redirectUrl },
          });
          if (error) throw error;
       } catch (err: any) {
@@ -96,41 +107,49 @@ export const Login = () => {
    };
 
    return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
-         <div className="w-full max-w-xs bg-zinc-900 rounded-2xl border border-zinc-800 shadow-2xl overflow-hidden">
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4">
+         <div className="w-full max-w-xs bg-zinc-900 rounded-2xl border border-zinc-800 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-300">
             {/* Header */}
             <div className="p-6 pb-4 text-center border-b border-zinc-800">
-               <div className="w-16 h-16 bg-blue-600/20 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-blue-500/20">
+               <div className="w-16 h-16 bg-blue-600/20 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-blue-500/20 shadow-lg shadow-blue-900/20">
                   <KeyRound className="w-8 h-8 text-blue-500" />
                </div>
-               <h1 className="text-2xl font-bold text-white mb-2">SmartPOS</h1>
-               <p className="text-zinc-400 text-sm">Sistema de Punto de Venta Inteligente</p>
+               <h1 className="text-2xl font-bold text-white mb-2 tracking-tight">SmartPOS</h1>
+               <p className="text-zinc-400 text-sm">Punto de Venta Inteligente</p>
             </div>
 
             {/* Tabs */}
             <div className="flex border-b border-zinc-800">
                <button
-                  onClick={() => setMode('cashier')}
+                  type="button"
+                  onClick={() => {
+                     setMode('cashier');
+                     setError(null);
+                  }}
                   className={clsx(
-                     'flex-1 py-4 text-sm font-medium transition-colors relative',
+                     'flex-1 py-4 text-sm font-medium transition-colors relative outline-none focus:bg-zinc-800/50',
                      mode === 'cashier' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300',
                   )}
                >
                   Cajero
                   {mode === 'cashier' && (
-                     <div className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-500" />
+                     <div className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-500 shadow-[0_-2px_10px_rgba(59,130,246,0.5)]" />
                   )}
                </button>
                <button
-                  onClick={() => setMode('admin')}
+                  type="button"
+                  onClick={() => {
+                     setMode('admin');
+                     setError(null);
+                  }}
                   className={clsx(
-                     'flex-1 py-4 text-sm font-medium transition-colors relative',
+                     'flex-1 py-4 text-sm font-medium transition-colors relative outline-none focus:bg-zinc-800/50',
                      mode === 'admin' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300',
                   )}
                >
                   Administrador
                   {mode === 'admin' && (
-                     <div className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-500" />
+                     <div className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-500 shadow-[0_-2px_10px_rgba(59,130,246,0.5)]" />
                   )}
                </button>
             </div>
@@ -138,95 +157,84 @@ export const Login = () => {
             {/* Content */}
             <div className="p-6">
                {error && (
-                  <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs text-center animate-in fade-in slide-in-from-top-2">
-                     <span className="font-bold block mb-1">Error de acceso</span>
-                     {error}
+                  <div className="mb-6 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs flex gap-2 items-start animate-in fade-in slide-in-from-top-2">
+                     <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                     <span className="leading-relaxed font-medium">{error}</span>
                   </div>
                )}
 
                {mode === 'cashier' ? (
-                  <form onSubmit={handleCashierLogin} className="space-y-2 mt-2">
-                     {/* INPUT USUARIO */}
-                     <div className="relative group">
-                        <input
-                           id="nickname"
-                           type="text"
-                           value={nickname}
-                           onChange={e => setNickname(e.target.value)}
-                           className="peer w-full bg-zinc-950 border border-zinc-800 rounded-xl py-3 pl-5 pr-4 text-white placeholder-transparent focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all pt-6 pb-2"
-                           placeholder=""
-                           required
-                           autoComplete="off"
-                        />
-                        <label
-                           htmlFor="nickname"
-                           className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-500 text-sm transition-all duration-200 
-                           peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-base
-                           peer-focus:top-2.5 peer-focus:text-[10px] peer-focus:text-blue-400 peer-focus:-translate-y-0
-                           peer-not-placeholder-shown:top-2.5 peer-not-placeholder-shown:text-[10px] peer-not-placeholder-shown:text-zinc-400 peer-not-placeholder-shown:-translate-y-0
-                           pointer-events-none"
-                        >
-                           Usuario / Nickname
-                        </label>
-                     </div>
+                  <form onSubmit={handleCashierLogin} className="space-y-4">
+                     <div className="space-y-4">
+                        <div className="relative group">
+                           <input
+                              id="nickname"
+                              type="text"
+                              value={nickname}
+                              onChange={e => setNickname(e.target.value)}
+                              className="peer w-full bg-zinc-950 border border-zinc-800 rounded-xl py-3 pl-4 pr-4 text-white placeholder-transparent focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all pt-6 pb-2 text-sm disabled:opacity-50"
+                              placeholder="Usuario"
+                              required
+                              autoComplete="username"
+                              disabled={loading}
+                              autoFocus
+                           />
+                           <label className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-xs uppercase font-bold tracking-wider transition-all duration-200 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-sm peer-placeholder-shown:font-normal peer-placeholder-shown:normal-case peer-focus:top-2.5 peer-focus:text-[10px] peer-focus:text-blue-400 peer-focus:font-bold peer-focus:uppercase peer-not-placeholder-shown:top-2.5 peer-not-placeholder-shown:text-[10px] peer-not-placeholder-shown:text-zinc-400 pointer-events-none">
+                              Usuario
+                           </label>
+                        </div>
 
-                     {/* INPUT PIN */}
-                     <div className="relative group">
-                        <input
-                           id="pin"
-                           type="password"
-                           value={pin}
-                           inputMode="numeric"
-                           maxLength={4}
-                           onChange={e => {
-                              const value = e.target.value.replace(/\D/g, '').slice(0, 4);
-                              setPin(value);
-                           }}
-                           className="peer w-full bg-zinc-950 border border-zinc-800 rounded-xl py-3 pl-5 pr-4 text-white placeholder-transparent focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all pt-6 pb-2 font-mono tracking-widest"
-                           placeholder=""
-                           required
-                        />
-                        <label
-                           htmlFor="pin"
-                           className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-500 text-sm transition-all duration-200 
-                           peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-base
-                           peer-focus:top-2.5 peer-focus:text-[10px] peer-focus:text-blue-400 peer-focus:-translate-y-0
-                           peer-not-placeholder-shown:top-2.5 peer-not-placeholder-shown:text-[10px] peer-not-placeholder-shown:text-zinc-400 peer-not-placeholder-shown:-translate-y-0
-                           pointer-events-none"
-                        >
-                           PIN de Acceso
-                        </label>
+                        <div className="relative group">
+                           <input
+                              id="pin"
+                              type="password"
+                              value={pin}
+                              inputMode="numeric"
+                              maxLength={4}
+                              onChange={e => {
+                                 const value = e.target.value.replace(/\D/g, '').slice(0, 4);
+                                 setPin(value);
+                              }}
+                              className="peer w-full bg-zinc-950 border border-zinc-800 rounded-xl py-3 pl-4 pr-4 text-white placeholder-transparent focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all pt-6 pb-2 font-mono tracking-[0.5em] disabled:opacity-50"
+                              placeholder="PIN"
+                              required
+                              autoComplete="current-password"
+                              disabled={loading}
+                           />
+                           <label className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-xs uppercase font-bold tracking-wider transition-all duration-200 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-sm peer-placeholder-shown:font-normal peer-placeholder-shown:normal-case peer-placeholder-shown:tracking-normal peer-focus:top-2.5 peer-focus:text-[10px] peer-focus:text-blue-400 peer-focus:font-bold peer-focus:uppercase peer-not-placeholder-shown:top-2.5 peer-not-placeholder-shown:text-[10px] peer-not-placeholder-shown:text-zinc-400 pointer-events-none w-full text-left peer-focus:tracking-normal">
+                              PIN de Acceso
+                           </label>
+                        </div>
                      </div>
 
                      <button
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-3 rounded-xl transition-all flex items-center justify-center gap-2 mt-8 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-900/20 active:scale-[0.98]"
+                        className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-medium py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 mt-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-900/20 active:scale-[0.98]"
                      >
                         {loading ? (
                            <Loader2 className="w-5 h-5 animate-spin" />
                         ) : (
                            <>
                               <LogIn className="w-5 h-5" />
-                              <span>Ingresar</span>
+                              <span>Iniciar Sesión</span>
                            </>
                         )}
                      </button>
                   </form>
                ) : (
-                  <div className="text-center space-y-6">
-                     <p className="text-zinc-400 text-sm">
-                        Inicia sesión con tu cuenta de Google para acceder al panel de
-                        administración.
+                  <div className="text-center py-4 animate-in fade-in slide-in-from-right-4">
+                     <p className="text-zinc-400 text-sm mb-6 leading-relaxed">
+                        Acceso administrativo seguro mediante cuenta de Google autorizada.
                      </p>
 
                      <button
                         onClick={handleAdminLogin}
                         disabled={loading}
-                        className="w-full bg-white hover:bg-zinc-100 text-zinc-900 font-medium py-3 rounded-xl transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full bg-white hover:bg-zinc-100 text-zinc-900 font-medium py-3.5 rounded-xl transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-white/5 active:scale-[0.98]"
                      >
                         {loading ? (
-                           <Loader2 className="w-5 h-5 animate-spin" />
+                           <Loader2 className="w-5 h-5 animate-spin text-zinc-600" />
                         ) : (
                            <>
                               <svg className="w-5 h-5" viewBox="0 0 24 24">

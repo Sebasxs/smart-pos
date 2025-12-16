@@ -54,7 +54,20 @@ export const TicketView = ({
    const change = Math.max(0, totalPaid - total);
 
    return (
-      <div className="bg-white text-black font-mono text-[11px] p-4 w-[350px] mx-auto shadow-sm leading-tight select-text">
+      <div className="bg-white text-black font-mono text-[11px] p-4 w-[350px] mx-auto leading-tight select-text">
+         {/* SERRATED CUT */}
+         <div
+            className="absolute left-0 right-0 bottom-full w-full z-10"
+            style={{
+               height: '3px',
+               backgroundImage: `url("data:image/svg+xml,%3Csvg width='10' height='4' viewBox='0 0 10 4' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 4 L5 0 L10 4Z' fill='%23ffffff'/%3E%3C/svg%3E")`,
+               backgroundSize: '10px 4px',
+               backgroundRepeat: 'repeat-x',
+               backgroundPosition: 'left bottom',
+               marginTop: '-0.5px',
+            }}
+         />
+
          {/* HEADER */}
          <div className="text-center mb-2">
             <h2 className="font-black text-lg capitalize text-[22px] -mb-1">{companyName}</h2>
@@ -68,7 +81,6 @@ export const TicketView = ({
             )}
             {phone && <p>TEL: {phone}</p>}
          </div>
-
          <div className="border-b border-black border-dashed my-2" />
 
          {/* INVOICE INFO */}
@@ -123,7 +135,6 @@ export const TicketView = ({
                </div>
             ))}
          </div>
-
          <div className="border-b border-black border-dashed my-2" />
 
          {/* TOTALS */}
@@ -145,7 +156,6 @@ export const TicketView = ({
                <span>{formatCurrency(total)}</span>
             </div>
          </div>
-
          <div className="border-b border-black border-dashed my-2" />
 
          {/* PAYMENTS */}
@@ -165,6 +175,19 @@ export const TicketView = ({
                <span>{formatCurrency(change)}</span>
             </div>
          </div>
+
+         {/* SERRATED CUT */}
+         <div
+            className="absolute left-0 right-0 top-full w-full z-10"
+            style={{
+               height: '3px',
+               backgroundImage: `url("data:image/svg+xml,%3Csvg width='10' height='4' viewBox='0 0 10 4' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0 L5 4 L10 0H0Z' fill='%23ffffff'/%3E%3C/svg%3E")`,
+               backgroundSize: '10px 4px',
+               backgroundRepeat: 'repeat-x',
+               backgroundPosition: 'left top',
+               marginTop: '-0.5px',
+            }}
+         />
 
          {/* FOOTER */}
          <div className="mt-4 text-center text-[11px]">

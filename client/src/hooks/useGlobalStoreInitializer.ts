@@ -4,64 +4,42 @@ import { useInventoryStore } from '../store/inventoryStore';
 import { useCustomerStore } from '../store/customerStore';
 import { useAuthStore } from '../store/authStore';
 
-/**
- * Hook to initialize all critical stores globally after authentication.
- * This ensures data is available throughout the app without timing issues.
- */
 export const useGlobalStoreInitializer = () => {
-   const [isInitializing, setIsInitializing] = useState(true);
+   const [isInitializing, setIsInitializing] = useState(false);
    const [error, setError] = useState<string | null>(null);
 
-   const { fetchSettings } = useOrganizationStore();
-   const { fetchProducts } = useInventoryStore();
-   const { fetchCustomers } = useCustomerStore();
-   const { isSessionChecked, isAuthenticated } = useAuthStore();
+   const { fetchSettings, settings } = useOrganizationStore();
+   const { fetchProducts, allProducts } = useInventoryStore();
+   const { fetchCustomers, customers } = useCustomerStore();
+   const { isAuthenticated } = useAuthStore();
 
    useEffect(() => {
-      // Don't start initialization until session is checked, UNLESS we are already authenticated (optimistic load)
-      if (!isSessionChecked && !isAuthenticated) {
-         return;
-      }
+      if (!isAuthenticated) return;
 
       const initializeStores = async () => {
-         // Si ya tenemos settings (hidratados de localStorage), no bloqueamos la UI
-         // Cargamos todo en segundo plano
-         const hasCachedSettings = !!useOrganizationStore.getState().settings;
-
-         if (hasCachedSettings) {
-            setIsInitializing(false);
-            fetchSettings(); // Background update
-            fetchProducts();
-            fetchCustomers();
-            return;
-         }
-
-         // Si no hay settings (primera vez), bloqueamos hasta tener lo mínimo
-         setIsInitializing(true);
-         setError(null);
+         const hasCachedData = !!settings && (allProducts.length > 0 || customers.length > 0);
+         if (!hasCachedData) setIsInitializing(true);
 
          try {
-            // Start fetching heavy data in background
-            fetchProducts();
-            fetchCustomers();
+            const promises = [fetchSettings(), fetchProducts(), fetchCustomers()];
 
-            const settingsPromise = fetchSettings();
-
-            const timeoutPromise = new Promise<never>((_, reject) =>
-               setTimeout(() => reject(new Error('Timeout al cargar configuración')), 10000),
-            );
-
-            await Promise.race([settingsPromise, timeoutPromise]);
+            if (!hasCachedData) {
+               await fetchSettings();
+            } else {
+               Promise.allSettled(promises).catch(console.warn);
+            }
          } catch (err) {
-            console.error('Error initializing stores:', err);
-            setError(err instanceof Error ? err.message : 'Error desconocido al cargar datos');
+            console.error('Error sincronizando datos:', err);
+            if (!hasCachedData) {
+               setError(err instanceof Error ? err.message : 'Error de conexión');
+            }
          } finally {
             setIsInitializing(false);
          }
       };
 
       initializeStores();
-   }, [isSessionChecked, isAuthenticated, fetchSettings, fetchProducts, fetchCustomers]);
+   }, [isAuthenticated]);
 
    return { isInitializing, error };
 };

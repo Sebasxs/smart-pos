@@ -7,6 +7,7 @@ import { LucidePlus } from 'lucide-react';
 import { QuantitySelector } from '../ui/QuantitySelector';
 import { SmartNumberInput } from '../ui/SmartNumberInput';
 import { SmartNumber } from '../ui/SmartNumber';
+import { useEffect, useRef } from 'react';
 
 // Types
 import { type InvoiceItem } from '../../types/billing';
@@ -17,7 +18,6 @@ type InvoiceItemRowProps = {
    onRemove: (id: string) => void;
 };
 
-// Layout de la grilla
 const GRID_LAYOUT = 'grid grid-cols-[1fr_7rem_6.5rem_6.5rem_2rem] gap-4 items-center';
 
 const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
@@ -31,7 +31,6 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
    const isModified = item.isPriceEdited || item.isDescriptionEdited;
    const isOverStock = item.quantity > item.stock;
 
-   // Estilos de fila
    let rowStyle = 'bg-transparent hover:bg-zinc-800/30';
    let indicatorColor = 'bg-transparent';
 
@@ -54,12 +53,12 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
             ${rowStyle}
          `}
       >
-         {/* Indicador lateral */}
+         {/* Lateral indicator */}
          <div
             className={`absolute left-0 top-0 bottom-0 w-[3px] transition-colors duration-200 ${indicatorColor}`}
          />
 
-         {/* 1. PRODUCTO */}
+         {/* Product */}
          <div className="flex flex-col min-w-0 pl-2">
             <div className="flex items-center w-full gap-2">
                <input
@@ -95,7 +94,7 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
             )}
          </div>
 
-         {/* 2. VALOR UNITARIO */}
+         {/* Unit price */}
          <div className="flex flex-col justify-center items-end w-full">
             <div className="relative w-full flex items-center justify-end group/price">
                <SmartNumberInput
@@ -142,7 +141,7 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
             )}
          </div>
 
-         {/* 3. CANTIDAD (Selector) */}
+         {/* Quantity selector */}
          <div className="flex justify-center w-full">
             <QuantitySelector
                value={item.quantity}
@@ -153,15 +152,15 @@ const InvoiceItemRow = ({ item, onUpdate, onRemove }: InvoiceItemRowProps) => {
             />
          </div>
 
-         {/* 4. SUBTOTAL */}
+         {/* Subtotal */}
          <div className="flex flex-col items-end w-full">
             <span className="font-bold text-white tracking-tight text-[15px] font-mono tabular-nums">
                <SmartNumber value={item.quantity * item.price} variant="currency" />
             </span>
          </div>
 
-         {/* 5. ACCIONES */}
-         <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+         {/* Actions */}
+         <div className="flex justify-end opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             <button
                onClick={() => onRemove(item.id)}
                className="p-1.5 text-zinc-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all duration-200 cursor-pointer active:scale-95"
@@ -188,63 +187,110 @@ export const InvoiceTable = ({
    onRemoveItem,
    onAddProductClick,
 }: InvoiceTableProps) => {
+   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+   useEffect(() => {
+      const container = scrollContainerRef.current;
+      if (!container) return;
+
+      const updateWidth = () => {
+         const width = container.clientWidth;
+         container.style.setProperty('--sticky-width', `${width}px`);
+      };
+
+      updateWidth();
+
+      const observer = new ResizeObserver(updateWidth);
+      observer.observe(container);
+
+      return () => observer.disconnect();
+   }, []);
+
+   const isEmptyList = items.length === 0;
+
    return (
-      <div className="flex flex-col h-full bg-zinc-950/50 overflow-x-auto overflow-y-hidden rounded-xl custom-scrollbar">
-         <div className="min-w-[640px] flex flex-col h-full">
-            <div
-               className={`${GRID_LAYOUT} py-2 px-6 mb-0 text-[10px] font-bold text-zinc-500 uppercase tracking-wider border-b border-zinc-800 bg-zinc-900/50 shrink-0 select-none`}
-            >
-               <div className="pl-2">Producto</div>
-               <div className="text-right">Valor Und.</div>
-               <div className="text-center">Cant.</div>
-               <div className="text-right">Subtotal</div>
-               <div></div>
-            </div>
-
-            <div className="flex flex-col flex-1 overflow-y-auto custom-scrollbar pt-0">
-               {items.map(item => (
-                  <InvoiceItemRow
-                     key={item.id}
-                     item={item}
-                     onUpdate={onUpdateItem}
-                     onRemove={onRemoveItem}
-                  />
-               ))}
-
-               {/* Ghost Row - Notion Style */}
+      <div className="flex flex-col h-full bg-zinc-950/50 overflow-hidden rounded-xl">
+         <div
+            ref={scrollContainerRef}
+            className={`flex-1 custom-scrollbar relative ${
+               isEmptyList ? 'overflow-hidden' : 'overflow-auto'
+            }`}
+         >
+            <div className="min-w-[640px] flex flex-col min-h-full">
                <div
-                  onClick={onAddProductClick}
-                  className={`group cursor-pointer px-6 py-3 border-b border-transparent hover:border-zinc-800/60 transition-all duration-200 flex items-center gap-2 ${
-                     items.length === 0
-                        ? 'text-zinc-300 hover:text-zinc-200 bg-blue-500/70 hover:bg-blue-500/90 lg:text-zinc-500 lg:hover:text-zinc-400 lg:bg-transparent lg:hover:bg-zinc-500/10'
-                        : 'text-zinc-500 hover:text-zinc-400'
-                  }`}
+                  className={`sticky top-0 z-20 ${GRID_LAYOUT} py-2 px-6 mb-0 text-[10px] font-bold text-zinc-500 uppercase tracking-wider border-b border-zinc-800 bg-zinc-900/95 backdrop-blur-sm shrink-0 select-none shadow-sm`}
                >
-                  <LucidePlus size={16} className="opacity-70 group-hover:opacity-100" />
-                  <span className="text-sm font-medium">Nuevo producto</span>
-                  <span className="text-xs opacity-50 ml-auto">ESPACIO</span>
+                  <div className="pl-2">Producto</div>
+                  <div className="text-right">Valor Und.</div>
+                  <div className="text-center">Cant.</div>
+                  <div className="text-right">Subtotal</div>
+                  <div></div>
                </div>
 
-               {items.length === 0 && (
-                  <div className="hidden lg:flex min-h-[200px] h-full flex-col py-6 items-center justify-center text-zinc-600 animate-in fade-in duration-500">
-                     <div className="relative">
-                        <div className="absolute inset-0 bg-indigo-500/20 blur-xl rounded-full opacity-20" />
-                        <div className="relative bg-zinc-900/50 p-6 rounded-3xl border border-zinc-800 mb-4 shadow-xl">
-                           <HiOutlinePencilSquare size={32} className="text-zinc-500" />
+               <div className="flex flex-col flex-1 pb-2">
+                  {items.map(item => (
+                     <InvoiceItemRow
+                        key={item.id}
+                        item={item}
+                        onUpdate={onUpdateItem}
+                        onRemove={onRemoveItem}
+                     />
+                  ))}
+
+                  <div
+                     className="sticky left-0 z-10 max-w-full overflow-hidden self-start transition-[width] duration-100 ease-linear"
+                     style={{ width: 'var(--sticky-width, 100vw)' }}
+                  >
+                     <div className="px-6 py-4">
+                        <div
+                           onClick={onAddProductClick}
+                           className={`
+                              group cursor-pointer w-full py-3 rounded-lg
+                              border-2 border-dashed border-blue-500/30 
+                              bg-blue-500/5 hover:bg-blue-500/10 
+                              text-blue-400 hover:text-blue-300
+                              flex items-center justify-center gap-2 
+                              transition-all duration-200
+                              font-medium text-sm
+                           `}
+                        >
+                           <LucidePlus
+                              size={18}
+                              className="group-hover:scale-110 transition-transform"
+                           />
+                           <span>Nuevo producto</span>
+                           <span className="hidden sm:inline-block text-[10px] opacity-50 ml-2 font-mono border border-blue-500/30 px-1 rounded">
+                              ESPACIO
+                           </span>
                         </div>
                      </div>
-                     <p className="text-zinc-300 font-bold mb-1 text-lg">Factura Nueva</p>
-                     <p className="text-zinc-500 text-sm mb-6">
-                        Busca un producto o agrégalo manualmente
-                     </p>
-                     <span className="text-xs bg-zinc-900/80 px-4 py-2 rounded-full border border-zinc-800 text-zinc-500 shadow-sm">
-                        Presiona{' '}
-                        <kbd className="font-bold text-zinc-300 font-sans mx-1">ESPACIO</kbd> para
-                        buscar
-                     </span>
                   </div>
-               )}
+               </div>
             </div>
+
+            {isEmptyList && (
+               <div
+                  className="
+               absolute top-16 bottom-[120px] left-0 right-0
+               hidden lg:flex flex-col items-center justify-start
+               min-h-full overflow-hidden
+               mt-[20vh]
+               text-zinc-600 pointer-events-none"
+               >
+                  <div className="relative">
+                     <div className="absolute inset-0 bg-indigo-500/20 blur-xl rounded-full opacity-20" />
+                     <div className="relative bg-zinc-900/50 p-6 rounded-3xl border border-zinc-800/70 mb-4 shadow-xl">
+                        <HiOutlinePencilSquare size={32} className="text-zinc-700" />
+                     </div>
+                  </div>
+                  <p className="text-zinc-500 font-bold mb-1 text-lg">Factura Nueva</p>
+                  <p className="text-zinc-600 text-sm mb-6">Comienza agregando productos arriba</p>
+                  <span className="text-xs bg-zinc-900/80 px-4 py-2 rounded-full border border-zinc-800/70 text-zinc-600 shadow-sm">
+                     Presiona <kbd className="font-bold text-zinc-500 font-sans mx-1">ESPACIO</kbd>{' '}
+                     para buscar
+                  </span>
+               </div>
+            )}
          </div>
       </div>
    );
