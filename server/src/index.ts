@@ -13,7 +13,28 @@ import printerRoutes from './routes/printer.routes';
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+const allowedOrigins = [
+   'https://pos.audiovideofp.com',
+   'https://pos.sebasxs.com',
+   'http://localhost:5173',
+   'http://localhost:3000',
+];
+
+app.use(
+   cors({
+      origin: (origin, callback) => {
+         if (!origin) return callback(null, true);
+
+         if (allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+         } else {
+            console.error(`Bloqueado por CORS: ${origin}`);
+            callback(new Error('Not allowed by CORS'));
+         }
+      },
+      credentials: true,
+   }),
+);
 app.use(express.json());
 
 app.use('/api/products', productRoutes);

@@ -100,8 +100,6 @@ export const useBillingStore = create<BillingState>(set => ({
             originalPrice: originalPrice,
             discountPercentage: discountPercentage,
             quantity: 1,
-            // FIX CRÍTICO: Usar ?? para aceptar 0 o negativos como stock válido.
-            // Solo usar 9999 si product.stock es undefined o null.
             stock: product.stock ?? 9999,
             supplier: product.supplier || 'No especificado',
             isDescriptionEdited: product.isDescriptionEdited ?? !hasValidDbId,
@@ -136,9 +134,18 @@ export const useBillingStore = create<BillingState>(set => ({
    },
 
    removeItem: id => {
-      set(state => ({
-         items: state.items.filter(item => item.id !== id),
-      }));
+      set(state => {
+         const newItems = state.items.filter(item => item.id !== id);
+         const newPayments = newItems.length === 0 ? [] : state.checkoutData.payments;
+
+         return {
+            items: newItems,
+            checkoutData: {
+               ...state.checkoutData,
+               payments: newPayments,
+            },
+         };
+      });
    },
 
    setDiscount: discount => set({ discount }),
@@ -184,7 +191,6 @@ export const useBillingStore = create<BillingState>(set => ({
 
    ensureDefaultPayment: () => {
       set(state => {
-         // Only add default cash payment if there are no payments active
          if (state.checkoutData.payments.length === 0) {
             return {
                checkoutData: {
@@ -214,13 +220,7 @@ export const useBillingStore = create<BillingState>(set => ({
          discount: { value: 0, type: 'fixed' },
          checkoutData: {
             ...initialCheckoutState,
-            payments: [
-               {
-                  id: crypto.randomUUID(),
-                  method: 'cash',
-                  amount: null,
-               },
-            ],
+            payments: [],
          },
       }),
 }));

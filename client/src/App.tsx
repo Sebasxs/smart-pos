@@ -34,28 +34,17 @@ import { useCashShiftStore } from './store/cashShiftStore';
 function ProtectedLayout({ children }: { children: React.ReactNode }) {
    const { isAuthenticated } = useAuthStore();
    const { checkShiftStatus } = useCashShiftStore();
-   const { isInitializing, error } = useGlobalStoreInitializer();
+   const { isInitializing } = useGlobalStoreInitializer();
    const location = useLocation();
 
    useEffect(() => {
       if (isAuthenticated) {
-         checkShiftStatus();
+         checkShiftStatus().catch(console.error);
       }
    }, [isAuthenticated]);
 
-   if (!isAuthenticated) {
-      return <Navigate to="/login" state={{ from: location }} replace />;
-   }
-
-   // Show loading state while stores are initializing
-   if (isInitializing) {
-      return <FullPageLoader message="Cargando datos..." />;
-   }
-
-   // Show error if initialization failed (but allow app to continue)
-   if (error) {
-      console.error('Store initialization error:', error);
-   }
+   if (!isAuthenticated) return <Navigate to="/login" state={{ from: location }} replace />;
+   if (isInitializing) return <FullPageLoader message="Sincronizando datos..." />;
 
    return (
       <div className="h-screen w-screen bg-zinc-950 flex flex-col md:flex-row text-zinc-200 font-sans antialiased overflow-hidden">
@@ -70,34 +59,24 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
 
 function App() {
    useGlobalEscapeKey();
-   const { checkSession, initializeListener, isAuthenticated } = useAuthStore();
-   const [isChecking, setIsChecking] = useState(!isAuthenticated);
+   const { initializeAuth, isInitialized, isAuthenticated } = useAuthStore();
+   const [isReady, setIsReady] = useState(false);
 
    useEffect(() => {
-      const cleanup = initializeListener();
-
-      const timer = setTimeout(() => {
-         setIsChecking(false);
-      }, 5000);
-
-      checkSession()
-         .then(() => {
-            if (isAuthenticated) {
-               useCashShiftStore.getState().checkShiftStatus();
-            }
-         })
-         .finally(() => {
-            setIsChecking(false);
-            clearTimeout(timer);
-         });
-
-      return () => {
-         clearTimeout(timer);
-         cleanup();
+      const init = async () => {
+         await initializeAuth();
+         setIsReady(true);
       };
+      init();
    }, []);
 
-   if (isChecking) {
+   // Failsafe to avoid blank screen
+   useEffect(() => {
+      const timer = setTimeout(() => setIsReady(true), 2000);
+      return () => clearTimeout(timer);
+   }, []);
+
+   if (!isReady && !isAuthenticated && !isInitialized) {
       return <FullPageLoader message="Iniciando sistema..." />;
    }
 
@@ -120,22 +99,17 @@ function App() {
                      <Route path="/chat" element={<Chat />} />
                      <Route path="/shift" element={<Shift />} />
 
-                     {/* Operaciones */}
                      <Route path="/credit-notes" element={<CreditNotes />} />
 
-                     {/* Logística */}
                      <Route path="/purchases" element={<Purchases />} />
                      <Route path="/adjustments" element={<Adjustments />} />
                      <Route path="/kardex" element={<Kardex />} />
 
-                     {/* Directorio */}
                      <Route path="/suppliers" element={<Suppliers />} />
 
-                     {/* Admin */}
                      <Route path="/users" element={<Users />} />
                      <Route path="/settings" element={<Settings />} />
 
-                     {/* User */}
                      <Route path="/profile" element={<Profile />} />
                   </Routes>
                </ProtectedLayout>
